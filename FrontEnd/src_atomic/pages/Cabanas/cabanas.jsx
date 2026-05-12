@@ -10,6 +10,7 @@ import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import TablaGeneral from "../../components/organisms/tabla";
 import ModalAgregar from "./modales/modalAgregar";
 import ModalEditar from "./modales/modalEditar";
+import ModalImagenes from "./modales/modalImagenes";
 
 import CabanasCard from "./componentsData/cabanaCard";
 import Buscador, { cabinFilterConfig } from "./componentsData/cabinSearch";
@@ -52,6 +53,8 @@ function Cabanas() {
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
   const [registroAEditar, setRegistroAEditar] = useState(null);
 
+  const [selectedCabin, setSelectedCabin] = useState(null)
+
   const [cabanas, setCabanas] = useState(null);
   const [activeTab, setActiveTab] = useState('cabins');
 
@@ -75,6 +78,18 @@ function Cabanas() {
     handleTabChange(activeTab);
     fetchFilters();
     setRefreshStatsTrigger(prev => prev + 1);
+  };
+
+  const handleCabinClick = (fila) => {
+    setSelectedCabin(fila)
+  } 
+
+  const closeMenu = () => {
+    setSelectedCabin(null)
+  };
+
+  const onColumnClickHandlers = {
+    nombre: handleCabinClick,
   };
 
   useEffect(() => {
@@ -140,6 +155,7 @@ function Cabanas() {
         {displayData && (
           <TablaGeneral
             data={displayData}
+            onColumnClick={onColumnClickHandlers}
             onEdit={editarRegistro} 
             onDelete={activeTab === 'cabins' ? eliminarRegistro : undefined}
             onActive={activeTab === 'cabins' ? activarRegistro : undefined}
@@ -160,6 +176,13 @@ function Cabanas() {
           setModalAbierto={setModalEditarAbierto}
           fetchData={handleFetchData}
           cabanaAEditar={registroAEditar}
+        />
+      )}
+
+      {selectedCabin && (
+        <ModalImagenes 
+          id={selectedCabin.cabana_id}
+          onClose={closeMenu}
         />
       )}
     </>

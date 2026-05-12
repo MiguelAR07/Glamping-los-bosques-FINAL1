@@ -49,6 +49,7 @@ function Login() {
           value={formData.contrasena}
           onChange={handleChange}
           required
+          titulo="Información del Cliente" onClose={onClose}
         />
 
         <button type="submit" disabled={submitting}>

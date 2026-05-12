@@ -14,6 +14,11 @@ export const cabin = {
       estado <> 'inactivo'
       AND nombre ILIKE '%' || $1 || '%'
   `,
+  getCabinImgs: `
+    SELECT * 
+    FROM imagenes_cabana
+    WHERE cabana_id = $1
+  `,
   createCabin: `
     INSERT INTO Cabanas (nombre, precio_noche, capacidad_personas, fecha_registro, descripcion, fecha_mantenimiento, estado)
     VALUES ($1, $2, $3, CURRENT_DATE, $4, NULL, 'Activo')

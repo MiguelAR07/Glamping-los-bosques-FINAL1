@@ -37,6 +37,21 @@ export const getCabinByName = async (req, res) => {
   }
 }
 
+export const getCabinImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      cabin.getCabinImgs,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch(error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export const createCabin = async (req, res) => {
   try {
     const { nombre, precio_noche, capacidad_personas, descripcion, userName } = req.body;
