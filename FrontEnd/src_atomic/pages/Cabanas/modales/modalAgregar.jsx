@@ -44,6 +44,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
       capacidad_personas: '',
       precio_noche: '', 
       descripcion: '',
+      es_promocion: false,
+      precio_promocional: '',
 
       userName: localStorage.getItem('userName') || '',
     },
@@ -58,9 +60,31 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
     <ModalPlantilla modulo="cabañas" onClose={() => setModalAbierto(false)}>
       <Form onSubmit={(e) => handleSubmit(e, () => setModalAbierto(false))}>
         <input type="text" name="nombre" placeholder="Nombre de la cabaña" value={formData.nombre} onChange={handleChange} required />
-        <input type="number" name="capacidad_personas" placeholder="Capacidad de personas" value={formData.capacidad_personas} onChange={handleChange} required />
-        <input type="number" step="0.01" name="precio_noche" placeholder="Precio por noche" value={formData.precio} onChange={handleChange} required />
+        <input type="number" min="0" name="capacidad_personas" placeholder="Capacidad de personas" value={formData.capacidad_personas} onChange={handleChange} required />
+        <input type="number" min="0" step="0.01" name="precio_noche" placeholder="Precio por noche" value={formData.precio} onChange={handleChange} required />
         <textarea name="descripcion" placeholder="Descripción de la cabaña" value={formData.descripcion} onChange={handleChange} required />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input 
+            type="checkbox" 
+            name="es_promocion" 
+            checked={formData.es_promocion} 
+            onChange={(e) => handleChange({ target: { name: 'es_promocion', value: e.target.checked } })} 
+            style={{ width: 'auto' }}
+          />
+          ¿Es una Promoción?
+        </label>
+        {formData.es_promocion && (
+          <input 
+            type="number" 
+            min="0"
+            step="0.01" 
+            name="precio_promocional" 
+            placeholder="Precio Promocional" 
+            value={formData.precio_promocional} 
+            onChange={handleChange} 
+            required 
+          />
+        )}
         <button type="submit" disabled={submitting}>
           {submitting ? 'Guardando...' : 'Guardar Cabaña'}
         </button>

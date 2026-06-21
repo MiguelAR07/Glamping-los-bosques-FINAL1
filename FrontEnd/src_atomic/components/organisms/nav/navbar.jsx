@@ -90,7 +90,7 @@ function Navbar() {
     <NavBar>
       <div>
         <div className="titulo">
-          <img src="images/Logo.svg" alt="" />
+          <img src="/images/logo.jpeg" alt="Logo Glamping" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0px 2px 8px rgba(0,0,0,0.3)', margin: '0 auto', display: 'block' }} />
         </div>
         <ModulesCont>
           {modulosDisponibles.map((item, i) => (

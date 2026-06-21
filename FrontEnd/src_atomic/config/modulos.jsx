@@ -1,11 +1,12 @@
 import Inicio from "../pages/inicio/inicio"
 import Cabanas from "../pages/Cabanas/cabanas"
 import Paquetes from "../pages/Paquetes/paquetes"
-import Productos from "../pages/Productos/productos"
+import Promociones from "../pages/Promociones/promociones"
 import Servicios from "../pages/Servicios/servicios"
 import Reservas from "../pages/Reservas/reservas"
 import Pagos from "../pages/Pagos/pagos"
 import Usuarios from "../pages/Usuarios/usuarios"
+import Disponibilidad from "../pages/Disponibilidad/disponibilidad"
 
 export const userRole = localStorage.getItem('userRole') || "";
 
@@ -29,10 +30,10 @@ export const modulos = [
     ruta: '/paquetes'
   },
   {
-    icono: "bi bi-basket3-fill",
-    nombre: 'Productos',
-    componente: <Productos />,
-    ruta: '/productos'
+    icono: "bi bi-stars",
+    nombre: 'Promociones',
+    componente: <Promociones />,
+    ruta: '/promociones'
   },
   {
     icono: "bi bi-ev-front-fill",
@@ -61,4 +62,11 @@ export const modulos = [
     ruta: '/usuarios',
     roles: ["administrador"]
   },
+  {
+    icono: "bi bi-calendar-event-fill",
+    nombre: 'Disponibilidad',
+    componente: <Disponibilidad />,
+    ruta: '/disponibilidad',
+    roles: ["recepcionista", "administrador"]
+  }
 ];

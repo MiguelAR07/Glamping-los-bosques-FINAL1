@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { verificarToken } from '../middleware/auth.middleware.js';
 
 import loginRouter from './login.routes.js';
-import productRouter from './product.routes.js';
 import cabinRouter from './cabin.routes.js';
 import cabinDamageRouter from './cabinDamage.routes.js';
 import clientRouter from './customer.routes.js';
@@ -16,13 +15,15 @@ import refoundRouter from './refound.routes.js';
 import invoiceRouter from './invoice.routes.js';
 import notificationRouter from './notification.routes.js';
 import dashboardRouter from './dashboard.routes.js';
+import reviewRouter from './review.routes.js';
+import promocionRouter from './promocion.routes.js';
+import availabilityRouter from './availability.routes.js';
 
 const router = Router();
 
 router.use('/login', loginRouter);
 
 router.use(verificarToken);
-router.use('/products', productRouter);
 router.use('/cabins', cabinRouter);
 router.use('/cabinDamage', cabinDamageRouter);
 router.use('/customers', clientRouter);
@@ -35,7 +36,10 @@ router.use('/refounds', refoundRouter);
 router.use('/invoices', invoiceRouter);
 router.use('/notifications', notificationRouter);
 router.use('/dashboard', dashboardRouter);
+router.use('/promociones', promocionRouter);
+router.use('/availability', availabilityRouter);
 
 router.use('/types', typesRouter);
+router.use('/reviews', reviewRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 -------------------------- Views servicios -----------------------------
-CREATE VIEW vista_servicios AS
+CREATE OR REPLACE VIEW vista_servicios AS
 SELECT
 	servicio_id AS ID,
 	nombre AS Servicio,
@@ -25,7 +25,7 @@ WHERE s.estado = 'Activo'
 GROUP BY s.nombre, s.servicio_id;
 
 -------------------------- Views productos -----------------------------
-CREATE VIEW vista_productos AS
+CREATE OR REPLACE VIEW vista_productos AS
 SELECT
 	producto_id AS ID,
 	nombre AS Producto,
@@ -36,7 +36,7 @@ SELECT
 	estado
 FROM productos;
 
-CREATE VIEW vista_productos_stats AS
+CREATE OR REPLACE VIEW vista_productos_stats AS
 SELECT
     p.nombre AS producto,
     COUNT(p.producto_id) AS veces_reservado,
@@ -50,7 +50,7 @@ WHERE p.estado = 'Activo'
 GROUP BY p.nombre, p.producto_id;
 
 -------------------------- Views cabañas -----------------------------
-CREATE VIEW vista_cabanas AS
+CREATE OR REPLACE VIEW vista_cabanas AS
 SELECT 
 	cabana_id AS ID,
 	nombre,
@@ -62,7 +62,7 @@ SELECT
 	estado
 FROM cabanas;
 
-CREATE VIEW vista_cabanas_stats AS
+CREATE OR REPLACE VIEW vista_cabanas_stats AS
 SELECT
   	c.nombre AS "Cabaña",
     COUNT(DISTINCT r.reserva_id) AS "Veces reservada",
@@ -75,7 +75,7 @@ WHERE c.estado <> 'inactivo'
 	AND r.estado <> 'Cancelada'
 GROUP BY c.cabana_id, c.nombre;
 
-CREATE VIEW vista_cabanas_revenue AS
+CREATE OR REPLACE VIEW vista_cabanas_revenue AS
 SELECT
   TO_CHAR(f.fecha_factura, 'YYYY-MM-DD') AS fecha,
   SUM(f.total) AS total
@@ -88,7 +88,7 @@ WHERE c.estado <> 'inactivo'
 GROUP BY TO_CHAR(f.fecha_factura, 'YYYY-MM-DD');
 
 -------------------------- Views daños y mantenimientos -----------------------------
-CREATE VIEW vista_danos_mantenimientos AS
+CREATE OR REPLACE VIEW vista_danos_mantenimientos AS
 SELECT
 	dm.dano_id AS ID,
 	c.nombre AS cabana,
@@ -115,7 +115,7 @@ SELECT
 FROM usuarios u 
 JOIN roles r ON u.rol_id = r.rol_id;
 
-CREATE VIEW vista_usuarios_stats AS
+CREATE OR REPLACE VIEW vista_usuarios_stats AS
 SELECT 
   	COUNT(*) AS total_active_users,
 	(
@@ -136,7 +136,7 @@ SELECT
 FROM usuarios;
 
 -------------------------- Views login -----------------------------
-CREATE VIEW vista_login AS
+CREATE OR REPLACE VIEW vista_login AS
 SELECT 
 	l.usuario_id AS usuario,
 	u.rol_id AS rol,
@@ -147,7 +147,7 @@ FROM login l
 JOIN usuarios u ON u.usuario_id = l.usuario_id;
 
 -------------------------- Views logs - login -----------------------------
-CREATE VIEW vista_logs_login AS
+CREATE OR REPLACE VIEW vista_logs_login AS
 SELECT 
 	l.email,
 	ll.accion,
@@ -170,7 +170,7 @@ SELECT
     p.cabana_id
 FROM paquetes p
 JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id
-JOIN cabanas c ON c.cabana_id = p.cabana_id
+JOIN cabanas c ON c.cabana_id = p.cabana_id;
 
 CREATE OR REPLACE VIEW vista_paquetes_stats AS
 SELECT
@@ -217,13 +217,13 @@ SELECT
 	c.email,
 	c.contacto,
 	c.pais_residencia AS residencia
-FROM clientes c
+FROM clientes c;
 
 -------------------------- Views de reservas -----------------------------
-CREATE VIEW vista_reservas AS
+CREATE OR REPLACE VIEW vista_reservas AS
 SELECT 
 	r.reserva_id AS ID,
-	p.nombre AS Paquete,
+	tp.nombre || ' - ' || p.nombre AS Paquete,
 	c.nombre AS Cliente,
 	r.fecha_registro AS fecha,
 	r.llegada,
@@ -232,9 +232,10 @@ SELECT
 	r.por_pagar AS "Pago restante"
 FROM Reservas r
 JOIN Clientes c ON c.cliente_id = r.cliente_id
-JOIN Paquetes p ON p.paquete_id = r.paquete_id;
+JOIN Paquetes p ON p.paquete_id = r.paquete_id
+JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id;
 
-CREATE VIEW vista_reservas_revenue AS
+CREATE OR REPLACE VIEW vista_reservas_revenue AS
 SELECT
   TO_CHAR(f.fecha_factura, 'YYYY-MM-DD') AS fecha,
   SUM(f.total) AS total
@@ -259,7 +260,7 @@ JOIN clientes c ON c.cliente_id = r.cliente_id
 WHERE r.estado <> 'Cancelada';
 
 -------------------------- Views de pagos -----------------------------
-CREATE VIEW vista_pagos AS
+CREATE OR REPLACE VIEW vista_pagos AS
 SELECT 
 	p.pago_id AS ID,
 	mp.nombre AS Metodo,
@@ -270,7 +271,7 @@ SELECT
 FROM pagos p
 JOIN metodos_pago mp ON mp.metodo_id = p.metodo_id;
 
-CREATE VIEW vista_pagos_stats AS
+CREATE OR REPLACE VIEW vista_pagos_stats AS
 SELECT 
     SUM(CASE WHEN tipo = 'pago' THEN monto ELSE 0 END) AS total_cobrado,
     SUM(CASE WHEN tipo = 'reembolso' THEN monto ELSE 0 END) AS total_reembolsado,
@@ -287,7 +288,7 @@ FROM (
 ) AS reporte;
 
 -------------------------- Views de reembolsos -----------------------------
-CREATE VIEW vista_reembolsos_factura AS
+CREATE OR REPLACE VIEW vista_reembolsos_factura AS
 SELECT 
     reembolso_id AS ID,
     factura_id AS Factura,
@@ -337,7 +338,7 @@ CREATE INDEX idx_pagos_fecha_ingreso ON pagos (fecha_pago)
 WHERE estado <> 'Cancelado';
 
 -- Para acelerar el cálculo de reembolsos por mes
-CREATE INDEX idx_reembolsos_fecha ON reembolsos (fecha_reembolso);
+CREATE INDEX idx_reembolsos_fecha ON reembolsos (fecha);
 
 
 /*

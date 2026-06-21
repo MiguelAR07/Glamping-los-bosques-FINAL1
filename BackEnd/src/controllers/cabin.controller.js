@@ -52,16 +52,33 @@ export const getCabinImages = async (req, res) => {
   }
 }
 
-export const createCabin = async (req, res) => {
+export const getAllCabinImages = async (req, res) => {
   try {
-    const { nombre, precio_noche, capacidad_personas, descripcion, userName } = req.body;
+    const result = await pool.query(cabin.getAllCabinImgs);
+    res.json(result.rows);
+  } catch(error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 
-    await pool.query("BEGIN");
+  export const createCabin = async (req, res) => {
+    try {
+      const { nombre, precio_noche, capacidad_personas, descripcion, userName, es_promocion, precio_promocional } = req.body;
+      
+      const p_noche = precio_noche === "" ? null : precio_noche;
+      const c_personas = capacidad_personas === "" ? null : capacidad_personas;
+      const p_promocional = precio_promocional === "" ? null : precio_promocional;
+  
+      if (p_noche !== null && Number(p_noche) < 0) throw new Error("El precio por noche no puede ser negativo");
+      if (p_promocional !== null && Number(p_promocional) < 0) throw new Error("El precio promocional no puede ser negativo");
+      if (c_personas !== null && Number(c_personas) < 0) throw new Error("La capacidad de personas no puede ser negativa");
 
-    const result = await pool.query(
-      cabin.createCabin, 
-      [nombre, precio_noche, capacidad_personas, descripcion]
-    );
+      await pool.query("BEGIN");
+  
+      const result = await pool.query(
+        cabin.createCabin, 
+        [nombre, p_noche, c_personas, descripcion, es_promocion, p_promocional]
+      );
 
     await pool.query(notification.createNotification, [
       userName,
@@ -78,17 +95,25 @@ export const createCabin = async (req, res) => {
   }
 }
 
-export const updateCabin = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, precio_noche, capacidad_personas, descripcion, userName } = req.body;
+  export const updateCabin = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { nombre, precio_noche, capacidad_personas, descripcion, userName, es_promocion, precio_promocional } = req.body;
+      
+      const p_noche = precio_noche === "" ? null : precio_noche;
+      const c_personas = capacidad_personas === "" ? null : capacidad_personas;
+      const p_promocional = precio_promocional === "" ? null : precio_promocional;
+  
+      if (p_noche !== null && Number(p_noche) < 0) throw new Error("El precio por noche no puede ser negativo");
+      if (p_promocional !== null && Number(p_promocional) < 0) throw new Error("El precio promocional no puede ser negativo");
+      if (c_personas !== null && Number(c_personas) < 0) throw new Error("La capacidad de personas no puede ser negativa");
 
-    await pool.query("BEGIN");
-
-    const result = await pool.query(
-      cabin.updateCabin,
-      [nombre, precio_noche, capacidad_personas, descripcion, id]
-    );
+      await pool.query("BEGIN");
+  
+      const result = await pool.query(
+        cabin.updateCabin,
+        [nombre, p_noche, c_personas, descripcion, es_promocion, p_promocional, id]
+      );
 
     await pool.query(notification.createNotification, [
       userName,

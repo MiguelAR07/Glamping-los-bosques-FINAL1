@@ -19,6 +19,11 @@ export const packages = {
     FROM vista_paquetes
     WHERE tipo ILIKE '%' || $1 || '%'
   `,
+  createPackage: `
+    INSERT INTO paquetes (cabana_id, dias_estadia, fecha_registro, descripcion, estado, tipo_id)
+    VALUES ($1, $2, CURRENT_DATE, $3, 'Activo', $4)
+    RETURNING paquete_id
+  `,
   // Un paquete debe incluir (servicios, productos, cabañas)
   updatePackage: `
     UPDATE paquetes SET
@@ -26,8 +31,10 @@ export const packages = {
       tipo_id = COALESCE(NULLIF($2::text, '')::integer, tipo_id),
       dias_estadia = COALESCE(NULLIF($3::text, '')::integer, dias_estadia),
       descripcion = COALESCE(NULLIF($4, ''), descripcion),
+      img_url = COALESCE(NULLIF($5, ''), img_url),
+      precio_promocional = COALESCE(NULLIF($6::text, '')::numeric, precio_promocional),
       fecha_registro = CURRENT_DATE
-    WHERE paquete_id = $5
+    WHERE paquete_id = $7
     RETURNING paquete_id, fecha_registro
   `,
   deletePackage: `

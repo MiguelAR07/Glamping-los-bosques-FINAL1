@@ -14,9 +14,9 @@ export const notification = {
   `,
   createNotification: `
     INSERT INTO notificaciones 
-    (creada_por, asunto, mensaje, fecha)
+    (titulo, asunto, mensaje, fecha)
     VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-    RETURNING creada_por, asunto
+    RETURNING titulo, asunto
   `,
   deleteNotification: `
     DELETE FROM notificaciones 

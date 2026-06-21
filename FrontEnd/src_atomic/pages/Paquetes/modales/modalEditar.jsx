@@ -79,6 +79,9 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
       dias_estadia: paqueteAEditar.dias || paqueteAEditar.dias || '',
       descripcion: paqueteAEditar.descripcion || paqueteAEditar.descripcion || '',
 
+      precio_promocional: paqueteAEditar.precio_promocional || paqueteAEditar.precio || 0,
+      img_url: paqueteAEditar.img_url || '',
+
       userName: localStorage.getItem('userName') || '',
     },
     urlParams,
@@ -118,6 +121,20 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
           value={formData.dias_estadia} 
           onChange={handleChange} 
           required 
+        />
+        <input 
+          type="number" 
+          name="precio_promocional" 
+          placeholder="Precio Especial Promocional" 
+          value={formData.precio_promocional} 
+          onChange={handleChange} 
+        />
+        <input 
+          type="text" 
+          name="img_url" 
+          placeholder="URL de la imagen (Ej: /public/promos/foto1.jpg)" 
+          value={formData.img_url} 
+          onChange={handleChange} 
         />
         <textarea 
           name="descripcion" 

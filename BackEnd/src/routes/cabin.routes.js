@@ -4,6 +4,7 @@ import {
   getCabins,
   getCabinByName,
   getCabinImages,
+  getAllCabinImages,
   updateCabin,
   deleteCabin,
   createCabin,
@@ -23,6 +24,7 @@ const router = Router();
 router.get('/', getCabins);
 router.get('/filters', getCabinFilters);
 router.post('/search', getCabinByName);
+router.get('/images', getAllCabinImages);
 router.get('/images/:id', getCabinImages);
 router.post('/', rulesCreateCabin, validateRules, createCabin);
 router.put('/:id', rulesUpdateCabin, validateRules, updateCabin);

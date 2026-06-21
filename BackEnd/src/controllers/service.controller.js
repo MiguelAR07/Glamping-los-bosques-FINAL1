@@ -38,17 +38,19 @@ export const createService = async (req, res) => {
       duracion_minutos, 
       precio, 
       descripcion,
-
       userName
     } = req.body;
+
+    const duracion = duracion_minutos === "" ? null : duracion_minutos;
+    const precio_val = precio === "" ? null : precio;
 
     await pool.query("BEGIN");
     
     const result = await pool.query(service.createService, [
         nombre,
         encargado,
-        duracion_minutos,
-        precio,
+        duracion,
+        precio_val,
         descripcion
       ]);
 
@@ -83,15 +85,17 @@ export const updateService = async (req, res) => {
       duracion_minutos,
       precio,
       descripcion,
-
       userName
     } = req.body;
+
+    const duracion = duracion_minutos === "" ? null : duracion_minutos;
+    const precio_val = precio === "" ? null : precio;
 
     await pool.query("BEGIN");
 
     const result = await pool.query(
       service.updateService, 
-      [nombre, encargado, duracion_minutos, precio, descripcion, id]
+      [nombre, encargado, duracion, precio_val, descripcion, id]
     );
 
     await pool.query(notification.createNotification, [

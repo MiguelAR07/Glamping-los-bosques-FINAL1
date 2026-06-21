@@ -1,7 +1,7 @@
 -- Tablas Maestras de Configuración
-INSERT INTO Roles (Nombre) VALUES ('Administrador'), ('Recepcionista'), ('Mantenimiento');
+-- INSERT INTO Roles (Nombre) VALUES ('Administrador'), ('Recepcionista'), ('Mantenimiento');
 
-INSERT INTO Identificaciones (Tipo) VALUES ('Cédula de Ciudadanía'), ('Pasaporte'), ('Cédula de Extranjería');
+INSERT INTO Tipo_Paquete (Nombre) VALUES ('Familiar'), ('Parejas'), ('Aventura');
 
 INSERT INTO Metodos_Pago (Tipo, Nombre) VALUES 
 ('Efectivo', 'Pago físico en recepción'),
@@ -25,20 +25,20 @@ INSERT INTO Productos (Nombre, Tipo, Precio, Descripcion, IMG_URL) VALUES
 ('Cerveza Artesanal', 'Bebida', 12000, 'Local 330ml', 'https://url.com/p3.jpg');
 
 -- Personal y Clientes
-INSERT INTO Usuarios (Rol_ID, Identificacion_ID, Numero_Identificacion, Nombre, Contacto, Sueldo, Fecha_Agregado) VALUES 
-(1, 1, '10203040', 'Joe Lopez', '3001234567', 2500000, CURRENT_TIMESTAMP),
-(2, 1, '50607080', 'Ana Martinez', '3109876543', 1300000, CURRENT_TIMESTAMP);
+-- INSERT INTO Usuarios (Rol_ID, tipo_identificacion, numero_identificacion, Nombre, Contacto, Sueldo, Fecha_Agregado) VALUES 
+-- (1, 'CC', '10203040', 'Joe Lopez', '3001234567', 2500000, CURRENT_TIMESTAMP),
+-- (2, 'CC', '50607080', 'Ana Martinez', '3109876543', 1300000, CURRENT_TIMESTAMP);
 
-INSERT INTO Clientes (Identificacion_ID, Nombre, Email, Contacto, Identificacion, Pais_Residencia) VALUES 
-(1, 'Carlos Ruiz', 'carlos@mail.com', '3110001122', '123456', 'Colombia'),
-(2, 'Jane Doe', 'jane@mail.com', '+15551234', 'PA887766', 'USA'),
-(1, 'Luis Perez', 'luis@mail.com', '3204445566', '789012', 'Colombia');
+INSERT INTO Clientes (tipo_identificacion, Nombre, Email, Contacto, numero_identificacion, Pais_Residencia) VALUES 
+('CC', 'Carlos Ruiz', 'carlos@mail.com', '3110001122', '123456', 'Colombia'),
+('PAS', 'Jane Doe', 'jane@mail.com', '+15551234', 'PA887766', 'USA'),
+('CC', 'Luis Perez', 'luis@mail.com', '3204445566', '789012', 'Colombia');
 
---Paquetes (Crucial para Reservas)
-INSERT INTO Paquetes (Cabana_ID, Registrado_Por_ID, Nombre, Dias_Estadia, Descripcion) VALUES 
-(1, 1, 'Escapada Romántica', 2, 'Ideal para parejas en aniversario'),
-(2, 1, 'Plan Familiar', 3, 'Diversión en el bosque'),
-(3, 2, 'Aventura Estelar', 1, 'Noche de telescopio');
+-- Paquetes (Crucial para Reservas)
+INSERT INTO Paquetes (Cabana_ID, Tipo_ID, Registrado_Por_ID, Nombre, Dias_Estadia, Descripcion) VALUES 
+(1, 2, (SELECT MAX(Usuario_ID) FROM Usuarios), 'Escapada Romántica', 2, 'Ideal para parejas en aniversario'),
+(2, 1, (SELECT MAX(Usuario_ID) FROM Usuarios), 'Plan Familiar', 3, 'Diversión en el bosque'),
+(3, 3, (SELECT MAX(Usuario_ID) FROM Usuarios), 'Aventura Estelar', 1, 'Noche de telescopio');
 
 -- Reservas y Facturas (10 Registros)
 -- Reservas
@@ -55,7 +55,7 @@ INSERT INTO Reservas (Paquete_ID, Cliente_ID, Llegada, Salida, Estado, Por_pagar
 (3, 3, '2026-12-24', '2026-12-25', 'Confirmada', 0);
 
 -- Facturas (Relacionadas 1 a 1 con las reservas anteriores)
--- Nota: 'Total' no se inserta porque es GENERATED ALWAYS
+-- Nota: 'Total' no se inserta porque es GENERATED ALWAYS y se calcula solo.
 INSERT INTO Facturas (Reserva_ID, Subtotal, Descuento) VALUES 
 (1, 850000, 10), (2, 920000, 0), (3, 1200000, 5),
 (4, 500000, 0), (5, 1150000, 0), (6, 0, 0),
@@ -70,8 +70,3 @@ INSERT INTO Pagos (Metodo_ID, Factura_ID, Fecha_Pago, Estado, Total_Pagado) VALU
 INSERT INTO Danos_Mantenimientos (Cabana_ID, Descripcion, Estado, Responsable) VALUES 
 (1, 'Cambio de bombillas led', 'Terminado', 'Pedro Mantenimiento'),
 (2, 'Fuga en el jacuzzi', 'En proceso', 'Fontanero Ext');
-
-SELECT * FROM vista_usuarios
-    SELECT rol_id, nombre FROM roles
-	    SELECT identificacion_id, tipo FROM identificaciones
-

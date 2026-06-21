@@ -19,6 +19,9 @@ from "./componentsData/reservasSearch";
 
 import ModalClientes from "./modales/modalClientes";
 import ModalPaquete from "./modales/modalPaquete";
+import ModalValidarReserva from "./modales/modalValidarReserva";
+import ModalReprogramar from "./modales/modalReprogramar";
+import ModalAgregar from "./modales/modalAgregar";
 
 const CardsCont = styled.div`
   margin: 50px 0;
@@ -45,6 +48,9 @@ function Reservas({ modulo }) {
   const { data, loading, error, fetchData } = useFetch();
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedPackage, setSelectedPackage] = useState(null);
+  const [reservaAValidar, setReservaAValidar] = useState(null);
+  const [reservaAReprogramar, setReservaAReprogramar] = useState(null);
+  const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
 
   const [reservas, setReservas] = useState(null);
   const { displayData, setFilterMode, fetchFilters } = useFilters(
@@ -98,6 +104,70 @@ function Reservas({ modulo }) {
     );
   };
 
+  const verComprobante = (reserva) => {
+    if (reserva.comprobante_url) {
+      // Cloudinary bloquea la entrega de PDFs por defecto por seguridad.
+      // Si es un PDF, cambiamos la extensión a .jpg para que Cloudinary
+      // lo convierta automáticamente en una imagen visible.
+      let finalUrl = reserva.comprobante_url;
+      if (finalUrl.toLowerCase().endsWith('.pdf')) {
+        finalUrl = finalUrl.slice(0, -4) + '.jpg';
+      }
+      window.open(finalUrl, "_blank");
+    } else {
+      alert("No hay comprobante asociado a esta reserva.");
+    }
+  };
+
+  const procesarConfirmacion = async (reserva) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/confirm/${reserva.reserva_id || reserva.id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        alert("Reserva confirmada exitosamente y notificaciones enviadas.");
+        setReservaAValidar(null);
+        handleFetchData();
+      } else {
+        const errData = await response.json();
+        alert(`Error: ${errData.message || 'No se pudo confirmar la reserva'}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error de conexión al confirmar la reserva.");
+    }
+  };
+
+  const procesarRechazo = async (reserva, motivo) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/reject/${reserva.reserva_id || reserva.id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ motivo })
+      });
+      if (response.ok) {
+        alert("Reserva rechazada exitosamente y cliente notificado.");
+        setReservaAValidar(null);
+        handleFetchData();
+      } else {
+        const errData = await response.json();
+        alert(`Error: ${errData.message || 'No se pudo rechazar la reserva'}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error de conexión al rechazar la reserva.");
+    }
+  };
+
   const onColumnClickHandlers = {
     cliente: handleClientClick,
     paquete: handlePackageClick
@@ -114,18 +184,67 @@ function Reservas({ modulo }) {
         <BotonAgregar
           modulo={"Agregar reserva"}
           color={1}
+          onClick={() => setModalAgregarAbierto(true)}
         />
       </Botones>
 
       {loading && <p style={{ marginTop: '20px' }}>Cargando reservas...</p>}
       {error && <p style={{ marginTop: '20px', color: 'red' }}>Error: {error}</p>}
       {displayData && (
-        <TablaGeneral
-          data={displayData}
-          onColumnClick={onColumnClickHandlers}
-          onActive={activarReserva}
-          onDelete={eliminarReserva}
-        />
+        <>
+          <TablaGeneral
+            data={displayData.filter(r => !r.estado || !r.estado.toLowerCase().includes('cancelad'))}
+            onColumnClick={onColumnClickHandlers}
+            onActive={activarReserva}
+            onDelete={eliminarReserva}
+            acciones={[
+              {
+                title: "Validar Reserva (Confirmar o Rechazar)",
+                icono: <i className="bi bi-shield-check" style={{ fontSize: '1.2rem' }}></i>,
+                color: "#0dcaf0",
+                onClick: (fila) => setReservaAValidar(fila),
+                condition: (fila) => fila.estado === 'Por validar'
+              },
+              {
+                title: "Ver Comprobante",
+                icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
+                color: "#ffc107",
+                onClick: verComprobante,
+                condition: (fila) => fila.comprobante_url != null
+              },
+              {
+                title: "Reprogramar Reserva",
+                icono: <i className="bi bi-calendar2-event" style={{ fontSize: '1.2rem' }}></i>,
+                color: "#6c757d",
+                onClick: (fila) => setReservaAReprogramar(fila),
+                condition: (fila) => fila.estado === 'Confirmado' || fila.estado === 'Por validar' || fila.estado === 'Confirmada'
+              }
+            ]}
+          />
+
+          {displayData.some(r => r.estado && r.estado.toLowerCase().includes('cancelad')) && (
+            <div style={{ marginTop: '40px' }}>
+              <h2 style={{ marginBottom: '15px', color: '#555', borderBottom: '2px solid #ddd', paddingBottom: '10px' }}>
+                Registro de Reservas Canceladas
+              </h2>
+              <TablaGeneral
+                data={displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))}
+                onColumnClick={onColumnClickHandlers}
+                onActive={activarReserva}
+                onDelete={eliminarReserva}
+                acciones={[
+                  {
+                    title: "Ver Comprobante",
+                    icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
+                    color: "#ffc107",
+                    onClick: verComprobante,
+                    condition: (fila) => fila.comprobante_url != null
+                  }
+                ]}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {selectedClient && (
@@ -139,6 +258,30 @@ function Reservas({ modulo }) {
         <ModalPaquete
           id={selectedPackage.paquete_id}
           onClose={closeMenu}
+        />
+      )}
+
+      {reservaAValidar && (
+        <ModalValidarReserva
+          reserva={reservaAValidar}
+          onClose={() => setReservaAValidar(null)}
+          onConfirm={procesarConfirmacion}
+          onReject={procesarRechazo}
+        />
+      )}
+
+      {reservaAReprogramar && (
+        <ModalReprogramar
+          reserva={reservaAReprogramar}
+          onClose={() => setReservaAReprogramar(null)}
+          onSuccess={handleFetchData}
+        />
+      )}
+
+      {modalAgregarAbierto && (
+        <ModalAgregar
+          setModalAbierto={setModalAgregarAbierto}
+          fetchData={handleFetchData}
         />
       )}
     </>

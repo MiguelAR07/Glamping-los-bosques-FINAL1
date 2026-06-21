@@ -1,7 +1,7 @@
 @echo off
 title Sistema Glamping - Lanzador Local
-set FRONTEND_PATH=C:\Users\Usuario\Desktop\GlampingProject\FrontEnd
-set BACKEND_PATH=C:\Users\Usuario\Desktop\GlampingProject\BackEnd
+set FRONTEND_PATH=%~dp0FrontEnd
+set BACKEND_PATH=%~dp0BackEnd
 
 :: --- 1. VERIFICAR NODE.JS ---
 node -v >nul 2>&1

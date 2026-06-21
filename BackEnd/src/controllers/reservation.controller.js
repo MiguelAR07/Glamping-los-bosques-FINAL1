@@ -1,6 +1,8 @@
 import { reservation, reservationFilters as reservationFiltersModel, reservationStats } from "../models/reservation.model.js";
 import { invoice } from "../models/invoice.model.js";
 import { refounds } from "../models/refound.model.js";
+import { customer } from "../models/customer.model.js";
+import { packages } from "../models/package.model.js";
 
 import pool from "../config/db.js";
 
@@ -77,33 +79,33 @@ export const cancelReservation = async (req, res) => {
 
     await pool.query("BEGIN");
 
-    // Usamos nombres de variables distintos a los modelos (resRow, invRow)
-    const [resData, invData] = await Promise.all([
-      pool.query(reservationModels.getReservationByInvoice, [id]),
-      pool.query(invoiceModels.getInvoiceByReservation, [id])
-    ]);
+    // Usamos la query directa porque vista_reservas tiene la reserva
+    const resData = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
+    const invData = await pool.query(invoice.getInvoiceByReservation, [id]);
 
-    // Validamos existencia correctamente
-    if (resData.rows.length === 0 || invData.rows.length === 0) {
+    if (resData.rows.length === 0) {
       await pool.query("ROLLBACK");
-      return res.status(404).json({ message: 'Reserva o factura no encontrada' });
+      return res.status(404).json({ message: 'Reserva no encontrada' });
     }
 
     const resRow = resData.rows[0];
-    const invRow = invData.rows[0];
+    const invRow = invData.rows.length > 0 ? invData.rows[0] : null;
 
     // Cancelar la reserva usando el modelo original
-    const result = await pool.query(reservationModels.cancelReservation, [id]);
+    const result = await pool.query(reservation.cancelReservation, [id]);
 
     // Lógica de Reembolso: (Total - Deuda actual) = Lo que el cliente ya pagó
-    const montoAPagar = invRow.total - resRow["pago restante"];
-
-    if (montoAPagar > 0) {
-      await pool.query(refounds.createRefound, [
-        invRow.factura_id,
-        "Reserva cancelada",
-        montoAPagar
-      ]);
+    let montoAPagar = 0;
+    if (invRow) {
+       montoAPagar = invRow.total - resRow["Pago restante"];
+       
+       if (montoAPagar > 0) {
+         await pool.query(refounds.createRefound, [
+           invRow.factura_id,
+           "Reserva cancelada",
+           montoAPagar
+         ]);
+       }
     }
 
     await pool.query("COMMIT");
@@ -145,4 +147,315 @@ export const getReservationStats = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+export const createReservation = async (req, res) => {
+    try {
+        let { cliente, reserva, factura, paquete } = req.body;
+        if (typeof cliente === "string") cliente = JSON.parse(cliente);
+        if (typeof reserva === "string") reserva = JSON.parse(reserva);
+        if (typeof factura === "string") factura = JSON.parse(factura);
+        if (typeof paquete === "string") paquete = JSON.parse(paquete);
+        
+        await pool.query("BEGIN");
+
+        const customerResult = await pool.query(customer.createCustomer, [
+            cliente.nombre,
+            cliente.email,
+            cliente.contacto,
+            cliente.tipo_identificacion,
+            cliente.numero_identificacion,
+            cliente.pais_residencia
+        ]);
+
+        let nuevo_paquete_id;
+
+        if (paquete && Object.keys(paquete).length > 0) {
+            const packageResult = await pool.query(packages.createPackage, [
+                paquete.cabana_id,
+                paquete.dias_estadia,
+                paquete.descripcion,
+                paquete.tipo_id
+            ]);
+
+            if (packageResult.rowCount === 0) throw new Error("No se pudo crear el paquete.");
+            nuevo_paquete_id = packageResult.rows[0].paquete_id;
+        } else if (reserva && reserva.paquete_id) {
+            nuevo_paquete_id = reserva.paquete_id;
+        }
+
+        const nuevo_cliente_id = customerResult.rows[0].cliente_id;
+        const facturaUrl = req.file ? req.file.path : null;
+
+        const reservationResult = await pool.query(reservation.createReservation, [
+            reserva.llegada,    // $1
+            reserva.salida,     // $2
+            nuevo_cliente_id,    // $3
+            nuevo_paquete_id,    // $4
+            reserva.por_pagar,   // $5
+            facturaUrl          // $6
+        ])
+
+        if (reservationResult.rowCount === 0) throw new Error("El paquete seleccionado no existe o no está activo.");
+        const nueva_reserva_id = reservationResult.rows[0].reserva_id;
+
+        const invoiceResult = await pool.query(invoice.createInvoice, [
+            factura.subtotal,        // $1
+            factura.descuento || 0,  // $2
+            null,                    // $3 (no usado pero lo paso para mantener orden)
+            nueva_reserva_id,        // $4
+            cliente.email            // $5
+        ]);
+
+        await pool.query("COMMIT");
+
+        res.status(201).json({
+            success: true,
+            reserva_id: nueva_reserva_id,
+            factura_id: invoiceResult.rows[0].factura_id,
+            mensaje: "Reserva y factura generadas con éxito"
+        });
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const uploadPaymentReceipt = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) return res.status(400).json({ success: false, message: "Por favor, sube un comprobante." });
+
+        const facturaUrl = req.file.path || req.file.secure_url || req.file.url;
+
+        await pool.query("BEGIN");
+        const result = await pool.query(reservation.updatePaymentReceipt, [facturaUrl, id]);
+        if (result.rowCount === 0) throw new Error("La reserva especificada no existe.");
+        await pool.query("COMMIT");
+
+        res.status(200).json({ success: true, reserva: result.rows[0], mensaje: "Comprobante cargado con éxito" });
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+import { sendReservationConfirmedEmail, sendReservationRejectedEmail } from "../services/nodemailer.service.js";
+import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
+
+export const confirmReservationPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await pool.query("BEGIN");
+
+        // 1. Confirmar la reserva y extraer datos
+        const result = await pool.query(reservation.confirmReservationAndGetDetails, [id]);
+
+        if (result.rows.length === 0) {
+            await pool.query("ROLLBACK");
+            return res.status(404).json({ message: "La reserva no existe o ya no se puede confirmar." });
+        }
+
+        const data = result.rows[0];
+
+        // Formatear las fechas para el correo
+        const llegadaFormateada = new Date(data.llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const salidaFormateada = new Date(data.salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // 2. Enviar correo electrónico de confirmación
+        if (data.cliente_email) {
+            await sendReservationConfirmedEmail(
+                data.cliente_email, 
+                data.cliente_nombre, 
+                llegadaFormateada, 
+                salidaFormateada
+            );
+        }
+
+        // 3. Enviar SMS de confirmación
+        if (data.cliente_contacto) {
+            await sendReservationConfirmedSMS(data.cliente_contacto, data.cliente_nombre);
+        }
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Reserva confirmada exitosamente y correo enviado." 
+        });
+
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        console.error("Error confirmando reserva:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const rejectReservationPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { motivo } = req.body;
+
+        await pool.query("BEGIN");
+
+        // Obtenemos los datos de la reserva antes de rechazar
+        const result = await pool.query(
+          "SELECT r.*, c.email AS cliente_email, c.nombre AS cliente_nombre, c.contacto AS cliente_contacto FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1", 
+          [id]
+        );
+
+        if (result.rows.length === 0) {
+            await pool.query("ROLLBACK");
+            return res.status(404).json({ message: "La reserva no existe." });
+        }
+
+        const data = result.rows[0];
+
+        // Usamos cancelReservation del model o simplemente actualizamos el estado
+        await pool.query("UPDATE reservas SET estado = 'Cancelada' WHERE reserva_id = $1", [id]);
+
+        // Enviar correo electrónico de rechazo
+        if (data.cliente_email) {
+            await sendReservationRejectedEmail(data.cliente_email, data.cliente_nombre, motivo);
+        }
+
+        // Enviar SMS de rechazo
+        if (data.cliente_contacto) {
+            await sendReservationRejectedSMS(data.cliente_contacto, data.cliente_nombre, motivo);
+        }
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Reserva rechazada exitosamente y correo enviado." 
+        });
+
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        console.error("Error rechazando reserva:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getLatestReservationId = async (req, res) => {
+  try {
+    const result = await pool.query("SELECT MAX(reserva_id) as latest_id FROM reservas");
+    res.json({ latest_id: result.rows[0].latest_id || 0 });
+  } catch (error) {
+    console.error("Error al obtener el ID de la última reserva:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+import { sendRescheduleEmail } from "../services/nodemailer.service.js";
+
+export const rescheduleReservation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { llegada, salida } = req.body;
+
+        await pool.query("BEGIN");
+
+        // Validar que la reserva exista
+        const result = await pool.query(
+            "SELECT r.*, c.email AS cliente_email, c.nombre AS cliente_nombre FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1", 
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            await pool.query("ROLLBACK");
+            return res.status(404).json({ message: "La reserva no existe." });
+        }
+
+        const data = result.rows[0];
+
+        // Actualizar fechas
+        await pool.query(
+            "UPDATE reservas SET llegada = $1, salida = $2 WHERE reserva_id = $3",
+            [llegada, salida, id]
+        );
+
+        // Enviar correo electrónico
+        if (data.cliente_email) {
+            const llegadaFormateada = new Date(llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            const salidaFormateada = new Date(salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            await sendRescheduleEmail(data.cliente_email, data.cliente_nombre, llegadaFormateada, salidaFormateada);
+        }
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Reserva reprogramada exitosamente y correo enviado." 
+        });
+
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        console.error("Error reprogramando reserva:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getReservationServices = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT s.servicio AS nombre, sp.cantidad_personas, s.precio
+            FROM servicios_por_paquete sp
+            JOIN vista_servicios s ON sp.servicio_id = s.id
+            JOIN paquetes p ON p.paquete_id = sp.paquete_id
+            JOIN reservas r ON r.paquete_id = p.paquete_id
+            WHERE r.reserva_id = $1
+        `, [id]);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error al obtener servicios de la reserva:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+import { sendForceMajeureCancelEmail } from "../services/nodemailer.service.js";
+
+export const cancelReservationForceMajeure = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await pool.query("BEGIN");
+
+        // Validar que la reserva exista y obtener email y nombre del cliente
+        const result = await pool.query(
+            "SELECT r.*, c.email AS cliente_email, c.nombre AS cliente_nombre FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1", 
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            await pool.query("ROLLBACK");
+            return res.status(404).json({ message: "La reserva no existe." });
+        }
+
+        const data = result.rows[0];
+
+        // Cambiar el estado a "Cancelada"
+        await pool.query("UPDATE reservas SET estado = 'Cancelada' WHERE reserva_id = $1", [id]);
+
+        // Enviar correo electrónico de fuerza mayor
+        if (data.cliente_email) {
+            await sendForceMajeureCancelEmail(data.cliente_email, data.cliente_nombre);
+        }
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Reserva cancelada por fuerza mayor y correo enviado." 
+        });
+
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        console.error("Error cancelando reserva por fuerza mayor:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };

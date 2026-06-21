@@ -5,7 +5,7 @@ export const reservationFilterConfig = {
   filters: {
     "Reservas recientes": {
       cacheKey: "incomingReservations",
-      localFilter: (arr) => arr.filter(r => r.llegada === CURRENT_DATE && r.estado !== 'Cancelado')
+      localFilter: (arr) => arr.filter(r => r.llegada === CURRENT_DATE && (!r.estado || !r.estado.toLowerCase().includes('cancelad')))
     },
     "Reservas pagadas": {
       cacheKey: "paidReservations",
@@ -17,7 +17,7 @@ export const reservationFilterConfig = {
     },
     "Reservas canceladas": {
       cacheKey: "canceledReservations",
-      localFilter: (arr) => arr.filter(r => r.estado === 'Cancelado')
+      localFilter: (arr) => arr.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))
     }
   }
 };

@@ -76,12 +76,14 @@ export const PaymentFilters = async (req, res) => {
 
 export const getPaymentStats = async (req, res) => {
   try {
-    const [successful_payments, rejected_payments, pending_refunds, revenue, revenue_graph] = await Promise.all([
+    const [successful_payments, rejected_payments, pending_refunds, revenue, revenue_graph, revenue_by_cabin, payments_by_method] = await Promise.all([
       pool.query(paymentStats.getSuccessfulPayments),
       pool.query(paymentStats.getRejectedPayments),
       pool.query(paymentStats.getPendingRefunds),
       pool.query(paymentStats.getRevenue),
       pool.query(paymentStats.getRevenueGraph),
+      pool.query(paymentStats.getRevenueByCabin),
+      pool.query(paymentStats.getPaymentsByMethod),
     ]);
     res.json({
       successful_payments: successful_payments.rows,
@@ -89,6 +91,8 @@ export const getPaymentStats = async (req, res) => {
       pending_refunds: pending_refunds.rows,
       revenue: revenue.rows,
       revenue_graph: revenue_graph.rows,
+      revenue_by_cabin: revenue_by_cabin.rows,
+      payments_by_method: payments_by_method.rows,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -13,13 +13,13 @@ export const refounds = {
     ORDER BY fecha DESC
   `,
   createRefound: `
-    INSERT INTO reembolsos (factura_id, motivo, monto, estado)
+    INSERT INTO reembolsos (factura_id, justificacion, monto, estado)
     VALUES ($1, $2, $3, 'Pendiente')
     ON CONFLICT (factura_id) 
     DO UPDATE SET 
       monto = EXCLUDED.monto,
       estado = 'Pendiente',
-      motivo = EXCLUDED.motivo
+      justificacion = EXCLUDED.justificacion
   `,
   updateRefound: `
     UPDATE reembolsos

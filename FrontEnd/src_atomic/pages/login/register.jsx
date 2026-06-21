@@ -53,7 +53,7 @@ function Register() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error al enviar el código de verificación.");
+      alert(err.message || "Error al enviar el código de verificación.");
     }
   };
 

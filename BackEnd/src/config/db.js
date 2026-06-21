@@ -11,14 +11,14 @@ const local_config = {
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 };
 
-const config = {
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-};
+const config = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    }
+  : local_config;
 
-console.log('Config DB:', { ...config, password: '****' }); // Tip: ocultar password en logs
+console.log('Config DB:', { ...config, password: '****', connectionString: config.connectionString ? config.connectionString.replace(/:[^:@]+@/, ':****@') : undefined });
 
 // Creamos una instancia del Pool (maneja múltiples conexiones de forma eficiente)
 const pool = new Pool(config);

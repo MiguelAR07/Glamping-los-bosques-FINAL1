@@ -38,8 +38,7 @@ BEGIN
     v_subtotal_calculado := v_costo_cabanas + v_costo_servicios + v_costo_productos;
     
     NEW.Subtotal := v_subtotal_calculado;
-    -- El descuento se asume como porcentaje (ej: 10.00 para 10%)
-    NEW.Total := v_subtotal_calculado - (v_subtotal_calculado * (COALESCE(NEW.Descuento, 0) / 100));
+    -- NEW.Total se calcula automáticamente por ser una columna GENERATED ALWAYS en Facturas
 
     RETURN NEW;
 END;

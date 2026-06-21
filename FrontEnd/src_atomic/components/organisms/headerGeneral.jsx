@@ -25,19 +25,31 @@ const Header = styled.header`
   }
 `;
 
-function HeaderGeneral({ user, onClick }) {
+function HeaderGeneral({ user, onClick, hasNewNotification }) {
   return(
     <Header>
       <div>
-        <i class="bi bi-arrow-right"></i>
+        <i className="bi bi-arrow-right"></i>
         <h3>Hola, {user}</h3>
       </div>
       <div>
-        <button onClick={ onClick }>
-          <i class="bi bi-bell-fill" />
+        <button onClick={ onClick } style={{ position: "relative" }}>
+          <i className="bi bi-bell-fill" />
+          {hasNewNotification && (
+            <span style={{
+              position: "absolute",
+              top: "-5px",
+              right: "-5px",
+              width: "10px",
+              height: "10px",
+              backgroundColor: "red",
+              borderRadius: "50%",
+              boxShadow: "0 0 5px rgba(255,0,0,0.8)"
+            }}></span>
+          )}
         </button>
         
-        <img width={'30px'} src="/images/Logo.svg" alt="" />
+        <img src="/images/logo.jpeg" alt="Logo Glamping" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ccc' }} />
       </div>
     </Header>
   );

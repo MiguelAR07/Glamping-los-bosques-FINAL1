@@ -28,6 +28,7 @@ function Login() {
 
   return (
     <LoginTemplate>
+      <img src="/images/logo.jpeg" alt="Logo Glamping" style={{ width: '140px', height: '140px', borderRadius: '50%', objectFit: 'cover', marginBottom: '15px', border: '3px solid #2D7800', boxShadow: '0px 4px 12px rgba(0,0,0,0.15)' }} />
       <h1>Hola, Bienvenido de Nuevo!</h1>
       <h4>Nos alegra tenerte de vuelta por aqui</h4>
 
@@ -49,7 +50,6 @@ function Login() {
           value={formData.contrasena}
           onChange={handleChange}
           required
-          titulo="Información del Cliente" onClose={onClose}
         />
 
         <button type="submit" disabled={submitting}>

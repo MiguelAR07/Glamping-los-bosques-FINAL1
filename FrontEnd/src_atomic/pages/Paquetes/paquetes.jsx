@@ -94,6 +94,24 @@ function Paquetes() {
     setModalEditarAbierto(true);
   };
 
+  const eliminarPaquete = (paquete) => {
+    deleteUtils.eliminarRegistro(
+      "packages",
+      paquete.id,
+      paquete.tipo,
+      handleFetchData
+    );
+  };
+
+  const activarPaquete = (paquete) => {
+    activateUtils.activarRegistro(
+      "packages",
+      paquete.id,
+      paquete.tipo,
+      handleFetchData
+    );
+  };
+
   return (
     <>
       <CardsCont>
@@ -123,10 +141,28 @@ function Paquetes() {
         <p style={{ marginTop: "20px", color: "red" }}>Error: {error}</p>
       )}
       {displayData && (
-        <TablaGeneral
-          data={displayData}
-          onEdit={editarPaquete}
-        />
+        displayData.length > 0 && displayData[0]['Cabaña'] ? (
+          <>
+            {Array.from(new Set(displayData.map(item => item['Cabaña']))).map(cabana => (
+              <div key={cabana} style={{ marginBottom: '40px' }}>
+                <h3 style={{ marginBottom: '15px', color: '#43523A', borderBottom: '2px solid #43523A', paddingBottom: '5px' }}>Paquetes - {cabana}</h3>
+                <TablaGeneral
+                  data={displayData.filter(item => item['Cabaña'] === cabana)}
+                  onEdit={editarPaquete}
+                  onActive={activarPaquete}
+                  onDelete={eliminarPaquete}
+                />
+              </div>
+            ))}
+          </>
+        ) : (
+          <TablaGeneral
+            data={displayData}
+            onEdit={editarPaquete}
+            onActive={activarPaquete}
+            onDelete={eliminarPaquete}
+          />
+        )
       )}
 
       {modalAbierto && (

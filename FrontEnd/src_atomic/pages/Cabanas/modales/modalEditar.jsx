@@ -47,6 +47,8 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
       capacidad_personas: cabanaAEditar.capacidad || cabanaAEditar.capacidad || '',
       precio_noche: cabanaAEditar["Precio noche"] || cabanaAEditar["precio noche"] || '',
       descripcion: cabanaAEditar.descripcion || cabanaAEditar.descripcion || '',
+      es_promocion: cabanaAEditar.es_promocion || false,
+      precio_promocional: cabanaAEditar.precio_promocional || 0,
 
       userName: localStorage.getItem('userName') || '',
     },
@@ -72,6 +74,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
         />
         <input 
           type="number" 
+          min="0"
           name="capacidad_personas" 
           placeholder="Capacidad de personas" 
           value={formData.capacidad_personas} 
@@ -80,6 +83,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
         />
         <input 
           type="number" 
+          min="0"
           step="0.01" 
           name="precio_noche" 
           placeholder="Precio por noche" 
@@ -94,6 +98,28 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
           onChange={handleChange} 
           required 
         />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input 
+            type="checkbox" 
+            name="es_promocion" 
+            checked={formData.es_promocion} 
+            onChange={(e) => handleChange({ target: { name: 'es_promocion', value: e.target.checked } })} 
+            style={{ width: 'auto' }}
+          />
+          ¿Es una Promoción?
+        </label>
+        {formData.es_promocion && (
+          <input 
+            type="number" 
+            min="0"
+            step="0.01" 
+            name="precio_promocional" 
+            placeholder="Precio Promocional" 
+            value={formData.precio_promocional} 
+            onChange={handleChange} 
+            required 
+          />
+        )}
         <button type="submit" disabled={submitting}>
           {submitting ? 'Actualizando...' : 'Actualizar Cabaña'}
         </button>

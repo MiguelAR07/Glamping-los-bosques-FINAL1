@@ -125,8 +125,18 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         formattedValue = (valor !== null && valor !== undefined) ? formatCurrency(valor) : "$ 0";
                       } else if (columnasFecha.includes(col)) {
                         formattedValue = (valor !== null && valor !== undefined) ? formatDate(valor) : "N / A";
+                      } else if (col === 'img_url') {
+                        formattedValue = valor ? <img src={valor} alt="preview" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
                       } else {
-                        formattedValue = (valor === null || valor === undefined) ? 'N / A' : valor;
+                        if (valor === null || valor === undefined) {
+                          formattedValue = 'N / A';
+                        } else if (Array.isArray(valor)) {
+                          formattedValue = valor.map(v => v.nombre || JSON.stringify(v)).join(', ');
+                        } else if (typeof valor === 'object') {
+                          formattedValue = JSON.stringify(valor);
+                        } else {
+                          formattedValue = valor;
+                        }
                       }
 
                       if (onColumnClick && onColumnClick[col]) {
@@ -176,17 +186,20 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         <i className="bi bi-bag-plus-fill" style={{ fontSize: '1.2rem' }}></i>
                       </button>
                     )}
-                    {acciones && acciones.map((accion, k) => (
-                      <button
-                        key={k}
-                        className="accion-btn"
-                        onClick={() => accion.onClick(fila)}
-                        title={accion.title}
-                        style={{ color: accion.color || "inherit" }}
-                      >
-                        {accion.icono}
-                      </button>
-                    ))}
+                    {acciones && acciones.map((accion, k) => {
+                      if (accion.condition && !accion.condition(fila)) return null;
+                      return (
+                        <button
+                          key={k}
+                          className="accion-btn"
+                          onClick={() => accion.onClick(fila)}
+                          title={accion.title}
+                          style={{ color: accion.color || "inherit" }}
+                        >
+                          {accion.icono}
+                        </button>
+                      );
+                    })}
                   </td>
                 )}
               </tr>

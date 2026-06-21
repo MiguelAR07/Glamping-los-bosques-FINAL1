@@ -3,7 +3,7 @@ import { login as loginModel, selectUser } from "../models/login.model.js";
 
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { sendVerificationCodeEmail } from "../services/nodemailer.service.js";
+import { sendVerificationCodeEmail, sendPasswordResetEmail } from "../services/nodemailer.service.js";
 
 export const login = async (req, res) => {
   try {
@@ -60,12 +60,24 @@ export const sendVerificationCode = async (req, res) => {
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return res.status(404).json({ message: 'Usuario no encontrado. Asegúrate de que tu cédula esté registrada en el sistema.' });
     }
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    sendVerificationCodeEmail(email, verificationCode);
+    // Mostrar siempre el código en la consola del servidor (útil en desarrollo)
+    console.log(`\n========================================`);
+    console.log(`[CÓDIGO DE VERIFICACIÓN]`);
+    console.log(`Correo: ${email}`);
+    console.log(`Código: ${verificationCode}`);
+    console.log(`========================================\n`);
+
+    // Intentar enviar el correo, pero sin bloquear el flujo si falla
+    try {
+      await sendVerificationCodeEmail(email, verificationCode);
+    } catch (emailError) {
+      console.error('⚠️  Advertencia: No se pudo enviar el correo, pero el código sigue siendo válido:', emailError.message);
+    }
 
     const registrationToken = jwt.sign(
       { email, contrasena, tipo_identificacion, numero_identificacion, verificationCode },
@@ -77,7 +89,7 @@ export const sendVerificationCode = async (req, res) => {
 
   } catch (error) {
     console.error('Error al enviar el código de verificación:', error);
-    res.status(500).json({ message: 'Error al enviar el código de verificación' });
+    res.status(500).json({ message: 'Error al enviar el código de verificación', error: error.message });
   }
 };
 
@@ -130,9 +142,89 @@ export const createLogin = async (req, res) => {
     await pool.query('COMMIT');
     res.json(response.rows[0]);
 
-  } catch (error) {
+    } catch (error) {
     await pool.query('ROLLBACK');
     console.error('Error al crear el login:', error);
     res.status(500).json({ message: 'Error al crear el login' });
   }
 }
+
+export const sendResetCode = async (req, res) => {
+  try {
+    const { email, contrasena } = req.body;
+
+    // Verificar si el correo existe
+    const result = await pool.query("SELECT * FROM login WHERE email = $1 AND estado = 'Activo'", [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Correo no registrado o inactivo' });
+    }
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    console.log(`\n========================================`);
+    console.log(`[CÓDIGO DE RECUPERACIÓN]`);
+    console.log(`Correo: ${email}`);
+    console.log(`Código: ${verificationCode}`);
+    console.log(`========================================\n`);
+
+    try {
+      await sendPasswordResetEmail(email, verificationCode);
+    } catch (emailError) {
+      console.error('⚠️  Advertencia: No se pudo enviar el correo, pero el código sigue siendo válido:', emailError.message);
+    }
+
+    // Guardar la nueva contraseña de una vez en el token para evitar doble peticion
+    const resetToken = jwt.sign(
+      { email, nuevaContrasena: contrasena, verificationCode },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.json({ message: 'Código de recuperación enviado al correo', resetToken });
+
+  } catch (error) {
+    console.error('Error al enviar el código de recuperación:', error);
+    res.status(500).json({ message: 'Error al enviar el código de recuperación', error: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, code } = req.body;
+
+    if (!resetToken || !code) {
+      return res.status(400).json({ message: 'Falta el token o el código' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'El código expiró o el token es inválido' });
+    }
+
+    if (decoded.verificationCode !== code) {
+      return res.status(400).json({ message: 'Código de verificación incorrecto' });
+    }
+
+    const { email, nuevaContrasena } = decoded;
+    const encriptedPassword = await bcrypt.hash(nuevaContrasena, 10);
+
+    await pool.query('BEGIN');
+
+    const result = await pool.query(loginModel.restoreLogin, [encriptedPassword, email]);
+
+    if (result.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ message: 'No se pudo actualizar la contraseña' });
+    }
+
+    await pool.query('COMMIT');
+    res.json({ message: 'Contraseña restablecida exitosamente' });
+
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    console.error('Error al restablecer la contraseña:', error);
+    res.status(500).json({ message: 'Error al restablecer la contraseña' });
+  }
+};

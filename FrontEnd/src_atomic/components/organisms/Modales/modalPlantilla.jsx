@@ -19,8 +19,8 @@ const Modal = styled.div`
 `;
 
 const ModalCont = styled.div`
-  width: 400px;
-  height: 420px;
+  width: ${props => props.$width || "400px"};
+  height: ${props => props.$height || "420px"};
   padding: 20px 20px;
   box-sizing: border-box;
 
@@ -91,7 +91,7 @@ const CloseModal = styled.button`
   background: red;
 `;
 
-function ModalPlantilla({ modulo, titulo, volver, onClose, children, onConfirm }) {
+function ModalPlantilla({ modulo, titulo, volver, onClose, children, onConfirm, width, height }) {
   // const [confirmVisible, setConfirmVisible] = useState(false);
 
   // const handleAgregar = () => {
@@ -105,7 +105,7 @@ function ModalPlantilla({ modulo, titulo, volver, onClose, children, onConfirm }
 
   return (
     <Modal>
-      <ModalCont>
+      <ModalCont $width={width} $height={height}>
         <h3>{titulo ? titulo : `Agregar ${modulo}`}</h3>
 
         <Contenido>

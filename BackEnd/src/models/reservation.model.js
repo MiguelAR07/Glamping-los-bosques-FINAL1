@@ -13,13 +13,28 @@ export const reservation = {
     ORDER BY fecha DESC
   `,
   createReservation: `
-    -- Por resolver
-    -- Insertar una factura por cada reserva
-    -- Nota: agregar una obtencion de datos en el controller si el cliente 
-    -- ingresa correctamente la cc y el correo, de este modo no tendría que ingresar de nuevo sus datos
+    INSERT INTO reservas (paquete_id, cliente_id, fecha_registro, llegada, salida, estado, por_pagar, factura_url)
+    SELECT
+        p.paquete_id,
+        c.cliente_id,
+        CURRENT_TIMESTAMP,
+        $1, -- llegada
+        $2, -- salida
+        'Por validar',
+        $5, -- por_pagar
+        $6  -- factura_url, comprobante de pago
+    FROM paquetes p, clientes c
+    WHERE c.cliente_id = $3
+      AND p.paquete_id = $4
+      AND p.estado = 'Activo'
+    RETURNING reserva_id;
   `,
-  updateReservation: `
-    -- Por resolver, se debe evitar duplicados en fecha 
+  updatePaymentReceipt: `
+    UPDATE reservas
+    SET factura_url = $1,
+        estado = 'Por validar'
+    WHERE reserva_id = $2
+    RETURNING reserva_id;
   `,
   deleteReservation: `
     UPDATE reservas
@@ -38,6 +53,23 @@ export const reservation = {
     SET estado = 'Cancelado'
     WHERE reserva_id = $1
     RETURNING reserva_id
+  `,
+  confirmReservationAndGetDetails: `
+    WITH updated_reserva AS (
+      UPDATE reservas
+      SET estado = 'Confirmado'
+      WHERE reserva_id = $1
+      RETURNING reserva_id, cliente_id, llegada, salida
+    )
+    SELECT 
+      ur.reserva_id,
+      ur.llegada,
+      ur.salida,
+      c.nombre AS cliente_nombre,
+      c.email AS cliente_email,
+      c.contacto AS cliente_contacto
+    FROM updated_reserva ur
+    JOIN clientes c ON ur.cliente_id = c.cliente_id;
   `
 }
 

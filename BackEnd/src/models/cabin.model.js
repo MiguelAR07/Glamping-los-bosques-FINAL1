@@ -19,9 +19,13 @@ export const cabin = {
     FROM imagenes_cabana
     WHERE cabana_id = $1
   `,
+  getAllCabinImgs: `
+    SELECT * 
+    FROM imagenes_cabana
+  `,
   createCabin: `
-    INSERT INTO Cabanas (nombre, precio_noche, capacidad_personas, fecha_registro, descripcion, fecha_mantenimiento, estado)
-    VALUES ($1, $2, $3, CURRENT_DATE, $4, NULL, 'Activo')
+    INSERT INTO Cabanas (nombre, precio_noche, capacidad_personas, fecha_registro, descripcion, fecha_mantenimiento, estado, es_promocion, precio_promocional)
+    VALUES ($1, $2, $3, CURRENT_DATE, $4, NULL, 'Activo', COALESCE($5::boolean, false), COALESCE($6::numeric, 0))
     RETURNING nombre, precio_noche
   `,
   updateCabin: `
@@ -30,8 +34,10 @@ export const cabin = {
       precio_noche = COALESCE(NULLIF($2::text, '')::numeric, precio_noche),
       capacidad_personas = COALESCE(NULLIF($3::text, '')::numeric, capacidad_personas),
       fecha_registro = CURRENT_DATE,
-      descripcion = COALESCE(NULLIF($4, ''), descripcion)
-    WHERE cabana_id = $5
+      descripcion = COALESCE(NULLIF($4, ''), descripcion),
+      es_promocion = COALESCE(NULLIF($5::text, '')::boolean, es_promocion),
+      precio_promocional = COALESCE(NULLIF($6::text, '')::numeric, precio_promocional)
+    WHERE cabana_id = $7
     RETURNING nombre, fecha_registro
   `,
   deleteCabin: `

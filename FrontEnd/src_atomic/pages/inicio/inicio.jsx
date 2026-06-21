@@ -3,7 +3,8 @@ import { downloadPDF } from "../../utils/downloadUtils";
 
 import BotonDescargar from "../../components/atoms/buttons/botonDescargar";
 import InicioCard from "./componentsData/inicioCard";
-import LinearGraph from "../../components/organisms/graphs/linearGraph";
+import BarGraph from "../../components/organisms/graphs/barGraph";
+import PieGraph from "../../components/organisms/graphs/pieGraph";
 import NotificacionInicio from "./componentsData/inicioNotificacion";
 import { useFetch } from "../../hooks/fetchConnect";
 import { useEffect, useState } from "react";
@@ -15,15 +16,21 @@ const FechaInforme = styled.div`
   margin: 20px 0;
 `;
 
-const GraphNovedades = styled.div`
+const GraphsContainer = styled.div`
   margin: 30px 0 0 0;
   display: grid;
-  grid-template-columns: 65% 33%;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
 
-  @media (max-width: 1350px) {
-    grid-template-columns: repeat(1, 1fr);
+  @media (max-width: 1000px) {
+    grid-template-columns: 1fr;
   }
+`;
+
+const NovedadesContainer = styled.div`
+  margin: 30px 0 0 0;
+  display: grid;
+  grid-template-columns: 1fr;
 `;
 
 const Novedades = styled.div`
@@ -52,17 +59,22 @@ function Inicio() {
   return (
     <div id="dashboard-report" style={{ padding: '10px' }}>
       <FechaInforme>
-        <h3>10 Agosto - 17 Agosto</h3>
+        <h3>Estadísticas Generales</h3>
         <BotonDescargar onClick={handleDownloadPDF} />
       </FechaInforme>
       <InicioCard refreshTrigger={refreshStatsTrigger} />
-      <GraphNovedades>
-        <LinearGraph data={data?.revenue_graph} title="Ingresos acumulados por pagos" />
+      
+      <GraphsContainer>
+        <BarGraph data={data?.revenue_by_cabin} title="Ingresos de cada cabaña" />
+        <PieGraph data={data?.payments_by_method} title="Ingresos por Método de Pago" />
+      </GraphsContainer>
+
+      <NovedadesContainer>
         <Novedades>
           <h3>Novedades</h3>
           <NotificacionInicio />
         </Novedades>
-      </GraphNovedades>
+      </NovedadesContainer>
     </div >
   );
 }

@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node --env-file=.env --watch server.js"
   },
@@ -20,13 +21,17 @@
   "homepage": "https://github.com/ElIsaacM/Proyecto-glamping#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "mssql": "^12.5.0",
+    "multer": "^2.1.1",
+    "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.6",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "twilio": "^6.0.2"
   },
   "overrides": {
     "uuid": "^14.0.0"

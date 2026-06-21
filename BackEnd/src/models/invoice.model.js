@@ -8,7 +8,7 @@ export const invoice = {
   getInvoiceByReservation: `
     SELECT
       * 
-    FROM vista_facturas
+    FROM facturas
     WHERE reserva_id = $1
   `,
   getInvoicesByClient: `

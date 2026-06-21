@@ -18,8 +18,9 @@ CREATE TABLE Productos (
     Tipo VARCHAR(100) NOT NULL,
     Precio DECIMAL(10,2) NOT NULL,
     Descripcion TEXT DEFAULT 'Sin descripcion',
+    img_url TEXT DEFAULT 'Sin imagen'
     Fecha_Actualizacion DATE DEFAULT CURRENT_DATE,
-	Estado VARCHAR(50) DEFAULT 'Activo',
+	Estado VARCHAR(50) DEFAULT 'Activo'
 );
 
 CREATE TABLE Cabanas (
@@ -30,7 +31,14 @@ CREATE TABLE Cabanas (
     Fecha_Registro DATE DEFAULT CURRENT_DATE,
     Descripcion TEXT DEFAULT 'Sin descripcion',
     Fecha_Mantenimiento DATE,
-    Estado VARCHAR(50) DEFAULT 'Activo'
+    Estado VARCHAR(50) DEFAULT 'Activo',
+    IMG_URL TEXT
+);
+
+CREATE TABLE imagenes_cabana (
+    imagen_id SERIAL PRIMARY KEY,
+    cabana_id INT NOT NULL,
+    img_url TEXT NOT NULL
 );
 
 CREATE TABLE Danos_Mantenimientos (
@@ -45,7 +53,7 @@ CREATE TABLE Danos_Mantenimientos (
 
 CREATE TABLE Tipo_Paquete (
     Tipo_ID SERIAL PRIMARY KEY,
-    Nombre VARCHAR(50) NOT NULL,
+    Nombre VARCHAR(50) NOT NULL
 );
 
 -- 2. TABLAS DE USUARIOS Y ACCESO
@@ -90,6 +98,10 @@ CREATE TABLE Paquetes (
     Paquete_ID SERIAL PRIMARY KEY,
 	Cabana_ID INT NOT NULL,
     Tipo_ID INT NOT NULL,
+    Nombre VARCHAR(100) NOT NULL,
+    Dias_Estadia INT NOT NULL,
+    Descripcion TEXT DEFAULT 'Sin descripcion',
+    Registrado_Por_ID INT,
     Fecha_Registro DATE DEFAULT CURRENT_DATE,
     Estado VARCHAR(50) DEFAULT 'Activo'
 );
@@ -186,15 +198,15 @@ ALTER TABLE Productos_Por_Paquete
 
 ALTER TABLE Danos_Mantenimientos ADD CONSTRAINT fk_Dano_Cabanas FOREIGN KEY (Cabana_ID) REFERENCES Cabanas(Cabana_ID);
 ALTER TABLE Usuarios ADD CONSTRAINT fk_Usuarios_Roles FOREIGN KEY (Rol_ID) REFERENCES Roles(Rol_ID);
-ALTER TABLE Usuarios ADD CONSTRAINT fk_Usuarios_Identificacion FOREIGN KEY (Identificacion_ID) REFERENCES Identificaciones(Identificacion_ID);
 ALTER TABLE Login ADD CONSTRAINT fk_Cuenta_Usuarios FOREIGN KEY (Usuario_ID) REFERENCES Usuarios(Usuario_ID) ON DELETE CASCADE;
-ALTER TABLE Logs_Acciones ADD CONSTRAINT fk_Logs_Cuenta FOREIGN KEY (Login_ID) REFERENCES Login(Login_ID);
+ALTER TABLE Logs_login ADD CONSTRAINT fk_Logs_Login_Ref FOREIGN KEY (Login_ID) REFERENCES Login(Login_ID) ON DELETE CASCADE;
+
+ALTER TABLE imagenes_cabana ADD CONSTRAINT fk_imagenes_cabana_cabanas FOREIGN KEY (cabana_id) REFERENCES Cabanas(Cabana_ID) ON DELETE CASCADE;
 
 ALTER TABLE Paquetes 
     ADD CONSTRAINT fk_Paquete_Tipo FOREIGN KEY (Tipo_ID) REFERENCES Tipo_Paquete(Tipo_ID),
-	ADD CONSTRAINT fk_Paquete_Cabana FOREIGN KEY (Cabana_ID) REFERENCES Cabanas(Cabana_ID);
-
-ALTER TABLE Clientes ADD CONSTRAINT fk_Clientes_Identificacion FOREIGN KEY (Identificacion_ID) REFERENCES Identificaciones(Identificacion_ID);
+	ADD CONSTRAINT fk_Paquete_Cabana FOREIGN KEY (Cabana_ID) REFERENCES Cabanas(Cabana_ID),
+	ADD CONSTRAINT fk_Paquete_Usuario FOREIGN KEY (Registrado_Por_ID) REFERENCES Usuarios(Usuario_ID);
 
 ALTER TABLE Reservas 
     ADD CONSTRAINT fk_Reservas_Paquetes FOREIGN KEY (Paquete_ID) REFERENCES Paquetes(Paquete_ID),
@@ -206,11 +218,11 @@ ALTER TABLE Pagos
     ADD CONSTRAINT fk_Pagos_Facturas FOREIGN KEY (Factura_ID) REFERENCES Facturas(Factura_ID),
     ADD CONSTRAINT fk_Pagos_Metodos FOREIGN KEY (Metodo_ID) REFERENCES Metodos_Pago(Metodo_ID);
 
-ALTER TABLE Reembolsos ADD CONSTRAINT fk_Reembosos_Pagos FOREIGN KEY (Pago_ID) REFERENCES Pagos(Pago_ID);
+ALTER TABLE Reembolsos ADD CONSTRAINT fk_Reembolsos_Facturas FOREIGN KEY (Factura_ID) REFERENCES Facturas(Factura_ID);
 
 -- Restricciones de unicidad
 ALTER TABLE clientes 
-ADD CONSTRAINT unique_identificacion UNIQUE (tipo_identificacion, numero_identificacion);
+ADD CONSTRAINT unique_cliente_identificacion UNIQUE (tipo_identificacion, numero_identificacion);
 
 ALTER TABLE Usuarios 
-ADD CONSTRAINT unique_identificacion UNIQUE (tipo_identificacion, numero_identificacion);
+ADD CONSTRAINT unique_usuario_identificacion UNIQUE (tipo_identificacion, numero_identificacion);

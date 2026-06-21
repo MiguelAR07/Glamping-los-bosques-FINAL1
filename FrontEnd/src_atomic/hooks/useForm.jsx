@@ -9,15 +9,14 @@ import { useFetch } from "./fetchConnect";
  * @param {string} url - El endpoint a donde enviar (POST) los datos
  * @param {Function} onSuccess - Un callback que se ejecuta tras una respuesta HTTP 200/201 éxitosa (ideal para recargar tablas)
  */
+import Swal from 'sweetalert2';
+
 export const useForm = (initialState, url, onSuccess, method = 'POST') => {
   const [formData, setFormData] = useState(initialState);
   const { loading: submitting, error: submitError, fetchData: postData } = useFetch();
 
   const handleChange = (e) => {
-    // Extraemos los valores del evento para evitar problemas si el evento se "limpia"
     const { name, value } = e.target;
-
-    // Usamos la función de callback (prevData)
     setFormData((prevData) => ({
       ...prevData,
       [name]: value
@@ -25,7 +24,7 @@ export const useForm = (initialState, url, onSuccess, method = 'POST') => {
   };
 
   const handleSubmit = async (e, cerrarModal) => {
-    if (e && e.preventDefault) e.preventDefault(); // Verificación por si se llama manualmente
+    if (e && e.preventDefault) e.preventDefault(); 
 
     try {
       const cleanedData = { ...formData };
@@ -41,23 +40,33 @@ export const useForm = (initialState, url, onSuccess, method = 'POST') => {
         }
       });
 
-      // IMPORTANTE: postData debe lanzar un error si la respuesta no es 2xx
       const response = await postData(url, {
         method: method,
         body: JSON.stringify(cleanedData)
       });
 
-      // SI LLEGAMOS AQUÍ, ES QUE FUE EXITOSO (Status 200-299)
       if (method === 'POST') {
         setFormData(initialState);
       }
 
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'La operación se realizó correctamente.',
+        icon: 'success',
+        confirmButtonColor: '#3085d6'
+      });
+
       if (cerrarModal) cerrarModal();
-      if (onSuccess) onSuccess(response); // Pasamos la respuesta (donde viene el TOKEN)
+      if (onSuccess) onSuccess(response);
 
     } catch (err) {
-      // No hace falta hacer nada más, useFetch ya puso el error en 'submitError'
       console.error("Error al enviar formulario:", err);
+      Swal.fire({
+        title: 'Error',
+        text: err.message || 'Hubo un problema al procesar la solicitud.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
     }
   };
 

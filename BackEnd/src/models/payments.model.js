@@ -111,5 +111,27 @@ export const paymentStats = {
     GROUP BY TO_CHAR(fecha_pago, 'YYYY-MM-DD')
     ORDER BY fecha ASC
     LIMIT 30;
+  `,
+  getRevenueByCabin: `
+    SELECT 
+      cb.nombre AS cabana,
+      SUM(pa.total_pagado)::FLOAT AS total
+    FROM pagos pa
+    JOIN facturas f ON pa.factura_id = f.factura_id
+    JOIN reservas r ON f.reserva_id = r.reserva_id
+    JOIN paquetes p ON r.paquete_id = p.paquete_id
+    JOIN cabanas cb ON p.cabana_id = cb.cabana_id
+    WHERE pa.estado IN ('Completado', 'Agregado Manual')
+    GROUP BY cb.nombre
+    ORDER BY total DESC;
+  `,
+  getPaymentsByMethod: `
+    SELECT 
+      m.nombre AS metodo,
+      SUM(pa.total_pagado)::FLOAT AS total
+    FROM pagos pa
+    JOIN metodos_pago m ON pa.metodo_id = m.metodo_id
+    WHERE pa.estado IN ('Completado', 'Agregado Manual')
+    GROUP BY m.nombre;
   `
 }
