@@ -18,7 +18,7 @@ CREATE TABLE Productos (
     Tipo VARCHAR(100) NOT NULL,
     Precio DECIMAL(10,2) NOT NULL,
     Descripcion TEXT DEFAULT 'Sin descripcion',
-    img_url TEXT DEFAULT 'Sin imagen'
+    img_url TEXT DEFAULT 'Sin imagen',
     Fecha_Actualizacion DATE DEFAULT CURRENT_DATE,
 	Estado VARCHAR(50) DEFAULT 'Activo'
 );

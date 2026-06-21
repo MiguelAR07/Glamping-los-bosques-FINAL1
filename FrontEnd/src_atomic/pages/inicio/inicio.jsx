@@ -4,7 +4,7 @@ import { downloadPDF } from "../../utils/downloadUtils";
 import BotonDescargar from "../../components/atoms/buttons/botonDescargar";
 import InicioCard from "./componentsData/inicioCard";
 import BarGraph from "../../components/organisms/graphs/barGraph";
-import PieGraph from "../../components/organisms/graphs/pieGraph";
+import PieGraph from "../../components/organisms/graphs/PieGraph";
 import NotificacionInicio from "./componentsData/inicioNotificacion";
 import { useFetch } from "../../hooks/fetchConnect";
 import { useEffect, useState } from "react";
