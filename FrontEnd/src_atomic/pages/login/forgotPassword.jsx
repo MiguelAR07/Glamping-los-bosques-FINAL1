@@ -49,7 +49,7 @@ function ForgotPassword() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error al enviar el código de recuperación.");
+      alert(err.message || "Error al enviar el código de recuperación.");
     }
   };
 
@@ -69,7 +69,7 @@ function ForgotPassword() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error al verificar el código o restablecer la contraseña.");
+      alert(err.message || "Error al verificar el código o restablecer la contraseña.");
     }
   };
   return (

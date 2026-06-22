@@ -73,7 +73,7 @@ function Register() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error al verificar el código o crear el registro.");
+      alert(err.message || "Error al verificar el código o crear el registro.");
     }
   };
 

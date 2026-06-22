@@ -145,6 +145,9 @@ export const createLogin = async (req, res) => {
     } catch (error) {
     await pool.query('ROLLBACK');
     console.error('Error al crear el login:', error);
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Ya existe una cuenta registrada con este correo o documento.' });
+    }
     res.status(500).json({ message: 'Error al crear el login' });
   }
 }
