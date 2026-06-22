@@ -2,6 +2,7 @@ import pool from '../config/db.js';
 import { promocionModel } from '../models/promocion.model.js';
 import { sendPromotionEmailToClients } from '../services/nodemailer.service.js';
 import { customer } from '../models/customer.model.js';
+import cloudinary from 'cloudinary';
 
 export const getPromociones = async (req, res) => {
   try {
@@ -21,8 +22,14 @@ export const createPromocion = async (req, res) => {
 
     await pool.query("BEGIN");
 
+    let final_img_url = img_url;
+    if (img_url && img_url.startsWith('data:image')) {
+      const uploadRes = await cloudinary.v2.uploader.upload(img_url, { folder: "promociones" });
+      final_img_url = uploadRes.secure_url;
+    }
+
     const result = await pool.query(promocionModel.create, [
-      nombre, descripcion, p_precio, img_url, fecha_inicio || null, fecha_fin || null, p_dias_estadia
+      nombre, descripcion, p_precio, final_img_url, fecha_inicio || null, fecha_fin || null, p_dias_estadia
     ]);
     const promocionId = result.rows[0].promocion_id;
 
@@ -69,8 +76,14 @@ export const updatePromocion = async (req, res) => {
 
     await pool.query("BEGIN");
 
+    let final_img_url = img_url;
+    if (img_url && img_url.startsWith('data:image')) {
+      const uploadRes = await cloudinary.v2.uploader.upload(img_url, { folder: "promociones" });
+      final_img_url = uploadRes.secure_url;
+    }
+
     await pool.query(promocionModel.update, [
-      nombre, descripcion, p_precio, img_url, fecha_inicio || null, fecha_fin || null, p_dias_estadia, id
+      nombre, descripcion, p_precio, final_img_url, fecha_inicio || null, fecha_fin || null, p_dias_estadia, id
     ]);
 
     // Clear old cabanas
