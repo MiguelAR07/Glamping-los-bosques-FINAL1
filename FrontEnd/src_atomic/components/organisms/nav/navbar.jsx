@@ -15,6 +15,7 @@ const NavBar = styled.nav`
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  z-index: 1000;
 
   h5, h4{
     display: none;
@@ -40,6 +41,28 @@ const NavBar = styled.nav`
       display: flex;
     }
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 60px;
+    position: fixed;
+    bottom: 0;
+    flex-direction: row;
+    padding: 0 10px;
+    justify-content: space-around;
+
+    .titulo {
+      display: none;
+    }
+
+    &:hover {
+      width: 100%;
+      align-items: center;
+      h5, h4 {
+        display: none;
+      }
+    }
+  }
 `;
 
 const ModulesCont = styled.div`
@@ -51,6 +74,18 @@ const ModulesCont = styled.div`
 
   ${NavBar}:hover & {
     align-items: flex-start;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 0;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    gap: 0;
+
+    ${NavBar}:hover & {
+      align-items: center;
+    }
   }
 `;
 
@@ -88,36 +123,34 @@ function Navbar() {
 
   return (
     <NavBar>
-      <div>
-        <div className="titulo">
-          <img src="/images/logo.jpeg" alt="Logo Glamping" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0px 2px 8px rgba(0,0,0,0.3)', margin: '0 auto', display: 'block' }} />
-        </div>
-        <ModulesCont>
-          {modulosDisponibles.map((item, i) => (
-            <Module
-              key={i}
-              as={NavLink}
-              to={item.ruta}
-              className={({ isActive }) => isActive ? 'active' : ''}
-            >
-              <i className={item.icono}></i>
-              <h5>{item.nombre}</h5>
-            </Module>
-          ))}
-        </ModulesCont>
+      <div className="titulo">
+        <img src="/images/logo.jpeg" alt="Logo Glamping" style={{ width: '55px', height: '55px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0px 2px 8px rgba(0,0,0,0.3)', margin: '0 auto', display: 'block' }} />
       </div>
-      <Module
-        onClick={() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userRole');
-          localStorage.removeItem('userName');
-        }}
-        as={NavLink}
-        to={'/'}
-      >
-        <i className="bi bi-box-arrow-right"></i>
-        <h4>Salir</h4>
-      </Module>
+      <ModulesCont>
+        {modulosDisponibles.map((item, i) => (
+          <Module
+            key={i}
+            as={NavLink}
+            to={item.ruta}
+            className={({ isActive }) => isActive ? 'active' : ''}
+          >
+            <i className={item.icono}></i>
+            <h5>{item.nombre}</h5>
+          </Module>
+        ))}
+        <Module
+          onClick={() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userName');
+          }}
+          as={NavLink}
+          to={'/'}
+        >
+          <i className="bi bi-box-arrow-right"></i>
+          <h4>Salir</h4>
+        </Module>
+      </ModulesCont>
     </NavBar>
   );
 }

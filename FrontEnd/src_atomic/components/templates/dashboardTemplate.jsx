@@ -12,11 +12,20 @@ import { Outlet, Navigate } from "react-router-dom";
 
 const Container = styled.div`
   display: flex;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const Right = styled.div`
   width: calc(100% - 80px);
   overflow-x: hidden;
+  height: 100vh;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    height: calc(100vh - 60px);
+  }
 
   .mainGeneral {
     overflow: auto;
