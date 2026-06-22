@@ -6,7 +6,7 @@ import { useFilters } from "../../hooks/useFilters";
 import { deleteUtils } from "../../utils/deleteUtils";
 import { activateUtils } from "../../utils/activateUtils";
 
-import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
+
 import LinearGraph from "../../components/organisms/graphs/linearGraph";
 import TablaGeneral from "../../components/organisms/tabla";
 import { useFetch } from "../../hooks/fetchConnect";
@@ -24,23 +24,63 @@ import ModalReprogramar from "./modales/modalReprogramar";
 import ModalAgregar from "./modales/modalAgregar";
 
 const CardsCont = styled.div`
-  margin: 50px 0;
+  margin: 20px 0 40px 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 24px;
 
   @media (max-width: 1100px) {
     grid-template-columns: repeat(1, 1fr);
   }
 `;
 
-const Botones = styled.div`
+const HeaderAcciones = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%);
+  padding: 24px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(45, 120, 0, 0.05);
+  border: 1px solid rgba(45, 120, 0, 0.1);
+  margin-bottom: 30px;
 
-  @media (max-width: 750px) {
+  @media (max-width: 850px) {
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
+    padding: 20px;
+    align-items: stretch;
+  }
+`;
+
+const ModernButton = styled.button`
+  background: linear-gradient(135deg, #2D7800 0%, #1a4700 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(45, 120, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(45, 120, 0, 0.3);
+    background: linear-gradient(135deg, #358c00 0%, #1f5400 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  i {
+    font-size: 1.2rem;
   }
 `;
 
@@ -179,14 +219,13 @@ function Reservas({ modulo }) {
         <LinearGraph data={statsData?.revenue_graph} title="Ganancias por mes" />
         <SquareCard squareData={reservasCardData} />
       </CardsCont>
-      <Botones>
+      <HeaderAcciones>
         <ReservasSearch onResult={setReservas} onFilterChange={setFilterMode} />
-        <BotonAgregar
-          modulo={"Agregar reserva"}
-          color={1}
-          onClick={() => setModalAgregarAbierto(true)}
-        />
-      </Botones>
+        <ModernButton onClick={() => setModalAgregarAbierto(true)}>
+          <i className="bi bi-calendar-plus-fill"></i>
+          Nueva Reserva
+        </ModernButton>
+      </HeaderAcciones>
 
       {loading && <p style={{ marginTop: '20px' }}>Cargando reservas...</p>}
       {error && <p style={{ marginTop: '20px', color: 'red' }}>Error: {error}</p>}
