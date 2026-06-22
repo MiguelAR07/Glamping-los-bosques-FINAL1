@@ -66,25 +66,27 @@ const Table = styled.table`
   }
 
   button.columnClick {
-    background: rgba(45, 120, 0, 0.08);
-    color: #2D7800;
-    border: 1px solid rgba(45, 120, 0, 0.2);
-    padding: 6px 14px;
-    border-radius: 20px;
+    background: linear-gradient(135deg, #f2fbf4 0%, #e6f6eb 100%);
+    color: #1a4700;
+    border: 1px solid #c3e6cb;
+    padding: 4px 10px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    box-shadow: 0 1px 2px rgba(45, 120, 0, 0.05);
     
     &:hover {
-      background: rgba(45, 120, 0, 0.15);
-      border-color: rgba(45, 120, 0, 0.4);
+      background: linear-gradient(135deg, #e6f6eb 0%, #d4eedb 100%);
+      border-color: #2D7800;
+      color: #2D7800;
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(45, 120, 0, 0.1);
+      box-shadow: 0 3px 8px rgba(45, 120, 0, 0.15);
     }
 
     &:active {
