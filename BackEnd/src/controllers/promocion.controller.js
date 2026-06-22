@@ -4,6 +4,11 @@ import { sendPromotionEmailToClients } from '../services/nodemailer.service.js';
 import { customer } from '../models/customer.model.js';
 import cloudinary from 'cloudinary';
 
+cloudinary.v2.config({
+  cloud_name: 'di1xs8vma',
+  api_key: '988922896642611',
+  api_secret: 'kXxV0xd010GemNIuNVaIF8gAIP0'
+});
 export const getPromociones = async (req, res) => {
   try {
     const result = await pool.query(promocionModel.getAll);
