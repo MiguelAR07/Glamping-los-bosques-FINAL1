@@ -25,44 +25,89 @@ const Container = styled.div`
   .rbc-calendar {
     font-family: inherit;
   }
+
+  /* Fijar filas del mes para que todas tengan la misma altura */
+  .rbc-month-view {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .rbc-month-row {
+    overflow: hidden !important;
+    min-height: 90px;
+    max-height: 120px;
+  }
+
+  .rbc-row-content {
+    overflow: hidden;
+    max-height: 100%;
+  }
+
+  /* Hacer los eventos más compactos */
   .rbc-event {
     border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 0.8rem;
+    padding: 1px 5px;
+    font-size: 0.72rem;
     font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-bottom: 2px;
-    /* Fix para que no sobrepasen el cuadro */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    margin-bottom: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
+    line-height: 1.4;
+    height: auto !important;
+    max-height: 20px;
   }
+
   .rbc-event-content {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.72rem;
   }
+
   .rbc-event:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     z-index: 5;
   }
+
+  /* Estilos de reservas vs bloqueos */
   .event-reserva {
     background: linear-gradient(135deg, #43523A, #556B48);
-    border: 1px solid #2d3826;
-    border-left: 4px solid #8BC34A; /* Un verde más brillante para resaltar */
+    border: none;
+    border-left: 3px solid #8BC34A;
   }
   .event-bloqueo {
     background: linear-gradient(135deg, #c92a2a, #e03131);
-    border: 1px solid #8b1c1c;
-    border-left: 4px solid #ff8a80; /* Un rojo claro para resaltar */
+    border: none;
+    border-left: 3px solid #ff8a80;
   }
-  
+
+  /* Enlace de "+X más" */
+  .rbc-show-more {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #43523A;
+    background: transparent;
+    text-decoration: underline;
+    margin-top: 2px;
+  }
+
+  /* Encabezados de día */
+  .rbc-header {
+    padding: 8px 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #43523A;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  /* Día actual */
   .rbc-today {
-    background-color: #e8f5e9; /* Fondo verde muy claro */
-    border: 2px solid #43523A !important; /* Borde verde oscuro */
+    background-color: #e8f5e9;
+    border: 2px solid #43523A !important;
   }
   
   .rbc-today .rbc-button-link {
@@ -71,12 +116,23 @@ const Container = styled.div`
     font-size: 1.1em;
     background-color: #c8e6c9;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 5px;
+    margin-top: 4px;
+  }
+
+  /* Numero del día */
+  .rbc-date-cell {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+  }
+
+  /* Fila de segmentos de eventos */
+  .rbc-row-segment {
+    padding: 0 2px;
   }
 `;
 
@@ -248,6 +304,8 @@ function Disponibilidad() {
           style={{ height: '100%' }}
           culture="es"
           selectable
+          popup
+          max={2}
           date={currentDate}
           onNavigate={(newDate) => setCurrentDate(newDate)}
           onSelectSlot={handleSelectSlot}
@@ -265,6 +323,7 @@ function Disponibilidad() {
             time: "Hora",
             event: "Evento",
             noEventsInRange: "No hay eventos en este rango.",
+            showMore: (count) => `+${count} más`,
           }}
         />
       </Container>
