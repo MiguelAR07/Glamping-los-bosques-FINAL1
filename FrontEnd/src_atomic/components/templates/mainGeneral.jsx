@@ -3,9 +3,8 @@ import ObtenerHora from "../atoms/horaActual";
 
 const Main = styled.main`
   width: 100%;
-  height: calc(100vh - 60px);
+  flex: 1;
   padding: 20px;
-  overflow-y: auto;
 
   background: #F6F6F6;
 `;
