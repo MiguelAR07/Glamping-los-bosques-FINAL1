@@ -13,9 +13,9 @@ import { Outlet, Navigate } from "react-router-dom";
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
 `;
 
 const ContentWrapper = styled.div`
@@ -23,8 +23,6 @@ const ContentWrapper = styled.div`
   flex-direction: column;
   flex: 1;
   width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
   background-color: #f8f9fa;
   
   .mainGeneral {
