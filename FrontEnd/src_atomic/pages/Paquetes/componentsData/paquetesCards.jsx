@@ -19,14 +19,14 @@ function PaquetesCards({ refreshTrigger }) {
       icono: 'bi bi-box-fill',
       titulo: 'Paquete mas vendido',
       info: mostFrecuent ? mostFrecuent.tipo : 'N/A',
-      texto: mostFrecuent ? `El paquete ha sido vendido ${mostFrecuent.veces_reservado} veces y ha generado $${mostFrecuent.ingresos_generados} en ingresos` : 'Sin datos',
+      texto: mostFrecuent ? `El paquete ha sido reservado ${mostFrecuent.veces_reservado} veces` : 'Sin datos',
     },
     {
       bgColor: '',
       icono: 'bi bi-box-fill',
       titulo: 'Paquete menos vendido',
       info: leastFrecuent ? leastFrecuent.tipo : 'N/A',
-      texto: leastFrecuent ? `El paquete ha sido vendido solo ${leastFrecuent.veces_reservado} veces y ha generado $${leastFrecuent.ingresos_generados} en ingresos` : 'Sin datos',
+      texto: leastFrecuent ? `El paquete ha sido reservado solo ${leastFrecuent.veces_reservado} veces` : 'Sin datos',
     }
   ];
 
