@@ -146,6 +146,28 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         formattedValue = (valor !== null && valor !== undefined) ? formatDate(valor) : "N / A";
                       } else if (col === 'img_url') {
                         formattedValue = valor ? <img src={valor} alt="preview" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
+                      } else if (col === 'comprobante') {
+                        formattedValue = valor ? (
+                          <a 
+                            href={valor} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            style={{
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '5px', 
+                              padding: '5px 10px', 
+                              backgroundColor: '#e6f6eb', 
+                              color: '#1a4700', 
+                              borderRadius: '5px', 
+                              textDecoration: 'none', 
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            <i className="bi bi-file-earmark-text"></i> Ver comprobante
+                          </a>
+                        ) : 'N / A';
                       } else {
                         if (valor === null || valor === undefined) {
                           formattedValue = 'N / A';

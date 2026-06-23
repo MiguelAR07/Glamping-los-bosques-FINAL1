@@ -100,6 +100,11 @@ function Pagos() {
               setPagos(null);
               handleTabChange('invoices')}}
           >Facturas</button>
+          <button className={`module-button ${activeTab === 'comprobantes' ? 'active' : ''}`}
+            onClick={() => {
+              setPagos(null);
+              handleTabChange('comprobantes')}}
+          >Comprobantes</button>
         </ModulosExtra>
 
         <Botones>
