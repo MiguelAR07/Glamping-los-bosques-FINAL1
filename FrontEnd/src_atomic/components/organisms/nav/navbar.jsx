@@ -68,9 +68,10 @@ const LeftSection = styled.div`
 const ModulesCont = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
   justify-content: center;
   flex: 1;
+  flex-wrap: wrap;
 
   @media (max-width: 768px) {
     position: fixed;
@@ -88,6 +89,7 @@ const ModulesCont = styled.div`
     overflow-y: hidden;
     scroll-behavior: smooth;
     gap: 15px;
+    flex-wrap: nowrap;
 
     &::-webkit-scrollbar {
       display: none;
@@ -100,14 +102,14 @@ const ModulesCont = styled.div`
 const Module = styled.button`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 
   border: none;
   background: none;
   color: white;
   cursor: pointer;
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 
   h5 {
     margin: 0;
@@ -117,13 +119,13 @@ const Module = styled.button`
   &.active {
     color: #40ff00ff;
     background: rgba(255, 255, 255, 0.1);
-    padding: 8px 12px;
+    padding: 5px 8px;
     border-radius: 8px;
   }
 
   &:hover:not(.active) {
     background: rgba(255, 255, 255, 0.05);
-    padding: 8px 12px;
+    padding: 5px 8px;
     border-radius: 8px;
   }
 
@@ -132,7 +134,7 @@ const Module = styled.button`
     gap: 4px;
     padding: 5px;
     flex-shrink: 0;
-    min-width: 60px;
+    min-width: 55px;
 
     &.active {
       background: transparent;
