@@ -76,6 +76,7 @@ function ModalEditar({ setModalAbierto, fetchData, cuentaAEditar }) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify(cuentaActualizada)
       });

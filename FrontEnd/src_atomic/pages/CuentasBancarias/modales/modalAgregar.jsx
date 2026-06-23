@@ -67,6 +67,7 @@ function ModalAgregar({ setModalAbierto, fetchData }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify(nuevaCuenta)
       });
