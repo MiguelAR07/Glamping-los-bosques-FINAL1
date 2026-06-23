@@ -67,6 +67,7 @@ export const modulos = [
     icono: "bi bi-calendar-event-fill",
     nombre: 'Disponibilidad',
     componente: <Disponibilidad />,
+    ruta: '/disponibilidad',
     roles: ["recepcionista", "administrador"]
   },
   {
