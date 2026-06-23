@@ -44,12 +44,17 @@ const NavBar = styled.nav`
 
   @media (max-width: 768px) {
     width: 100%;
-    height: 60px;
+    height: 70px;
     position: fixed;
     bottom: 0;
+    left: 0;
     flex-direction: row;
-    padding: 0 10px;
-    justify-content: space-around;
+    padding: 0;
+    background: rgba(67, 82, 58, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
 
     .titulo {
       display: none;
@@ -58,9 +63,6 @@ const NavBar = styled.nav`
     &:hover {
       width: 100%;
       align-items: center;
-      h5, h4 {
-        display: none;
-      }
     }
   }
 `;
@@ -80,8 +82,20 @@ const ModulesCont = styled.div`
     margin-top: 0;
     flex-direction: row;
     width: 100%;
-    justify-content: space-around;
-    gap: 0;
+    height: 100%;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    padding: 0 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 
     ${NavBar}:hover & {
       align-items: center;
@@ -107,10 +121,40 @@ const Module = styled.button`
     border-radius: 5px;
   }
 
-    &:hover:not(.active) {
+  &:hover:not(.active) {
     background: rgba(255, 255, 255, 0.05);
     padding: 5px 8px;
     border-radius: 5px;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 12px;
+    min-width: 70px;
+    border-radius: 12px;
+    justify-content: center;
+
+    &.active {
+      background: rgba(64, 255, 0, 0.15);
+      color: #7aff4d;
+      padding: 6px 12px;
+    }
+
+    &:hover:not(.active) {
+      padding: 6px 12px;
+    }
+
+    ${NavBar} & h5, ${NavBar} & h4 {
+      display: block !important;
+      font-size: 0.65rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    i {
+      font-size: 1.2rem;
+    }
   }
 `;
 
