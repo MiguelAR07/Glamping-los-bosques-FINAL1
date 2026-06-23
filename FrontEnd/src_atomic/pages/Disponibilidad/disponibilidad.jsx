@@ -5,6 +5,7 @@ import moment from 'moment';
 import 'moment/locale/es';
 import { momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import './calendarOverrides.css';
 import { useFetch } from '../../hooks/fetchConnect';
 import ModalBloqueo from './modales/modalBloqueo';
 import ModalReserva from './modales/modalReserva';
@@ -21,119 +22,6 @@ const Container = styled.div`
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   height: 80vh;
   margin-top: 20px;
-
-  .rbc-calendar {
-    font-family: inherit;
-  }
-
-  /* Fijar filas del mes para que todas tengan la misma altura */
-  .rbc-month-view {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .rbc-month-row {
-    overflow: hidden !important;
-    min-height: 90px;
-    max-height: 120px;
-  }
-
-  .rbc-row-content {
-    overflow: hidden;
-    max-height: 100%;
-  }
-
-  /* Hacer los eventos más compactos */
-  .rbc-event {
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-size: 0.72rem;
-    font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    margin-bottom: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-    height: auto !important;
-    max-height: 20px;
-  }
-
-  .rbc-event-content {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.72rem;
-  }
-
-  .rbc-event:hover {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    z-index: 5;
-  }
-
-  /* Estilos de reservas vs bloqueos */
-  .event-reserva {
-    background: linear-gradient(135deg, #43523A, #556B48);
-    border: none;
-    border-left: 3px solid #8BC34A;
-  }
-  .event-bloqueo {
-    background: linear-gradient(135deg, #c92a2a, #e03131);
-    border: none;
-    border-left: 3px solid #ff8a80;
-  }
-
-  /* Enlace de "+X más" */
-  .rbc-show-more {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #43523A;
-    background: transparent;
-    text-decoration: underline;
-    margin-top: 2px;
-  }
-
-  /* Encabezados de día */
-  .rbc-header {
-    padding: 8px 4px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #43523A;
-    background: #f8f9fa;
-    border-bottom: 2px solid #e0e0e0;
-  }
-
-  /* Día actual */
-  .rbc-today {
-    background-color: #e8f5e9;
-    border: 2px solid #43523A !important;
-  }
-  
-  .rbc-today .rbc-button-link {
-    font-weight: bold;
-    color: #43523A;
-    font-size: 1.1em;
-    background-color: #c8e6c9;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 4px;
-  }
-
-  /* Numero del día */
-  .rbc-date-cell {
-    padding: 4px 6px;
-    font-size: 0.85rem;
-  }
-
-  /* Fila de segmentos de eventos */
-  .rbc-row-segment {
-    padding: 0 2px;
-  }
 `;
 
 const HeaderContainer = styled.div`
