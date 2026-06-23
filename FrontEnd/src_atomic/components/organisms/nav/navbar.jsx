@@ -68,7 +68,7 @@ const LeftSection = styled.div`
 const ModulesCont = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 15px;
   justify-content: center;
   flex: 1;
   flex-wrap: wrap;
@@ -102,14 +102,17 @@ const ModulesCont = styled.div`
 const Module = styled.button`
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 
   border: none;
-  background: none;
+  background: transparent;
   color: white;
   cursor: pointer;
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  padding: 8px 15px;
+  border-radius: 8px;
+  transition: all 0.2s;
 
   h5 {
     margin: 0;
@@ -118,15 +121,11 @@ const Module = styled.button`
 
   &.active {
     color: #40ff00ff;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 8px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
   }
 
   &:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 5px 8px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
   }
 
   @media (max-width: 768px) {
