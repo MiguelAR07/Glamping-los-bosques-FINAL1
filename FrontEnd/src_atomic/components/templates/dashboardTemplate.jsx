@@ -12,23 +12,23 @@ import { Outlet, Navigate } from "react-router-dom";
 
 const Container = styled.div`
   display: flex;
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 `;
 
-const Right = styled.div`
-  width: calc(100% - 80px);
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
   overflow-x: hidden;
-  height: 100vh;
+  background-color: #f8f9fa;
   
-  @media (max-width: 768px) {
-    width: 100%;
-    height: calc(100vh - 60px);
-  }
-
   .mainGeneral {
-    overflow: auto;
+    padding: 20px;
   }
 `;
 
@@ -49,13 +49,12 @@ function DashboardTemplate({ modulo, children }) {
 
   return (
     <Container>
-      <Navbar />
-      <Right>
-        <HeaderGeneral
-          user={localStorage.getItem('userName') || 'Usuario'}
-          onClick={handleOpenNotifications}
-          hasNewNotification={hasNewNotification}
-        />
+      <Navbar 
+        onNotificationClick={handleOpenNotifications} 
+        hasNewNotification={hasNewNotification} 
+        user={localStorage.getItem('userName') || 'Usuario'}
+      />
+      <ContentWrapper>
         {showNotifications && (
           <Notifications
             onClose={() => setShowNotifications(false)}
@@ -65,7 +64,7 @@ function DashboardTemplate({ modulo, children }) {
         <MainGeneral modulo={modulo} className="mainGeneral">
           {children || <Outlet />}
         </MainGeneral>
-      </Right>
+      </ContentWrapper>
     </Container>
   );
 }
