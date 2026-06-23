@@ -60,9 +60,19 @@ const ModulesCont = styled.div`
     background: rgba(67, 82, 58, 0.95);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    justify-content: space-around;
-    padding: 0 10px;
+    justify-content: flex-start;
+    padding: 0 15px;
     z-index: 9999;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    gap: 15px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 `;
 
@@ -100,6 +110,8 @@ const Module = styled.button`
     flex-direction: column;
     gap: 4px;
     padding: 5px;
+    flex-shrink: 0;
+    min-width: 60px;
 
     &.active {
       background: transparent;
