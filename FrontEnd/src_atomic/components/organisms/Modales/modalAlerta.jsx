@@ -7,7 +7,7 @@ const Modal = styled.div`
   background: #00000098;
 
   position: fixed;
-  z-index: 1050;
+  z-index: 10050;
   top: 0;
   left: 0;
 
