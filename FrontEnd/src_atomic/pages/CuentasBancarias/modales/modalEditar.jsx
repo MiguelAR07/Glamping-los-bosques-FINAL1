@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { alertUtils } from "../../../utils/alertUtils";
 
 import ModalPlantilla from "../../../components/organisms/Modales/modalPlantilla";
@@ -52,11 +51,16 @@ function ModalEditar({ setModalAbierto, fetchData, cuentaAEditar }) {
         estado: cuentaAEditar.estado
       };
 
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/cuentas-bancarias/${cuentaAEditar.id}`,
-        cuentaActualizada
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cuentas-bancarias/${cuentaAEditar.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cuentaActualizada)
+      });
       
+      if (!res.ok) throw new Error("Error al actualizar la cuenta bancaria");
+
       alertUtils.exito("Cuenta actualizada correctamente");
       fetchData();
       setModalAbierto(false);

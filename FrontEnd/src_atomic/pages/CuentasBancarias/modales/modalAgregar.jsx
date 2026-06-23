@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { alertUtils } from "../../../utils/alertUtils";
 
 import ModalPlantilla from "../../../components/organisms/Modales/modalPlantilla";
@@ -43,11 +42,16 @@ function ModalAgregar({ setModalAbierto, fetchData }) {
         estado: true
       };
 
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/cuentas-bancarias`,
-        nuevaCuenta
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cuentas-bancarias`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nuevaCuenta)
+      });
       
+      if (!res.ok) throw new Error("Error al agregar la cuenta bancaria");
+
       alertUtils.exito("Cuenta agregada correctamente");
       fetchData();
       setModalAbierto(false);
