@@ -73,15 +73,54 @@ function Disponibilidad() {
 
   useEffect(() => {
     if (data && Array.isArray(data)) {
-      const formattedEvents = data.map(item => ({
-        id: item.id,
-        title: `${item.tipo === 'bloqueo' ? 'Bloqueo: ' : ''}${item.title} (${item.cabana_nombre})`,
-        start: new Date(item.start),
-        end: new Date(item.end),
-        type: item.tipo,
-        cabana_id: item.cabana_id
-      }));
-      setEvents(formattedEvents);
+      const singleDayEvents = [];
+      data.forEach(item => {
+        const start = new Date(item.start);
+        const end = new Date(item.end);
+        const title = `${item.tipo === 'bloqueo' ? '🔒 ' : ''}${item.title} (${item.cabana_nombre})`;
+        
+        // Calcular cuántos días abarca el evento
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        const diffDays = Math.round((endDay - startDay) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 1) {
+          // Evento de un solo día: dejarlo normal
+          singleDayEvents.push({
+            id: item.id,
+            title,
+            start,
+            end,
+            type: item.tipo,
+            cabana_id: item.cabana_id,
+            allDay: true
+          });
+        } else {
+          // Evento multi-día: partir en eventos individuales por día
+          for (let d = 0; d < diffDays; d++) {
+            const dayStart = new Date(startDay);
+            dayStart.setDate(dayStart.getDate() + d);
+            const dayEnd = new Date(dayStart);
+            dayEnd.setHours(23, 59, 59);
+            
+            let dayTitle = title;
+            if (d === 0) dayTitle = `▶ ${title}`;
+            else if (d === diffDays - 1) dayTitle = `◀ ${title}`;
+            else dayTitle = `─ ${title}`;
+            
+            singleDayEvents.push({
+              id: item.id,
+              title: dayTitle,
+              start: dayStart,
+              end: dayEnd,
+              type: item.tipo,
+              cabana_id: item.cabana_id,
+              allDay: true
+            });
+          }
+        }
+      });
+      setEvents(singleDayEvents);
     }
   }, [data]);
 
