@@ -5,18 +5,39 @@ import { modulos } from "../../../config/modulos";
 
 const NavBarContainer = styled.nav`
   width: 100%;
-  height: 70px;
-  padding: 0 30px;
+  padding: 10px 30px 0 30px;
   box-sizing: border-box;
   background-color: #43523A;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   z-index: 1000;
   color: white;
 
   @media (max-width: 768px) {
-    padding: 0 15px;
+    padding: 10px 15px 0 15px;
+  }
+`;
+
+const TopRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+`;
+
+const BottomRow = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  @media (max-width: 768px) {
+    border-top: none;
+    padding: 0;
   }
 `;
 
@@ -201,62 +222,66 @@ function Navbar({ onNotificationClick, hasNewNotification, user }) {
 
   return (
     <NavBarContainer>
-      <LeftSection>
-        <div className="titulo">
-          <img src="/images/logo.jpeg" alt="Logo Glamping" />
-        </div>
-        <span>Panel de Control</span>
-      </LeftSection>
+      <TopRow>
+        <LeftSection>
+          <div className="titulo">
+            <img src="/images/logo.jpeg" alt="Logo Glamping" />
+          </div>
+          <span>Panel de Control</span>
+        </LeftSection>
 
-      <ModulesCont>
-        {modulosDisponibles.map((item, i) => (
-          <Module
-            key={i}
-            as={NavLink}
-            to={item.ruta}
-            className={({ isActive }) => isActive ? 'active' : ''}
+        <RightSection>
+          <button className="icon-btn" onClick={onNotificationClick}>
+            <i className="bi bi-bell-fill" />
+            {hasNewNotification && (
+              <span style={{
+                position: "absolute",
+                top: "0",
+                right: "0",
+                width: "10px",
+                height: "10px",
+                backgroundColor: "red",
+                borderRadius: "50%",
+                boxShadow: "0 0 5px rgba(255,0,0,0.8)"
+              }}></span>
+            )}
+          </button>
+
+          <div className="user-info">
+            <i className="bi bi-person-circle" style={{ fontSize: '1.2rem' }}></i>
+            <span>{user}</span>
+          </div>
+
+          <button 
+            className="logout-btn"
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('userRole');
+              localStorage.removeItem('userName');
+              window.location.href = '/';
+            }}
           >
-            <i className={item.icono}></i>
-            <h5>{item.nombre}</h5>
-          </Module>
-        ))}
-      </ModulesCont>
+            <i className="bi bi-box-arrow-right"></i>
+            <span className="logout-text">Salir</span>
+          </button>
+        </RightSection>
+      </TopRow>
 
-      <RightSection>
-        <button className="icon-btn" onClick={onNotificationClick}>
-          <i className="bi bi-bell-fill" />
-          {hasNewNotification && (
-            <span style={{
-              position: "absolute",
-              top: "0",
-              right: "0",
-              width: "10px",
-              height: "10px",
-              backgroundColor: "red",
-              borderRadius: "50%",
-              boxShadow: "0 0 5px rgba(255,0,0,0.8)"
-            }}></span>
-          )}
-        </button>
-
-        <div className="user-info">
-          <i className="bi bi-person-circle" style={{ fontSize: '1.2rem' }}></i>
-          <span>{user}</span>
-        </div>
-
-        <button 
-          className="logout-btn"
-          onClick={() => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userName');
-            window.location.href = '/';
-          }}
-        >
-          <i className="bi bi-box-arrow-right"></i>
-          <span className="logout-text">Salir</span>
-        </button>
-      </RightSection>
+      <BottomRow>
+        <ModulesCont>
+          {modulosDisponibles.map((item, i) => (
+            <Module
+              key={i}
+              as={NavLink}
+              to={item.ruta}
+              className={({ isActive }) => isActive ? 'active' : ''}
+            >
+              <i className={item.icono}></i>
+              <h5>{item.nombre}</h5>
+            </Module>
+          ))}
+        </ModulesCont>
+      </BottomRow>
     </NavBarContainer>
   );
 }
