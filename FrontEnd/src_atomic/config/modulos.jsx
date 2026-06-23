@@ -7,6 +7,7 @@ import Reservas from "../pages/Reservas/reservas"
 import Pagos from "../pages/Pagos/pagos"
 import Usuarios from "../pages/Usuarios/usuarios"
 import Disponibilidad from "../pages/Disponibilidad/disponibilidad"
+import CuentasBancarias from "../pages/CuentasBancarias/cuentasBancarias"
 
 export const userRole = localStorage.getItem('userRole') || "";
 
@@ -66,7 +67,13 @@ export const modulos = [
     icono: "bi bi-calendar-event-fill",
     nombre: 'Disponibilidad',
     componente: <Disponibilidad />,
-    ruta: '/disponibilidad',
     roles: ["recepcionista", "administrador"]
+  },
+  {
+    icono: "bi bi-bank2",
+    nombre: 'Métodos Pago',
+    componente: <CuentasBancarias />,
+    ruta: '/metodos-pago',
+    roles: ["administrador"]
   }
 ];

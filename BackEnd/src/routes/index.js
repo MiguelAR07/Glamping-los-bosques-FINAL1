@@ -19,7 +19,7 @@ import reviewRouter from './review.routes.js';
 import promocionRouter from './promocion.routes.js';
 import availabilityRouter from './availability.routes.js';
 import comprobanteRouter from './comprobante.routes.js';
-
+import cuentasBancariasRouter from './cuentas_bancarias.routes.js';
 const router = Router();
 
 router.use('/login', loginRouter);
@@ -40,6 +40,7 @@ router.use('/dashboard', dashboardRouter);
 router.use('/promociones', promocionRouter);
 router.use('/availability', availabilityRouter);
 router.use('/comprobantes', comprobanteRouter);
+router.use('/cuentas-bancarias', cuentasBancariasRouter);
 
 router.use('/types', typesRouter);
 router.use('/reviews', reviewRouter);
