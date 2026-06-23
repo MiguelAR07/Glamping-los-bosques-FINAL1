@@ -26,17 +26,27 @@ const Container = styled.div`
     font-family: inherit;
   }
   .rbc-event {
-    border-radius: 6px;
-    padding: 5px 8px;
-    font-size: 0.95em;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     transition: transform 0.2s, box-shadow 0.2s;
     margin-bottom: 2px;
+    /* Fix para que no sobrepasen el cuadro */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  .rbc-event-content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .rbc-event:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.25);
     z-index: 5;
   }
   .event-reserva {
