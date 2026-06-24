@@ -242,6 +242,7 @@ export const uploadPaymentReceipt = async (req, res) => {
 
 import { sendReservationConfirmedEmail, sendReservationRejectedEmail } from "../services/nodemailer.service.js";
 import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
+import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp } from "../services/whatsapp.service.js";
 
 export const confirmReservationPayment = async (req, res) => {
     try {
@@ -276,6 +277,11 @@ export const confirmReservationPayment = async (req, res) => {
         // 3. Enviar SMS de confirmación
         if (data.cliente_contacto) {
             await sendReservationConfirmedSMS(data.cliente_contacto, data.cliente_nombre);
+        }
+
+        // 4. Enviar WhatsApp de confirmación
+        if (data.cliente_contacto) {
+            await sendReservationConfirmedWhatsApp(data.cliente_contacto, data.cliente_nombre);
         }
 
         await pool.query("COMMIT");
@@ -323,6 +329,11 @@ export const rejectReservationPayment = async (req, res) => {
         // Enviar SMS de rechazo
         if (data.cliente_contacto) {
             await sendReservationRejectedSMS(data.cliente_contacto, data.cliente_nombre, motivo);
+        }
+
+        // Enviar WhatsApp de rechazo
+        if (data.cliente_contacto) {
+            await sendReservationRejectedWhatsApp(data.cliente_contacto, data.cliente_nombre, motivo);
         }
 
         await pool.query("COMMIT");
@@ -444,6 +455,16 @@ export const cancelReservationForceMajeure = async (req, res) => {
         // Enviar correo electrónico de fuerza mayor
         if (data.cliente_email) {
             await sendForceMajeureCancelEmail(data.cliente_email, data.cliente_nombre);
+        }
+
+        // Enviar WhatsApp de cancelación por fuerza mayor
+        if (data.cliente_contacto) {
+            // Usamos la misma función de rechazo con un motivo fijo
+            await sendReservationRejectedWhatsApp(
+                data.cliente_contacto, 
+                data.cliente_nombre, 
+                "Motivos de fuerza mayor. Nuestro equipo de soporte se contactará contigo."
+            );
         }
 
         await pool.query("COMMIT");
