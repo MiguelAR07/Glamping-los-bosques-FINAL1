@@ -364,7 +364,6 @@ export const getLatestReservationId = async (req, res) => {
 };
 
 import { sendRescheduleEmail } from "../services/nodemailer.service.js";
-import { sendRescheduleWhatsApp } from "../services/whatsapp.service.js";
 
 export const rescheduleReservation = async (req, res) => {
     try {
