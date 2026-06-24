@@ -361,6 +361,7 @@ export const getLatestReservationId = async (req, res) => {
 };
 
 import { sendRescheduleEmail } from "../services/nodemailer.service.js";
+import { sendRescheduleWhatsApp } from "../services/whatsapp.service.js";
 
 export const rescheduleReservation = async (req, res) => {
     try {
@@ -371,7 +372,7 @@ export const rescheduleReservation = async (req, res) => {
 
         // Validar que la reserva exista
         const result = await pool.query(
-            "SELECT r.*, c.email AS cliente_email, c.nombre AS cliente_nombre FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1", 
+            "SELECT r.*, c.email AS cliente_email, c.nombre AS cliente_nombre, c.contacto AS cliente_contacto FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1", 
             [id]
         );
 
@@ -388,11 +389,17 @@ export const rescheduleReservation = async (req, res) => {
             [llegada, salida, id]
         );
 
+        const llegadaFormateada = new Date(llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const salidaFormateada = new Date(salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
         // Enviar correo electrónico
         if (data.cliente_email) {
-            const llegadaFormateada = new Date(llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-            const salidaFormateada = new Date(salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
             await sendRescheduleEmail(data.cliente_email, data.cliente_nombre, llegadaFormateada, salidaFormateada);
+        }
+
+        // Enviar WhatsApp de reprogramación
+        if (data.cliente_contacto) {
+            await sendRescheduleWhatsApp(data.cliente_contacto, data.cliente_nombre, llegadaFormateada, salidaFormateada);
         }
 
         await pool.query("COMMIT");

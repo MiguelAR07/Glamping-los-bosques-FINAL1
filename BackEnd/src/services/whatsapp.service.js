@@ -95,3 +95,48 @@ export const sendReservationRejectedWhatsApp = async (telefono, clienteNombre, m
     console.error('❌ Error ejecutando envío de WhatsApp de rechazo:', error);
   }
 };
+
+export const sendRescheduleWhatsApp = async (telefono, clienteNombre, llegada, salida) => {
+  try {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_ID;
+
+    const cleanPhone = String(telefono || '').replace(/\D/g, '');
+
+    if (!token || !phoneId) {
+      console.warn("⚠️ Meta WhatsApp API no está configurada. Simulación WSP REPROGRAMACIÓN a " + cleanPhone);
+      return;
+    }
+
+    const url = `https://graph.facebook.com/v19.0/${phoneId}/messages`;
+    
+    const body = {
+      messaging_product: "whatsapp",
+      to: cleanPhone,
+      type: "text",
+      text: {
+        body: `¡Hola ${clienteNombre}! 📅 Te confirmamos que tu reserva en Glamping Los Bosques ha sido reprogramada con éxito. Tus nuevas fechas son:\n\nLlegada: ${llegada}\nSalida: ${salida}\n\n¡Te esperamos con los brazos abiertos!`
+      }
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(`✅ WhatsApp de reprogramación enviado a ${cleanPhone}`);
+    } else {
+      console.error(`❌ Error de la API de Meta WhatsApp:`, data);
+    }
+  } catch (error) {
+    console.error('❌ Error ejecutando envío de WhatsApp de reprogramación:', error);
+  }
+};
