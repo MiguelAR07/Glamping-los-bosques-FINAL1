@@ -9,7 +9,7 @@ export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) 
 
     // Asegurarnos de que el teléfono tenga el formato correcto (solo números)
     // Usualmente Meta requiere el código de país sin el símbolo '+'. Ej: 573001234567
-    const cleanPhone = telefono.replace(/\D/g, '');
+    const cleanPhone = String(telefono || '').replace(/\D/g, '');
 
     if (!token || !phoneId) {
       console.warn("⚠️ Meta WhatsApp API no está configurada. Simulación WSP CONFIRMACIÓN a " + cleanPhone + ": Hola " + clienteNombre + ", tu reserva ha sido confirmada.");
@@ -55,7 +55,7 @@ export const sendReservationRejectedWhatsApp = async (telefono, clienteNombre, m
     const token = process.env.WHATSAPP_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
 
-    const cleanPhone = telefono.replace(/\D/g, '');
+    const cleanPhone = String(telefono || '').replace(/\D/g, '');
 
     if (!token || !phoneId) {
       console.warn("⚠️ Meta WhatsApp API no está configurada. Simulación WSP RECHAZO a " + cleanPhone + ": Hola " + clienteNombre + ", tu reserva fue rechazada. Motivo: " + motivo);
