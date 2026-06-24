@@ -30,9 +30,9 @@ export const connectDB = async () => {
     console.log('PostgreSQL Conectado!');
     client.release(); // Importante liberar el cliente de prueba
   } catch (error) {
-    console.error("Error Conectandose a PostgreSQL!");
+    console.error("⚠️ Error inicial conectándose a PostgreSQL, pero la piscina reintentará automáticamente:");
     console.error(error.message);
-    process.exit(1);
+    // process.exit(1); // Eliminado para no tumbar el servidor en Render
   }
 };
 
