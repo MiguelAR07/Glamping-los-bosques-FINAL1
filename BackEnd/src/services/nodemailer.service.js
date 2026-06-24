@@ -7,7 +7,10 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  connectionTimeout: 10000, // 10 segundos
+  greetingTimeout: 10000,
+  socketTimeout: 10000
 });
 
 export const sendSystemOnlineEmail = async (urlPublica) => {
@@ -93,9 +96,35 @@ export const sendReservationConfirmedEmail = async (email, clienteNombre, llegad
     return response;
   } catch (error) {
     console.error('❌ Error enviando email de confirmación:', error);
-    throw error;
+    // No lanzamos el error para evitar que se cancele la confirmación de la reserva
+    return null;
   }
 }
+
+export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida) => {
+  try {
+    await transporter.sendMail({
+      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
+      subject: '🔔 Nueva Reserva Confirmada',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h1 style="color: #059669; text-align: center;">Nueva Reserva Confirmada</h1>
+          <p>Has confirmado exitosamente la reserva del cliente <strong>${clienteNombre}</strong>.</p>
+          <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <ul style="list-style: none; padding-left: 0;">
+              <li>📅 <strong>Llegada:</strong> ${llegada}</li>
+              <li>📅 <strong>Salida:</strong> ${salida}</li>
+            </ul>
+          </div>
+          <p style="text-align: center;">Revisa el panel de control para más detalles.</p>
+        </div>
+      `
+    });
+  } catch (error) {
+    console.error('❌ Error enviando notificación al admin:', error);
+  }
+};
 
 export const sendPasswordResetEmail = async (email, code) => {
   try {
@@ -149,7 +178,7 @@ export const sendReservationRejectedEmail = async (email, clienteNombre, motivo)
     return response;
   } catch (error) {
     console.error('❌ Error enviando email de rechazo:', error);
-    throw error;
+    return null;
   }
 }
 

@@ -240,9 +240,9 @@ export const uploadPaymentReceipt = async (req, res) => {
     }
 };
 
-import { sendReservationConfirmedEmail, sendReservationRejectedEmail } from "../services/nodemailer.service.js";
+import { sendReservationConfirmedEmail, sendReservationRejectedEmail, sendAdminNotificationEmail } from "../services/nodemailer.service.js";
 import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
-import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp } from "../services/whatsapp.service.js";
+import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp, sendRescheduleWhatsApp } from "../services/whatsapp.service.js";
 
 export const confirmReservationPayment = async (req, res) => {
     try {
@@ -264,7 +264,7 @@ export const confirmReservationPayment = async (req, res) => {
         const llegadaFormateada = new Date(data.llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
         const salidaFormateada = new Date(data.salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // 2. Enviar correo electrónico de confirmación
+        // 2. Enviar correo electrónico de confirmación al cliente
         if (data.cliente_email) {
             await sendReservationConfirmedEmail(
                 data.cliente_email, 
@@ -273,6 +273,9 @@ export const confirmReservationPayment = async (req, res) => {
                 salidaFormateada
             );
         }
+
+        // 2.1 Enviar correo de notificación al administrador
+        await sendAdminNotificationEmail(data.cliente_nombre, llegadaFormateada, salidaFormateada);
 
         // 3. Enviar SMS de confirmación
         if (data.cliente_contacto) {
