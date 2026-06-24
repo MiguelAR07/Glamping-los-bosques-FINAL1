@@ -264,27 +264,27 @@ export const confirmReservationPayment = async (req, res) => {
         const llegadaFormateada = new Date(data.llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
         const salidaFormateada = new Date(data.salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // 2. Enviar correo electrónico de confirmación al cliente
+        // 2. Enviar correo electrónico de confirmación al cliente (En segundo plano)
         if (data.cliente_email) {
-            await sendReservationConfirmedEmail(
+            sendReservationConfirmedEmail(
                 data.cliente_email, 
                 data.cliente_nombre, 
                 llegadaFormateada, 
                 salidaFormateada
-            );
+            ).catch(err => console.error(err));
         }
 
-        // 2.1 Enviar correo de notificación al administrador
-        await sendAdminNotificationEmail(data.cliente_nombre, llegadaFormateada, salidaFormateada);
+        // 2.1 Enviar correo de notificación al administrador (En segundo plano)
+        sendAdminNotificationEmail(data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
 
-        // 3. Enviar SMS de confirmación
+        // 3. Enviar SMS de confirmación (En segundo plano)
         if (data.cliente_contacto) {
-            await sendReservationConfirmedSMS(data.cliente_contacto, data.cliente_nombre);
+            sendReservationConfirmedSMS(data.cliente_contacto, data.cliente_nombre).catch(err => console.error(err));
         }
 
-        // 4. Enviar WhatsApp de confirmación
+        // 4. Enviar WhatsApp de confirmación (En segundo plano)
         if (data.cliente_contacto) {
-            await sendReservationConfirmedWhatsApp(data.cliente_contacto, data.cliente_nombre);
+            sendReservationConfirmedWhatsApp(data.cliente_contacto, data.cliente_nombre).catch(err => console.error(err));
         }
 
         await pool.query("COMMIT");
@@ -324,19 +324,19 @@ export const rejectReservationPayment = async (req, res) => {
         // Usamos cancelReservation del model o simplemente actualizamos el estado
         await pool.query("UPDATE reservas SET estado = 'Cancelada' WHERE reserva_id = $1", [id]);
 
-        // Enviar correo electrónico de rechazo
+        // Enviar correo electrónico de rechazo (En segundo plano)
         if (data.cliente_email) {
-            await sendReservationRejectedEmail(data.cliente_email, data.cliente_nombre, motivo);
+            sendReservationRejectedEmail(data.cliente_email, data.cliente_nombre, motivo).catch(err => console.error(err));
         }
 
-        // Enviar SMS de rechazo
+        // Enviar SMS de rechazo (En segundo plano)
         if (data.cliente_contacto) {
-            await sendReservationRejectedSMS(data.cliente_contacto, data.cliente_nombre, motivo);
+            sendReservationRejectedSMS(data.cliente_contacto, data.cliente_nombre, motivo).catch(err => console.error(err));
         }
 
-        // Enviar WhatsApp de rechazo
+        // Enviar WhatsApp de rechazo (En segundo plano)
         if (data.cliente_contacto) {
-            await sendReservationRejectedWhatsApp(data.cliente_contacto, data.cliente_nombre, motivo);
+            sendReservationRejectedWhatsApp(data.cliente_contacto, data.cliente_nombre, motivo).catch(err => console.error(err));
         }
 
         await pool.query("COMMIT");
@@ -394,14 +394,14 @@ export const rescheduleReservation = async (req, res) => {
         const llegadaFormateada = new Date(llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
         const salidaFormateada = new Date(salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Enviar correo electrónico
+        // Enviar correo electrónico (En segundo plano)
         if (data.cliente_email) {
-            await sendRescheduleEmail(data.cliente_email, data.cliente_nombre, llegadaFormateada, salidaFormateada);
+            sendRescheduleEmail(data.cliente_email, data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
         }
 
-        // Enviar WhatsApp de reprogramación
+        // Enviar WhatsApp de reprogramación (En segundo plano)
         if (data.cliente_contacto) {
-            await sendRescheduleWhatsApp(data.cliente_contacto, data.cliente_nombre, llegadaFormateada, salidaFormateada);
+            sendRescheduleWhatsApp(data.cliente_contacto, data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
         }
 
         await pool.query("COMMIT");
@@ -461,19 +461,19 @@ export const cancelReservationForceMajeure = async (req, res) => {
         // Cambiar el estado a "Cancelada"
         await pool.query("UPDATE reservas SET estado = 'Cancelada' WHERE reserva_id = $1", [id]);
 
-        // Enviar correo electrónico de fuerza mayor
+        // Enviar correo electrónico de cancelación (En segundo plano)
         if (data.cliente_email) {
-            await sendForceMajeureCancelEmail(data.cliente_email, data.cliente_nombre);
+            sendForceMajeureCancelEmail(data.cliente_email, data.cliente_nombre).catch(err => console.error(err));
         }
 
-        // Enviar WhatsApp de cancelación por fuerza mayor
+        // Enviar WhatsApp de cancelación por fuerza mayor (En segundo plano)
         if (data.cliente_contacto) {
             // Usamos la misma función de rechazo con un motivo fijo
-            await sendReservationRejectedWhatsApp(
+            sendReservationRejectedWhatsApp(
                 data.cliente_contacto, 
                 data.cliente_nombre, 
                 "Motivos de fuerza mayor. Nuestro equipo de soporte se contactará contigo."
-            );
+            ).catch(err => console.error(err));
         }
 
         await pool.query("COMMIT");
