@@ -35,7 +35,8 @@ export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) 
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
     });
 
     const data = await response.json();
@@ -79,7 +80,8 @@ export const sendReservationRejectedWhatsApp = async (telefono, clienteNombre, m
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
     });
 
     const data = await response.json();
