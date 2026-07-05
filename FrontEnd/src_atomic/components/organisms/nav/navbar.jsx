@@ -10,11 +10,15 @@ const NavBarContainer = styled.nav`
   background-color: #43523A;
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 0;
   z-index: 1000;
   color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   @media (max-width: 768px) {
     padding: 10px 15px 0 15px;
+    position: relative; /* On mobile, since modules are fixed at bottom, keep top row header in normal flow */
   }
 `;
 
@@ -112,7 +116,7 @@ const Module = styled.button`
   font-size: 0.95rem;
   padding: 8px 15px;
   border-radius: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   h5 {
     margin: 0;
@@ -122,10 +126,17 @@ const Module = styled.button`
   &.active {
     color: #40ff00ff;
     background: rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
   &:hover:not(.active) {
     background: rgba(255, 255, 255, 0.1);
+    color: #a3e635;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(1px) scale(0.98);
   }
 
   @media (max-width: 768px) {
@@ -142,6 +153,8 @@ const Module = styled.button`
 
     &:hover:not(.active) {
       padding: 5px;
+      color: #a3e635;
+      transform: none;
     }
 
     h5 {
@@ -180,10 +193,18 @@ const RightSection = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: 0.2s;
+    transition: all 0.2s ease-in-out;
+    padding: 8px;
+    border-radius: 50%;
 
     &:hover {
-      color: #40ff00ff;
+      color: #a3e635;
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 
@@ -191,7 +212,7 @@ const RightSection = styled.div`
     display: flex;
     align-items: center;
     gap: 5px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
     padding: 8px 15px;
@@ -199,11 +220,16 @@ const RightSection = styled.div`
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
-    transition: 0.2s;
+    transition: all 0.2s ease-in-out;
 
     &:hover {
-      background: rgba(255, 50, 50, 0.2);
-      color: #ffcccc;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      transform: scale(1.02);
+    }
+
+    &:active {
+      transform: scale(0.98);
     }
 
     .logout-text {
