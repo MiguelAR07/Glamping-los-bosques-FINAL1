@@ -7,21 +7,31 @@ import SelectBase from "../atoms/select/selectBase";
 
 const Buscador_Filtro = styled.div`
   display: flex;
-  gap: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+  }
 `;
 
 const Buscar = styled.div`
-  width: 300px;
-  height: 40px;
+  flex: 1;
+  min-width: 180px;
+  height: 38px;
   position: relative;
 
   input{
     width: 100%;
     height: 100%;
-    padding: 0 0 0 40px;
+    padding: 0 0 0 36px;
     background: #D9D9D9;
     border: 0px;
     border-radius: 5px;
+    font-size: 0.85rem;
   }
 
   i{
@@ -31,6 +41,7 @@ const Buscar = styled.div`
     transform: translateY(-50%);
     pointer-events: none;
     color: #4b4b4b;
+    font-size: 0.85rem;
   }
 `;
 

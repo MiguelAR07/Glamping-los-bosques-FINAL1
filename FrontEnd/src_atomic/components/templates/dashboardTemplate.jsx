@@ -28,6 +28,10 @@ const ContentWrapper = styled.div`
   .mainGeneral {
     padding: 20px;
   }
+
+  @media (max-width: 768px) {
+    padding-bottom: 70px; /* Compensar barra de navegación fija inferior */
+  }
 `;
 
 function DashboardTemplate({ modulo, children }) {

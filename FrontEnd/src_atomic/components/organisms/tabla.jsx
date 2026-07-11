@@ -10,6 +10,10 @@ const TableWrapper = styled.div`
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
   border-radius: 5px;
   background-color: #ffffff;
+
+  @media (max-width: 768px) {
+    margin-top: 20px;
+  }
 `;
 
 const OverflowTable = styled.div`
@@ -17,20 +21,28 @@ const OverflowTable = styled.div`
   max-width: 100%;
   overflow-x: auto;
   border-radius: 5px 5px 0 0;
+  -webkit-overflow-scrolling: touch;
 `;
 
 const Table = styled.table`
   width: 100%;
-  min-width: 1100px;
+  min-width: 700px;
   border-collapse: collapse;
 
   th, td{
-    padding: 15px 10px;
+    padding: 12px 10px;
     text-align: left;
     max-width: 200px;
     overflow: hidden;
-    text-overflow: wrap;
-    white-space: wrap;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+
+  th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   thead{
@@ -42,9 +54,18 @@ const Table = styled.table`
     background: #ffffff;
   }
 
+  tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background-color: #fafafa;
+    }
+  }
+
   td.acciones {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
     justify-content: center;
   }
@@ -53,8 +74,8 @@ const Table = styled.table`
     border: none;
     background: none;
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 5px;
+    font-size: 1.1rem;
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -73,7 +94,7 @@ const Table = styled.table`
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     transition: all 0.2s ease;
     white-space: nowrap;
     display: inline-flex;
@@ -91,6 +112,26 @@ const Table = styled.table`
 
     &:active {
       transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    min-width: 600px;
+
+    th, td {
+      padding: 10px 8px;
+      font-size: 0.8rem;
+      max-width: 150px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    min-width: 500px;
+
+    th, td {
+      padding: 8px 6px;
+      font-size: 0.75rem;
+      max-width: 120px;
     }
   }
 `;
@@ -145,7 +186,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                       } else if (columnasFecha.includes(col)) {
                         formattedValue = (valor !== null && valor !== undefined) ? formatDate(valor) : "N / A";
                       } else if (col === 'img_url') {
-                        formattedValue = valor ? <img src={valor} alt="preview" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
+                        formattedValue = valor ? <img src={valor} alt="preview" style={{width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
                       } else if (col === 'comprobante') {
                         formattedValue = valor ? (
                           <a 
@@ -156,16 +197,16 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                               display: 'inline-flex', 
                               alignItems: 'center', 
                               gap: '5px', 
-                              padding: '5px 10px', 
+                              padding: '4px 8px', 
                               backgroundColor: '#e6f6eb', 
                               color: '#1a4700', 
                               borderRadius: '5px', 
                               textDecoration: 'none', 
                               fontWeight: 'bold',
-                              fontSize: '0.85rem'
+                              fontSize: '0.8rem'
                             }}
                           >
-                            <i className="bi bi-file-earmark-text"></i> Ver comprobante
+                            <i className="bi bi-file-earmark-text"></i> Ver
                           </a>
                         ) : 'N / A';
                       } else {
@@ -187,7 +228,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                             onClick={() => onColumnClick[col](fila)}
                           >
                             <span>{formattedValue}</span>
-                            <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.75rem', opacity: 0.7 }}></i>
+                            <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem', opacity: 0.7 }}></i>
                           </button>
                         );
                       }
@@ -205,7 +246,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         title="Editar"
                         style={{ color: "#FFC107" }}
                       >
-                        <i className="bi bi-pencil-fill" style={{ fontSize: '1.2rem' }}></i>
+                        <i className="bi bi-pencil-fill" style={{ fontSize: '1.1rem' }}></i>
                       </button>
                     )}
                     {(onDelete && fila.estado !== 'Inactivo') && (
@@ -215,7 +256,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         title="Eliminar"
                         style={{ color: "#DC3545" }}
                       >
-                        <i className="bi bi-bag-dash-fill" style={{ fontSize: '1.2rem' }}></i>
+                        <i className="bi bi-bag-dash-fill" style={{ fontSize: '1.1rem' }}></i>
                       </button>
                     )}
                     {(onActive && fila.estado === 'Inactivo') && (
@@ -225,7 +266,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         title="Activar"
                         style={{ color: "#28a745" }}
                       >
-                        <i className="bi bi-bag-plus-fill" style={{ fontSize: '1.2rem' }}></i>
+                        <i className="bi bi-bag-plus-fill" style={{ fontSize: '1.1rem' }}></i>
                       </button>
                     )}
                     {acciones && acciones.map((accion, k) => {

@@ -16,9 +16,13 @@ const NavBarContainer = styled.nav`
   color: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
+  @media (max-width: 1024px) {
+    padding: 8px 20px 0 20px;
+  }
+
   @media (max-width: 768px) {
-    padding: 10px 15px 0 15px;
-    position: relative; /* On mobile, since modules are fixed at bottom, keep top row header in normal flow */
+    padding: 8px 15px 0 15px;
+    position: relative;
   }
 `;
 
@@ -36,8 +40,8 @@ const BottomRow = styled.div`
   align-items: center;
   width: 100%;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 
   @media (max-width: 768px) {
     border-top: none;
@@ -48,11 +52,11 @@ const BottomRow = styled.div`
 const LeftSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 
   .titulo img {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid white;
@@ -60,9 +64,14 @@ const LeftSection = styled.div`
   }
 
   span {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     white-space: nowrap;
+
+    @media (max-width: 1024px) {
+      font-size: 0.9rem;
+    }
+
     @media (max-width: 768px) {
       display: none;
     }
@@ -72,10 +81,14 @@ const LeftSection = styled.div`
 const ModulesCont = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 6px;
   justify-content: center;
   flex: 1;
   flex-wrap: wrap;
+
+  @media (max-width: 1200px) {
+    gap: 4px;
+  }
 
   @media (max-width: 768px) {
     position: fixed;
@@ -83,16 +96,16 @@ const ModulesCont = styled.div`
     left: 0;
     width: 100%;
     height: 60px;
-    background: rgba(67, 82, 58, 0.95);
+    background: rgba(67, 82, 58, 0.97);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     justify-content: flex-start;
-    padding: 0 15px;
+    padding: 0 10px;
     z-index: 9999;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
-    gap: 15px;
+    gap: 8px;
     flex-wrap: nowrap;
 
     &::-webkit-scrollbar {
@@ -106,17 +119,18 @@ const ModulesCont = styled.div`
 const Module = styled.button`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   border: none;
   background: transparent;
   color: white;
   cursor: pointer;
   text-decoration: none;
-  font-size: 0.95rem;
-  padding: 8px 15px;
+  font-size: 0.85rem;
+  padding: 6px 12px;
   border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 
   h5 {
     margin: 0;
@@ -139,6 +153,26 @@ const Module = styled.button`
     transform: translateY(1px) scale(0.98);
   }
 
+  @media (max-width: 1200px) {
+    font-size: 0.8rem;
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 8px;
+
+    h5 {
+      font-size: 0.6rem;
+    }
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 4px;
@@ -158,7 +192,7 @@ const Module = styled.button`
     }
 
     h5 {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
     }
 
     i {
@@ -170,13 +204,13 @@ const Module = styled.button`
 const RightSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 
   .user-info {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     
     @media (max-width: 768px) {
       display: none;
@@ -187,14 +221,14 @@ const RightSection = styled.div`
     background-color: transparent;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease-in-out;
-    padding: 8px;
+    padding: 6px;
     border-radius: 50%;
 
     &:hover {
@@ -215,10 +249,10 @@ const RightSection = styled.div`
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    padding: 8px 15px;
+    padding: 6px 12px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.2s ease-in-out;
 
@@ -275,7 +309,7 @@ function Navbar({ onNotificationClick, hasNewNotification, user }) {
           </button>
 
           <div className="user-info">
-            <i className="bi bi-person-circle" style={{ fontSize: '1.2rem' }}></i>
+            <i className="bi bi-person-circle" style={{ fontSize: '1.1rem' }}></i>
             <span>{user}</span>
           </div>
 

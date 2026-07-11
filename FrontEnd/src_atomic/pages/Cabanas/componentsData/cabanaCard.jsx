@@ -7,13 +7,14 @@ import { useFetch } from '../../../hooks/fetchConnect';
 import { formatCurrency } from '../../../utils/formattersUtil';
 
 const CardsCont = styled.div`
-  margin: 50px 0;
+  margin: 30px 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 
   @media (max-width: 1100px) {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 `;
 

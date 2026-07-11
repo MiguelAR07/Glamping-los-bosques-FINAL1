@@ -14,36 +14,54 @@ import ModalImagenes from "./modales/modalImagenes";
 
 import CabanasCard from "./componentsData/cabanaCard";
 import Buscador, { cabinFilterConfig } from "./componentsData/cabinSearch";
+import ImagenesCabanas from "./componentsData/imagenesCabanas";
 
 const Botones = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 
   @media (max-width: 750px) {
     flex-direction: column;
-    gap: 10px;
+    align-items: stretch;
   }
 `;
 
 const ModulosExtra = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 
   button {
-    padding: 10px;
+    padding: 8px 14px;
     background-color: #eeeeeeff;
     color: #363636;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+
     &:hover {
       background-color: #d9d9d9ff;
     }
     &.active {
       background-color: #43523A;
       color: white;
+    }
+  }
+
+  @media (max-width: 768px) {
+    gap: 6px;
+
+    button {
+      padding: 7px 12px;
+      font-size: 0.8rem;
     }
   }
 `;
@@ -71,7 +89,9 @@ function Cabanas() {
     setActiveTab(tab);
     setCabanas(null);
     setFilterMode("Todos");
-    fetchData(`${import.meta.env.VITE_API_BASE_URL}/api/${tab}`);
+    if (tab !== 'images') {
+      fetchData(`${import.meta.env.VITE_API_BASE_URL}/api/${tab}`);
+    }
   };
 
   const handleFetchData = () => {
@@ -134,34 +154,53 @@ function Cabanas() {
             className={`module-button ${activeTab === 'cabinDamage' ? 'active' : ''}`}
             onClick={() => handleTabChange('cabinDamage')}
           >Danos y mantenimientos</button>
+
+          <button
+            className={`module-button ${activeTab === 'images' ? 'active' : ''}`}
+            onClick={() => handleTabChange('images')}
+          >
+            <i className="bi bi-images" style={{ marginRight: '6px' }}></i>
+            Imágenes de cabañas
+          </button>
         </ModulosExtra>
 
-
-        <Botones>
-          <Buscador
-            activeTab={activeTab}
-            onResult={setCabanas}
-            onFilterChange={setFilterMode}
-          />
-          <BotonAgregar
-            modulo={activeTab === 'cabins' ? 'Agregar cabana' : 'Agregar dano'}
-            color={1}
-            onClick={() => setModalAbierto(true)}
-          />
-        </Botones>
-
-        {loading && <p style={{ marginTop: '20px' }}>Cargando datos...</p>}
-        {error && <p style={{ marginTop: '20px', color: 'red' }}>Error: {error}</p>}
-        {displayData && (
-          <TablaGeneral
-            data={displayData}
-            onColumnClick={onColumnClickHandlers}
-            onEdit={editarRegistro} 
-            onDelete={activeTab === 'cabins' ? eliminarRegistro : undefined}
-            onActive={activeTab === 'cabins' ? activarRegistro : undefined}
-          />
+        {/* Solo mostrar buscador y botón agregar si NO estamos en el tab de imágenes */}
+        {activeTab !== 'images' && (
+          <Botones>
+            <Buscador
+              activeTab={activeTab}
+              onResult={setCabanas}
+              onFilterChange={setFilterMode}
+            />
+            <BotonAgregar
+              modulo={activeTab === 'cabins' ? 'Agregar cabana' : 'Agregar dano'}
+              color={1}
+              onClick={() => setModalAbierto(true)}
+            />
+          </Botones>
         )}
 
+        {/* Tab de imágenes */}
+        {activeTab === 'images' && (
+          <ImagenesCabanas />
+        )}
+
+        {/* Tabs de cabañas y daños */}
+        {activeTab !== 'images' && (
+          <>
+            {loading && <p style={{ marginTop: '20px' }}>Cargando datos...</p>}
+            {error && <p style={{ marginTop: '20px', color: 'red' }}>Error: {error}</p>}
+            {displayData && (
+              <TablaGeneral
+                data={displayData}
+                onColumnClick={onColumnClickHandlers}
+                onEdit={editarRegistro} 
+                onDelete={activeTab === 'cabins' ? eliminarRegistro : undefined}
+                onActive={activeTab === 'cabins' ? activarRegistro : undefined}
+              />
+            )}
+          </>
+        )}
       </div>
 
       {modalAbierto && activeTab === 'cabins' && (

@@ -5,8 +5,7 @@
 @tailwind utilities;
 
 html {
-  font-size: 22px;
-  zoom: 1.25; /* Aumenta todo el panel (botones, módulos, tablas, iconos) en un 25% de forma uniforme */
+  font-size: 16px;
 }
 
 * {

@@ -12,33 +12,43 @@ const Container = styled.div`
   left: 0;
   z-index: 1000;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+  }
 `;
 
 const ModalCont = styled.div`
   width: 350px;
+  max-width: 95vw;
   height: 500px;
+  max-height: 80vh;
   padding: 10px 15px;
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
   color: white;
-  border-radius: 5px;
-  position: absolute;
-  top: 20px;
-  right: 90px;
+  border-radius: 10px;
+  margin-top: 60px;
+  margin-right: 20px;
 
   display: flex;
   flex-direction: column;
 
   .scrollContent {
     overflow-y: auto;
+    flex: 1;
   }
 
   .scrollContent::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   .scrollContent::-webkit-scrollbar-track {
@@ -52,10 +62,17 @@ const ModalCont = styled.div`
     border: 2px solid rgba(0, 0, 0, 0);
   }
 
-  @media (max-width: 550px) {
-    position: static;
+  @media (max-width: 1024px) {
+    margin-right: 10px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 768px) {
     width: 100%;
-    height: 100%;
+    max-width: 100%;
+    height: 80vh;
+    margin: 0;
+    border-radius: 10px;
   }
 `;
 
@@ -65,24 +82,44 @@ const Options = styled.div`
   align-items: center;
   margin: 10px 0;
 
+  h4 {
+    font-size: 0.95rem;
+  }
+
   .close {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: none;
-    background: red;
+    background: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #c82333;
+    }
+
+    i {
+      font-size: 0.65rem;
+      color: white;
+    }
   }
 `;
 
 const ClearAll = styled.button`
   border-radius: 5px;
-  background-color: #e7e7e7ff;
-  color: #343434ff;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
   border: none;
-  margin-bottom: 15px;
-  padding: 5px 10px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s;
 
   &:hover {
     background-color: #ff3838ff;
@@ -158,8 +195,8 @@ function Notifications({ onClose }) {
         </div>
 
       </ModalCont>
-    </ Container>
-  )
+    </Container>
+  );
 }
 
 export default Notifications;

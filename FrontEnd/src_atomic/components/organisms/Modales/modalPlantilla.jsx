@@ -16,21 +16,23 @@ const Modal = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 `;
 
 const ModalCont = styled.div`
-  width: ${props => props.$width || "400px"};
-  height: ${props => props.$height || "420px"};
+  width: ${props => props.$width || "500px"};
+  max-width: 95vw;
+  height: ${props => props.$height || "auto"};
+  max-height: 85vh;
   padding: 20px 20px;
   box-sizing: border-box;
 
   background: white;
-  border-radius: 5px;
+  border-radius: 10px;
   position: relative;
 
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 
   button {
     border: 0;
@@ -46,99 +48,70 @@ const ModalCont = styled.div`
     align-items: center;
     gap: 50px;
   }
+
+  h3 {
+    font-size: 1.1rem;
+    padding-right: 30px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 10px;
+    padding: 16px;
+
+    h3 {
+      font-size: 1rem;
+    }
+  }
 `;
 
 const Contenido = styled.div`
-  height: calc(100% - 38.4px);
-  padding: 20px 0px;
+  flex: 1;
+  padding: 15px 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 `;
 
-// const Botones = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-
-//   button {
-//     padding: 10px 20px;
-//     display: flex;
-//     gap: 10px;
-
-//     background: #43523A;
-//     border-radius: 5px;
-//   }
-
-//   .volver {
-//     background: none;
-//     color: #1b1b1b;
-//   }
-// `;
-
-// const Volver = styled.button`
-//   visibility: ${(props) => props.volver === 1 ? "visible" : "hidden"};
-//   background: none;
-// `;
-
 const CloseModal = styled.button`  
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
 
-  background: red;
+  background: #dc3545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #c82333;
+  }
+
+  i {
+    font-size: 0.7rem;
+  }
 `;
 
 function ModalPlantilla({ modulo, titulo, volver, onClose, children, onConfirm, width, height }) {
-  // const [confirmVisible, setConfirmVisible] = useState(false);
-
-  // const handleAgregar = () => {
-  //   setConfirmVisible(true);
-  // };
-
-  // const confirmar = () => {
-  //   setConfirmVisible(false);
-  //   if (onConfirm) onClose(); // ejecuta lógica externa
-  // };
-
   return (
-    <Modal>
-      <ModalCont $width={width} $height={height}>
+    <Modal onClick={onClose}>
+      <ModalCont $width={width} $height={height} onClick={(e) => e.stopPropagation()}>
         <h3>{titulo ? titulo : `Agregar ${modulo}`}</h3>
 
         <Contenido>
           {children}
         </Contenido>
 
-        {/* <Botones>
-          <Volver volver={volver} className="volver">
-            <i className="bi bi-arrow-left"></i>
-            Volver
-          </Volver>
-          <button onClick={handleAgregar}>
-            <i className="bi bi-plus-circle-fill"></i>
-            Agregar
-          </button>
-        </Botones> */}
-
         <CloseModal onClick={onClose}>
           <i className="bi bi-x-lg"></i>
         </CloseModal>
       </ModalCont>
-
-      {/* {confirmVisible && (
-        <Modal>
-          <ModalCont>
-            <div className="agregado">
-              <h1>Agregado exitosamente</h1>
-              <BotonEntendido onClose={confirmar} />
-            </div>
-          </ModalCont>
-        </Modal>
-      )} */}
-
     </Modal>
   );
 }

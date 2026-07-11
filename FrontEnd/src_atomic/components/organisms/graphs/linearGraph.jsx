@@ -4,8 +4,8 @@ import { formatCurrency } from "../../../utils/formattersUtil";
 
 const ContGraph = styled.div`
   width: 100%;
-  height: 400px;
-  border-radius: 5px;
+  height: 350px;
+  border-radius: 8px;
 
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -19,13 +19,24 @@ const ContGraph = styled.div`
   align-items: center;
 
   h3 {
-    margin: 0 0 15px 0;
+    margin: 0 0 12px 0;
     color: #333;
     align-self: flex-start;
+    font-size: 1rem;
   }
 
-  @media (max-width: 500px) {
+  @media (max-width: 1024px) {
     height: 300px;
+    padding: 16px;
+  }
+
+  @media (max-width: 768px) {
+    height: 250px;
+    padding: 12px;
+
+    h3 {
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -35,7 +46,7 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
     return (
       <ContGraph>
         <h3>{title}</h3>
-        <p style={{ color: '#888' }}>No hay suficientes datos para mostrar</p>
+        <p style={{ color: '#888', fontSize: '0.85rem' }}>No hay suficientes datos para mostrar</p>
       </ContGraph>
     );
   }
@@ -50,7 +61,7 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
     <ContGraph>
       <h3>{title}</h3>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
@@ -59,15 +70,16 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
           </defs>
           <XAxis 
             dataKey={xKey} 
-            tick={{ fontSize: 12, fill: '#666' }} 
+            tick={{ fontSize: 11, fill: '#666' }} 
             tickLine={false}
             axisLine={false}
           />
           <YAxis 
-            tick={{ fontSize: 12, fill: '#666' }} 
+            tick={{ fontSize: 11, fill: '#666' }} 
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => `$${value}`}
+            width={50}
           />
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
           <Tooltip 
@@ -79,7 +91,7 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
             type="monotone" 
             dataKey={yKey} 
             stroke={color} 
-            strokeWidth={3}
+            strokeWidth={2}
             fillOpacity={1} 
             fill="url(#colorUv)" 
           />
