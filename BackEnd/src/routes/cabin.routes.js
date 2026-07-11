@@ -11,6 +11,7 @@ import {
   getCabinStats,
   activateCabin,
   getCabinFilters,
+  updateImagesOrder
 } from '../controllers/cabin.controller.js';
 
 import { validateRules } from "../middleware/validate.middleware.js";
@@ -25,6 +26,7 @@ router.get('/', getCabins);
 router.get('/filters', getCabinFilters);
 router.post('/search', getCabinByName);
 router.get('/images', getAllCabinImages);
+router.put('/images/order', updateImagesOrder);
 router.get('/images/:id', getCabinImages);
 router.post('/', rulesCreateCabin, validateRules, createCabin);
 router.put('/:id', rulesUpdateCabin, validateRules, updateCabin);

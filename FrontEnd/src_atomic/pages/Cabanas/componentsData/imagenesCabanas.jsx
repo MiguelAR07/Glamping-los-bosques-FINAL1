@@ -1,55 +1,23 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useFetch } from "../../../hooks/fetchConnect";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-/**
- * Datos de las imágenes actuales del carrusel del Landing,
- * organizadas por cabaña y en el orden exacto en que aparecen.
- */
-const CABIN_IMAGES_DATA = [
-  {
-    id: "palmas",
-    name: "Cabaña Palmas",
-    description: "Ideal para parejas, con todas las comodidades de lujo en medio del bosque.",
-    images: [
-      { order: 1, url: "/cabins/palmas/3.webp", filename: "3.webp" },
-      { order: 2, url: "/cabins/palmas/1.webp", filename: "1.webp" },
-      { order: 3, url: "/cabins/palmas/2.webp", filename: "2.webp" },
-      { order: 4, url: "/cabins/palmas/4.webp", filename: "4.webp" },
-      { order: 5, url: "/cabins/palmas/5.webp", filename: "5.webp" },
-      { order: 6, url: "/cabins/palmas/6.webp", filename: "6.webp" },
-    ]
-  },
-  {
-    id: "bambu",
-    name: "Cabaña Bambú",
-    description: "Inmersión rústica con acabados en bambú, conexión profunda con la naturaleza.",
-    images: [
-      { order: 1, url: "/cabins/bambu/3.webp", filename: "3.webp" },
-      { order: 2, url: "/cabins/bambu/2.webp", filename: "2.webp" },
-      { order: 3, url: "/cabins/bambu/1.webp", filename: "1.webp" },
-      { order: 4, url: "/cabins/bambu/4.webp", filename: "4.webp" },
-      { order: 5, url: "/cabins/bambu/5.webp", filename: "5.webp" },
-      { order: 6, url: "/cabins/bambu/6.webp", filename: "6.webp" },
-    ]
-  },
-  {
-    id: "roble",
-    name: "Cabaña Roble",
-    description: "Madera noble con vistas panorámicas, pozo de fuego y jacuzzi privado.",
-    images: [
-      { order: 1, url: "/cabins/roble/3.webp", filename: "3.webp" },
-      { order: 2, url: "/cabins/roble/2.webp", filename: "2.webp" },
-      { order: 3, url: "/cabins/roble/1.webp", filename: "1.webp" },
-      { order: 4, url: "/cabins/roble/4.webp", filename: "4.webp" },
-      { order: 5, url: "/cabins/roble/5.webp", filename: "5.webp" },
-      { order: 6, url: "/cabins/roble/6.webp", filename: "6.webp" },
-    ]
-  }
-];
-
-// ─── Landing base URL ───
-// Las imágenes del landing se sirven desde este dominio.
-// Si el landing está en otro dominio, ajustar aquí.
 const LANDING_BASE = "https://glamping-landing.vercel.app";
 
 const Container = styled.div`
@@ -77,14 +45,6 @@ const InfoBanner = styled.div`
     font-size: 0.85rem;
     color: #166534;
     line-height: 1.4;
-  }
-
-  @media (max-width: 768px) {
-    padding: 10px 14px;
-    
-    p {
-      font-size: 0.8rem;
-    }
   }
 `;
 
@@ -114,10 +74,6 @@ const CabinHeader = styled.button`
 
   &:hover {
     background: #f8faf8;
-  }
-
-  @media (max-width: 768px) {
-    padding: 12px 14px;
   }
 `;
 
@@ -152,14 +108,6 @@ const CabinTitle = styled.div`
     border-radius: 10px;
     font-weight: 500;
   }
-
-  @media (max-width: 768px) {
-    gap: 10px;
-
-    h4 {
-      font-size: 0.9rem;
-    }
-  }
 `;
 
 const ChevronIcon = styled.i`
@@ -175,46 +123,27 @@ const CabinContent = styled.div`
   overflow: hidden;
   transition: all 0.3s ease-in-out;
   opacity: ${props => props.$isOpen ? '1' : '0'};
-
-  @media (max-width: 768px) {
-    padding: ${props => props.$isOpen ? '0 14px 14px' : '0 14px'};
-  }
-`;
-
-const CabinDesc = styled.p`
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-bottom: 14px;
-  padding-top: 4px;
 `;
 
 const ImagesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 14px;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 12px;
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
 `;
 
-const ImageCard = styled.div`
+const ImageCardCont = styled.div`
   position: relative;
   border-radius: 10px;
   overflow: hidden;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  transition: transform 0.2s, box-shadow 0.2s;
+  touch-action: none;
+  cursor: grab;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  &:active {
+    cursor: grabbing;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 10;
   }
 
   img {
@@ -222,28 +151,7 @@ const ImageCard = styled.div`
     aspect-ratio: 4 / 3;
     object-fit: cover;
     display: block;
-  }
-`;
-
-const ImageInfo = styled.div`
-  padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  span.filename {
-    font-size: 0.75rem;
-    color: #374151;
-    font-weight: 500;
-  }
-
-  span.order {
-    font-size: 0.7rem;
-    color: white;
-    background: #43523A;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
+    pointer-events: none;
   }
 `;
 
@@ -259,10 +167,142 @@ const OrderBadge = styled.div`
   padding: 3px 8px;
   border-radius: 6px;
   z-index: 1;
+  pointer-events: none;
 `;
 
+const ImageInfo = styled.div`
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  span.filename {
+    font-size: 0.75rem;
+    color: #374151;
+    font-weight: 500;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span.order {
+    font-size: 0.7rem;
+    color: white;
+    background: #43523A;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+`;
+
+// Componente Sortable individual
+function SortableImage({ image, index, cabinName }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: image.imagen_id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const getFilename = (url) => {
+    try {
+      const parts = url.split('/');
+      return parts[parts.length - 1] || 'img.webp';
+    } catch {
+      return 'img.webp';
+    }
+  };
+
+  return (
+    <ImageCardCont ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <OrderBadge>#{index + 1}</OrderBadge>
+      <img 
+        src={image.img_url} 
+        alt={`${cabinName} - Imagen ${index + 1}`}
+        loading="lazy"
+        onError={(e) => {
+          if (!e.target.src.includes(LANDING_BASE) && image.img_url.includes('/public/')) {
+            const relativePath = image.img_url.substring(image.img_url.indexOf('/public/cabins/'));
+            e.target.src = `${LANDING_BASE}${relativePath.replace('/public', '')}`;
+          }
+        }}
+      />
+      <ImageInfo>
+        <span className="filename" title={getFilename(image.img_url)}>{getFilename(image.img_url)}</span>
+        <i className="bi bi-grip-vertical text-gray-400"></i>
+      </ImageInfo>
+    </ImageCardCont>
+  );
+}
+
 function ImagenesCabanas() {
-  const [openPanels, setOpenPanels] = useState({ palmas: true, bambu: false, roble: false });
+  const [openPanels, setOpenPanels] = useState({});
+  const [cabinsData, setCabinsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const { fetchData: fetchCabins } = useFetch();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        // Traer cabañas y todas las imágenes (ya ordenadas desde BD)
+        const [cabinsRes, imagesRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins`, { headers }),
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins/images`, { headers })
+        ]);
+
+        const cabins = await cabinsRes.json();
+        const allImages = await imagesRes.json();
+
+        // Agrupar
+        const formattedData = cabins.map(c => {
+          const cImages = allImages.filter(img => img.cabana_id === c.cabana_id);
+          return {
+            id: c.cabana_id,
+            name: c.nombre,
+            description: c.descripcion || '',
+            images: cImages
+          };
+        });
+
+        setCabinsData(formattedData);
+        
+        // Abrir el primer panel por defecto
+        if (formattedData.length > 0) {
+          setOpenPanels({ [formattedData[0].id]: true });
+        }
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const togglePanel = (cabinId) => {
     setOpenPanels(prev => ({
@@ -271,25 +311,62 @@ function ImagenesCabanas() {
     }));
   };
 
-  // Intentar cargar la imagen desde la carpeta local public del landing.
-  // Si no funciona, usaremos la URL base del landing desplegado.
-  const getImageSrc = (url) => {
-    // Las imágenes están en la carpeta public del Landing
-    // Intentamos cargar directamente (funciona si están copiadas al panel también)
-    return url;
+  const handleDragEnd = async (event, cabinId) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      // Encontrar la cabaña
+      const cabinIndex = cabinsData.findIndex(c => c.id === cabinId);
+      const cabin = cabinsData[cabinIndex];
+      
+      const oldIndex = cabin.images.findIndex(img => img.imagen_id === active.id);
+      const newIndex = cabin.images.findIndex(img => img.imagen_id === over.id);
+      
+      // Reordenar array visualmente
+      const newImages = arrayMove(cabin.images, oldIndex, newIndex);
+      
+      const newData = [...cabinsData];
+      newData[cabinIndex] = { ...cabin, images: newImages };
+      setCabinsData(newData);
+
+      // Preparar payload para guardar en BD
+      // Se actualizan todas las imágenes de esta cabaña con su nuevo índice como orden
+      const payload = newImages.map((img, idx) => ({
+        id: img.imagen_id,
+        order: idx
+      }));
+
+      try {
+        const token = localStorage.getItem('token');
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins/images/order`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ images: payload })
+        });
+        console.log("Orden guardado");
+      } catch (error) {
+        console.error("Error guardando orden:", error);
+        alert("Hubo un error al guardar el orden");
+      }
+    }
   };
+
+  if (loading) return <p style={{ marginTop: '20px' }}>Cargando imágenes...</p>;
 
   return (
     <Container>
       <InfoBanner>
         <i className="bi bi-info-circle-fill"></i>
         <p>
-          Estas son las imágenes que se muestran en el carrusel del Landing para cada cabaña. 
-          Se organizan en el orden en que aparecen al visitante.
+          Estas son las imágenes que se muestran en el carrusel del Landing. 
+          <strong> Arrastra y suelta </strong> cualquier imagen para cambiar su orden de aparición. El orden se guarda automáticamente.
         </p>
       </InfoBanner>
 
-      {CABIN_IMAGES_DATA.map(cabin => {
+      {cabinsData.map(cabin => {
         const isOpen = openPanels[cabin.id] || false;
         
         return (
@@ -306,29 +383,32 @@ function ImagenesCabanas() {
             </CabinHeader>
 
             <CabinContent $isOpen={isOpen}>
-              <CabinDesc>{cabin.description}</CabinDesc>
-              <ImagesGrid>
-                {cabin.images.map((img, idx) => (
-                  <ImageCard key={idx}>
-                    <OrderBadge>#{img.order}</OrderBadge>
-                    <img 
-                      src={getImageSrc(img.url)} 
-                      alt={`${cabin.name} - Imagen ${img.order}`}
-                      loading="lazy"
-                      onError={(e) => {
-                        // Fallback: intentar desde el landing desplegado
-                        if (!e.target.src.includes(LANDING_BASE)) {
-                          e.target.src = `${LANDING_BASE}${img.url}`;
-                        }
-                      }}
-                    />
-                    <ImageInfo>
-                      <span className="filename">{img.filename}</span>
-                      <span className="order">Pos. {img.order}</span>
-                    </ImageInfo>
-                  </ImageCard>
-                ))}
-              </ImagesGrid>
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '14px', paddingTop: '4px' }}>
+                {cabin.description}
+              </p>
+              
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => handleDragEnd(e, cabin.id)}
+              >
+                <SortableContext 
+                  items={cabin.images.map(img => img.imagen_id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <ImagesGrid>
+                    {cabin.images.map((img, idx) => (
+                      <SortableImage 
+                        key={img.imagen_id}
+                        image={img}
+                        index={idx}
+                        cabinName={cabin.name}
+                      />
+                    ))}
+                  </ImagesGrid>
+                </SortableContext>
+              </DndContext>
+              
             </CabinContent>
           </CabinPanel>
         );

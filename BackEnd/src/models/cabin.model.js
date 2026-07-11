@@ -18,10 +18,17 @@ export const cabin = {
     SELECT * 
     FROM imagenes_cabana
     WHERE cabana_id = $1
+    ORDER BY orden ASC, imagen_id ASC
   `,
   getAllCabinImgs: `
     SELECT * 
     FROM imagenes_cabana
+    ORDER BY orden ASC, imagen_id ASC
+  `,
+  updateImageOrder: `
+    UPDATE imagenes_cabana 
+    SET orden = $1 
+    WHERE imagen_id = $2
   `,
   createCabin: `
     INSERT INTO Cabanas (nombre, precio_noche, capacidad_personas, fecha_registro, descripcion, fecha_mantenimiento, estado, es_promocion, precio_promocional)

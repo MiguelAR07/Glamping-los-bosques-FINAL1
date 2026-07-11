@@ -52,14 +52,40 @@ export const getCabinImages = async (req, res) => {
   }
 }
 
-export const getAllCabinImages = async (req, res) => {
-  try {
-    const result = await pool.query(cabin.getAllCabinImgs);
-    res.json(result.rows);
-  } catch(error) {
-    res.status(500).json({ message: error.message });
+  export const getAllCabinImages = async (req, res) => {
+    try {
+      const result = await pool.query(cabin.getAllCabinImgs);
+      res.json(result.rows);
+    } catch(error) {
+      res.status(500).json({ message: error.message });
+    }
   }
-}
+
+  export const updateImagesOrder = async (req, res) => {
+    const { images } = req.body;
+    
+    if (!images || !Array.isArray(images)) {
+      return res.status(400).json({ message: "Formato de imágenes inválido" });
+    }
+    
+    try {
+      await pool.query("BEGIN");
+      
+      for (let i = 0; i < images.length; i++) {
+        const { id, order } = images[i];
+        if (id && order !== undefined) {
+          await pool.query(cabin.updateImageOrder, [order, id]);
+        }
+      }
+      
+      await pool.query("COMMIT");
+      res.json({ message: "Orden actualizado exitosamente" });
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      res.status(500).json({ message: error.message });
+    }
+  };
+
 
   export const createCabin = async (req, res) => {
     try {
