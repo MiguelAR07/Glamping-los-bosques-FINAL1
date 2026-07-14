@@ -59,6 +59,16 @@ export const cabin = {
     WHERE cabana_id = $1
     RETURNING nombre
   `,
+  insertCabinImg: `
+    INSERT INTO imagenes_cabana (cabana_id, img_url, orden)
+    VALUES ($1, $2, (SELECT COALESCE(MAX(orden), 0) + 1 FROM imagenes_cabana WHERE cabana_id = $1))
+    RETURNING *
+  `,
+  deleteCabinImg: `
+    DELETE FROM imagenes_cabana
+    WHERE imagen_id = $1
+    RETURNING *
+  `
 }
 
 export const cabinFilters = {

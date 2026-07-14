@@ -11,7 +11,9 @@ import {
   getCabinStats,
   activateCabin,
   getCabinFilters,
-  updateImagesOrder
+  updateImagesOrder,
+  uploadCabinImage,
+  deleteCabinImage
 } from '../controllers/cabin.controller.js';
 
 import { validateRules } from "../middleware/validate.middleware.js";
@@ -19,6 +21,8 @@ import {
   rulesCreateCabin,
   rulesUpdateCabin
 } from '../validators/cabin.rules.js';
+
+import upload from "../services/multer.service.js";
 
 const router = Router();
 
@@ -28,6 +32,8 @@ router.post('/search', getCabinByName);
 router.get('/images', getAllCabinImages);
 router.put('/images/order', updateImagesOrder);
 router.get('/images/:id', getCabinImages);
+router.post('/images/:id', upload.single("image"), uploadCabinImage);
+router.delete('/images/:imageId', deleteCabinImage);
 router.post('/', rulesCreateCabin, validateRules, createCabin);
 router.put('/:id', rulesUpdateCabin, validateRules, updateCabin);
 router.delete('/delete/:id', deleteCabin);

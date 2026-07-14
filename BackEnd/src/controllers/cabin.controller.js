@@ -87,6 +87,46 @@ export const getCabinImages = async (req, res) => {
   };
 
 
+  export const uploadCabinImage = async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No se subió ninguna imagen" });
+      }
+
+      const img_url = req.file.path; // Cloudinary URL
+
+      await pool.query("BEGIN");
+      const result = await pool.query(cabin.insertCabinImg, [id, img_url]);
+      await pool.query("COMMIT");
+
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      res.status(500).json({ message: error.message });
+    }
+  };
+
+  export const deleteCabinImage = async (req, res) => {
+    try {
+      const { imageId } = req.params;
+
+      await pool.query("BEGIN");
+      const result = await pool.query(cabin.deleteCabinImg, [imageId]);
+      await pool.query("COMMIT");
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Imagen no encontrada" });
+      }
+
+      res.json({ message: "Imagen eliminada exitosamente", deleted: result.rows[0] });
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      res.status(500).json({ message: error.message });
+    }
+  };
+
   export const createCabin = async (req, res) => {
     try {
       const { nombre, precio_noche, capacidad_personas, descripcion, userName, es_promocion, precio_promocional } = req.body;

@@ -196,8 +196,32 @@ const ImageInfo = styled.div`
   }
 `;
 
+const DeleteBtn = styled.button`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+    background: rgba(220, 38, 38, 1);
+  }
+`;
+
 // Componente Sortable individual
-function SortableImage({ image, index, cabinName }) {
+function SortableImage({ image, index, cabinName, onDelete }) {
   const {
     attributes,
     listeners,
@@ -234,6 +258,9 @@ function SortableImage({ image, index, cabinName }) {
   return (
     <ImageCardCont ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <OrderBadge>#{index + 1}</OrderBadge>
+      <DeleteBtn onPointerDown={(e) => e.stopPropagation()} onClick={() => onDelete(image.imagen_id)}>
+        <i className="bi bi-trash-fill"></i>
+      </DeleteBtn>
       <img 
         src={getImageUrl(image.img_url)} 
         alt={`${cabinName} - Imagen ${index + 1}`}
@@ -363,6 +390,68 @@ function ImagenesCabanas() {
     }
   };
 
+  const handleImageUpload = async (e, cabinId) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins/images/${cabinId}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error("Error subiendo imagen");
+      
+      const newImage = await res.json();
+      
+      setCabinsData(prev => prev.map(c => {
+        if (c.id === cabinId) {
+          return { ...c, images: [...c.images, newImage] };
+        }
+        return c;
+      }));
+      
+      // Limpiar input
+      e.target.value = null;
+    } catch (error) {
+      console.error(error);
+      alert("Error subiendo la imagen");
+    }
+  };
+
+  const handleDeleteImage = async (imageId, cabinId) => {
+    if (!window.confirm("¿Seguro que deseas eliminar esta imagen?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins/images/${imageId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("Error eliminando imagen");
+
+      setCabinsData(prev => prev.map(c => {
+        if (c.id === cabinId) {
+          return { ...c, images: c.images.filter(img => img.imagen_id !== imageId) };
+        }
+        return c;
+      }));
+    } catch (error) {
+      console.error(error);
+      alert("Error eliminando la imagen");
+    }
+  };
+
   if (loading) return <p style={{ marginTop: '20px' }}>Cargando imágenes...</p>;
 
   return (
@@ -395,6 +484,28 @@ function ImagenesCabanas() {
               <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '14px', paddingTop: '4px' }}>
                 {cabin.description}
               </p>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{
+                  display: 'inline-block',
+                  background: '#43523A',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '600'
+                }}>
+                  <i className="bi bi-upload" style={{ marginRight: '8px' }}></i>
+                  Subir Imagen
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => handleImageUpload(e, cabin.id)} 
+                  />
+                </label>
+              </div>
               
               <DndContext 
                 sensors={sensors}
@@ -412,6 +523,7 @@ function ImagenesCabanas() {
                         image={img}
                         index={idx}
                         cabinName={cabin.name}
+                        onDelete={(imageId) => handleDeleteImage(imageId, cabin.id)}
                       />
                     ))}
                   </ImagesGrid>
