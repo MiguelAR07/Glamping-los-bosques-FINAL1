@@ -222,17 +222,26 @@ function SortableImage({ image, index, cabinName }) {
     }
   };
 
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('/public/cabins/')) {
+      const relativePath = url.substring(url.indexOf('/public/cabins/'));
+      return relativePath.replace('/public', '');
+    }
+    return url;
+  };
+
   return (
     <ImageCardCont ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <OrderBadge>#{index + 1}</OrderBadge>
       <img 
-        src={image.img_url} 
+        src={getImageUrl(image.img_url)} 
         alt={`${cabinName} - Imagen ${index + 1}`}
         loading="lazy"
         onError={(e) => {
-          if (!e.target.src.includes(LANDING_BASE) && image.img_url.includes('/public/')) {
-            const relativePath = image.img_url.substring(image.img_url.indexOf('/public/cabins/'));
-            e.target.src = `${LANDING_BASE}${relativePath.replace('/public', '')}`;
+          // Fallback final en caso de que no exista localmente
+          if (!e.target.src.includes("glampinglosbosques.com")) {
+            e.target.src = `https://glampinglosbosques.com${getImageUrl(image.img_url)}`;
           }
         }}
       />
