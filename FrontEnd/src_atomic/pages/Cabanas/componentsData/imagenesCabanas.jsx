@@ -289,9 +289,9 @@ function ImagenesCabanas() {
 
         // Agrupar
         const formattedData = cabins.map(c => {
-          const cImages = allImages.filter(img => img.cabana_id === c.cabana_id);
+          const cImages = allImages.filter(img => img.cabana_id === c.id);
           return {
-            id: c.cabana_id,
+            id: c.id,
             name: c.nombre,
             description: c.descripcion || '',
             images: cImages
