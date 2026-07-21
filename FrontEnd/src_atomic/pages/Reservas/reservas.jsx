@@ -135,6 +135,62 @@ function Reservas({ modulo }) {
     );
   };
 
+  const eliminarReservaCanceladaDefinitivo = async (reserva) => {
+    const { default: Swal } = await import('sweetalert2');
+    const result = await Swal.fire({
+      title: '¿Eliminar definitivamente?',
+      text: `Esta acción eliminará permanentemente la reserva de "${reserva.cliente}" y no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar definitivamente',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/hard-delete/${reserva.id}`, {
+        method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        Swal.fire({
+          title: 'Error',
+          text: errData.message || 'No se pudo eliminar la reserva.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: '¡Eliminada!',
+        text: 'La reserva ha sido eliminada definitivamente.',
+        icon: 'success',
+        confirmButtonColor: '#3085d6'
+      });
+
+      handleFetchData();
+    } catch (err) {
+      console.error("Error:", err);
+      Swal.fire({
+        title: 'Error de Conexión',
+        text: 'No se pudo conectar con el servidor.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
+    }
+  };
+
   const activarReserva = (reserva) => {
     activateUtils.activarRegistro(
       "reservations",
@@ -270,7 +326,7 @@ function Reservas({ modulo }) {
                 data={displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))}
                 onColumnClick={onColumnClickHandlers}
                 onActive={activarReserva}
-                onDelete={eliminarReserva}
+                onDelete={eliminarReservaCanceladaDefinitivo}
                 acciones={[
                   {
                     title: "Ver Comprobante",

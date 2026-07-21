@@ -93,7 +93,7 @@ export const paymentStats = {
   getPendingRefunds: `
     SELECT 
       COUNT(id) AS "Reembolsos pendientes"
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     WHERE estado = 'Pendiente'
       AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
   `,

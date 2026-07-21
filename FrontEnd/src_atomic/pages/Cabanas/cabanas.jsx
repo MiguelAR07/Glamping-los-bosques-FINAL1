@@ -151,11 +151,6 @@ function Cabanas() {
           >Cabanas</button>
 
           <button
-            className={`module-button ${activeTab === 'cabinDamage' ? 'active' : ''}`}
-            onClick={() => handleTabChange('cabinDamage')}
-          >Danos y mantenimientos</button>
-
-          <button
             className={`module-button ${activeTab === 'images' ? 'active' : ''}`}
             onClick={() => handleTabChange('images')}
           >
@@ -173,7 +168,7 @@ function Cabanas() {
               onFilterChange={setFilterMode}
             />
             <BotonAgregar
-              modulo={activeTab === 'cabins' ? 'Agregar cabana' : 'Agregar dano'}
+              modulo={'Agregar cabana'}
               color={1}
               onClick={() => setModalAbierto(true)}
             />

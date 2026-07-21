@@ -87,9 +87,6 @@ function Pagos() {
       <PagosCard refreshTrigger={refreshStatsTrigger} />
       <div>
         <ModulosExtra>
-          <button className={`module-button ${activeTab === 'payments' ? 'active' : ''}`}
-            onClick={() => handleTabChange('payments')}
-          >Pagos</button>
           <button className={`module-button ${activeTab === 'refounds' ? 'active' : ''}`}
             onClick={() => {
               setPagos(null);

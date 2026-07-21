@@ -140,14 +140,29 @@ function Paquetes() {
       {error && (
         <p style={{ marginTop: "20px", color: "red" }}>Error: {error}</p>
       )}
-      {displayData && (
-        displayData.length > 0 && displayData[0]['Cabaña'] ? (
+      {displayData && (() => {
+        // Deduplicar: quedarse solo con 1 paquete por combinación (Cabaña + Tipo)
+        const deduplicar = (datos) => {
+          if (!datos || datos.length === 0) return datos;
+          const mapa = new Map();
+          datos.forEach(item => {
+            const clave = `${item['Cabaña'] || ''}_${item['Tipo'] || ''}`;
+            const existente = mapa.get(clave);
+            if (!existente || (item.id > existente.id)) {
+              mapa.set(clave, item);
+            }
+          });
+          return Array.from(mapa.values());
+        };
+        const datosUnicos = deduplicar(displayData);
+
+        return datosUnicos.length > 0 && datosUnicos[0]['Cabaña'] ? (
           <>
-            {Array.from(new Set(displayData.map(item => item['Cabaña']))).map(cabana => (
+            {Array.from(new Set(datosUnicos.map(item => item['Cabaña']))).map(cabana => (
               <div key={cabana} style={{ marginBottom: '40px' }}>
                 <h3 style={{ marginBottom: '15px', color: '#43523A', borderBottom: '2px solid #43523A', paddingBottom: '5px' }}>Paquetes - {cabana}</h3>
                 <TablaGeneral
-                  data={displayData.filter(item => item['Cabaña'] === cabana)}
+                  data={datosUnicos.filter(item => item['Cabaña'] === cabana)}
                   onEdit={editarPaquete}
                   onActive={activarPaquete}
                   onDelete={eliminarPaquete}
@@ -157,13 +172,13 @@ function Paquetes() {
           </>
         ) : (
           <TablaGeneral
-            data={displayData}
+            data={datosUnicos}
             onEdit={editarPaquete}
             onActive={activarPaquete}
             onDelete={eliminarPaquete}
           />
-        )
-      )}
+        );
+      })()}
 
       {modalAbierto && (
         <ModalAgregar

@@ -118,6 +118,54 @@ export const cancelReservation = async (req, res) => {
   }
 };
 
+export const hardDeleteReservation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query("BEGIN");
+
+    // Verificar que la reserva existe y está cancelada
+    const check = await pool.query("SELECT reserva_id, estado FROM reservas WHERE reserva_id = $1", [id]);
+    if (check.rows.length === 0) {
+      await pool.query("ROLLBACK");
+      return res.status(404).json({ message: 'Reserva no encontrada' });
+    }
+    if (check.rows[0].estado !== 'Cancelado') {
+      await pool.query("ROLLBACK");
+      return res.status(400).json({ message: 'Solo se pueden eliminar reservas canceladas' });
+    }
+
+    // Eliminar reembolsos asociados a las facturas de esta reserva
+    await pool.query(
+      "DELETE FROM reembolsos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id = $1)", [id]
+    );
+
+    // Eliminar pagos asociados a las facturas de esta reserva
+    await pool.query(
+      "DELETE FROM pagos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id = $1)", [id]
+    );
+
+    // Eliminar facturas asociadas
+    await pool.query("DELETE FROM facturas WHERE reserva_id = $1", [id]);
+
+    // Eliminar la reserva
+    const result = await pool.query(reservation.hardDeleteReservation, [id]);
+
+    if (result.rows.length === 0) {
+      await pool.query("ROLLBACK");
+      return res.status(400).json({ message: 'No se pudo eliminar la reserva' });
+    }
+
+    await pool.query("COMMIT");
+    res.json({ message: "Reserva eliminada definitivamente", reserva_id: id });
+
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("Error en hardDeleteReservation:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const reservationFilters = async (req, res) => {
   try {
     const [incomingReservations, paidReservations, confirmedReservations, canceledReservations] = await Promise.all([

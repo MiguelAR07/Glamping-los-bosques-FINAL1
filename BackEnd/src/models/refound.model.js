@@ -2,13 +2,13 @@ export const refounds = {
   getRefounds: `
     SELECT
       * 
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     ORDER BY fecha DESC
   `,
   getRefoundByInvoice: `
     SELECT
       * 
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     WHERE factura = $1
     ORDER BY fecha DESC
   `,
@@ -33,19 +33,19 @@ export const refoundFilters = {
   getPendingRefunds: `
     SELECT 
       *
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     WHERE estado = 'Pendiente'
   `,
   getApprovedRefunds: `
     SELECT 
       *
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     WHERE estado = 'Aprobado'
   `,
   getRejectedRefunds: `
     SELECT 
       *
-    FROM vista_reembolsos
+    FROM vista_reembolsos_factura
     WHERE estado = 'Rechazado'
   `,
 }

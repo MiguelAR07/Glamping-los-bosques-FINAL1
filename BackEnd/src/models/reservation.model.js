@@ -54,6 +54,12 @@ export const reservation = {
     WHERE reserva_id = $1
     RETURNING reserva_id
   `,
+  hardDeleteReservation: `
+    DELETE FROM reservas
+    WHERE reserva_id = $1
+      AND estado = 'Cancelado'
+    RETURNING reserva_id
+  `,
   confirmReservationAndGetDetails: `
     WITH updated_reserva AS (
       UPDATE reservas
