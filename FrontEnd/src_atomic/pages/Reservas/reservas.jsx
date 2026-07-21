@@ -192,6 +192,7 @@ function Reservas({ modulo }) {
   };
 
   const eliminarTodasLasCanceladas = async () => {
+    const { default: Swal } = await import('sweetalert2');
     const result = await Swal.fire({
       title: '¿Estás seguro?',
       text: "Se eliminarán TODAS las reservas canceladas de forma permanente. ¡Esta acción no se puede deshacer!",
