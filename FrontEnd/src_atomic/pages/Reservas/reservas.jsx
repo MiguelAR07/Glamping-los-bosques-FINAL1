@@ -102,6 +102,7 @@ function Reservas({ modulo }) {
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
 
   const [selectedCanceladas, setSelectedCanceladas] = useState([]);
+  const [selectedActivas, setSelectedActivas] = useState([]);
   const { data: statsData, fetchData: fetchStats } = useFetch();
 
   const handleFetchData = () => {
@@ -136,6 +137,66 @@ function Reservas({ modulo }) {
       "reserva de: " + reserva.cliente,
       handleFetchData,
     );
+  };
+
+  const cancelarSeleccionadas = async () => {
+    const { default: Swal } = await import('sweetalert2');
+    
+    if (selectedActivas.length === 0) return;
+
+    const result = await Swal.fire({
+      title: '¿Cancelar reservas seleccionadas?',
+      text: `Se cancelarán ${selectedActivas.length} reservas. Esto puede generar reembolsos.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      let canceladasCount = 0;
+      let erroresCount = 0;
+
+      for (const reserva of selectedActivas) {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/delete/${reserva.id}`, {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
+          }
+        });
+        if (res.ok) {
+          canceladasCount++;
+        } else {
+          erroresCount++;
+        }
+      }
+
+      Swal.fire({
+        title: 'Proceso terminado',
+        text: `Se cancelaron ${canceladasCount} reservas. ${erroresCount > 0 ? `Hubo errores en ${erroresCount}.` : ''}`,
+        icon: erroresCount > 0 ? 'warning' : 'success',
+        confirmButtonColor: '#3085d6'
+      });
+
+      setSelectedActivas([]);
+      handleFetchData();
+    } catch (err) {
+      console.error("Error cancelando múltiples:", err);
+      Swal.fire({
+        title: 'Error de Conexión',
+        text: 'No se pudo conectar con el servidor.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
+    }
   };
 
   const eliminarReservaCanceladaDefinitivo = async (reserva) => {
@@ -372,11 +433,36 @@ function Reservas({ modulo }) {
       {error && <p style={{ marginTop: '20px', color: 'red' }}>Error: {error}</p>}
       {displayData && (
         <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', marginTop: '20px' }}>
+            <h2 style={{ color: '#555', margin: 0 }}>Registro de Reservas Activas</h2>
+            {selectedActivas.length > 0 && (
+              <button 
+                onClick={cancelarSeleccionadas}
+                style={{
+                  background: '#ffc107',
+                  color: 'black',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <i className="bi bi-x-circle-fill"></i> Cancelar {selectedActivas.length} Seleccionadas
+              </button>
+            )}
+          </div>
           <TablaGeneral
             data={displayData.filter(r => !r.estado || !r.estado.toLowerCase().includes('cancelad'))}
             onColumnClick={onColumnClickHandlers}
             onActive={activarReserva}
             onDelete={eliminarReserva}
+            selectable={true}
+            selectedRows={selectedActivas}
+            onSelectionChange={setSelectedActivas}
             acciones={[
               {
                 title: "Validar Reserva (Confirmar o Rechazar)",
