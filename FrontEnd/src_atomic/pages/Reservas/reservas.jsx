@@ -191,6 +191,63 @@ function Reservas({ modulo }) {
     }
   };
 
+  const eliminarTodasLasCanceladas = async () => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Se eliminarán TODAS las reservas canceladas de forma permanente. ¡Esta acción no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, borrar todo',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/hard-delete-all-canceled`, {
+        method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        Swal.fire({
+          title: 'Error',
+          text: errData.message || 'No se pudieron eliminar las reservas.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6'
+        });
+        return;
+      }
+
+      const data = await res.json();
+
+      Swal.fire({
+        title: '¡Eliminadas!',
+        text: data.message + ` (${data.cantidad} eliminadas)`,
+        icon: 'success',
+        confirmButtonColor: '#3085d6'
+      });
+
+      handleFetchData();
+    } catch (err) {
+      console.error("Error:", err);
+      Swal.fire({
+        title: 'Error de Conexión',
+        text: 'No se pudo conectar con el servidor.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
+    }
+  };
+
   const activarReserva = (reserva) => {
     activateUtils.activarRegistro(
       "reservations",
@@ -319,9 +376,28 @@ function Reservas({ modulo }) {
 
           {displayData.some(r => r.estado && r.estado.toLowerCase().includes('cancelad')) && (
             <div style={{ marginTop: '40px' }}>
-              <h2 style={{ marginBottom: '15px', color: '#555', borderBottom: '2px solid #ddd', paddingBottom: '10px' }}>
-                Registro de Reservas Canceladas
-              </h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '2px solid #ddd', paddingBottom: '10px' }}>
+                <h2 style={{ color: '#555', margin: 0 }}>
+                  Registro de Reservas Canceladas
+                </h2>
+                <button 
+                  onClick={eliminarTodasLasCanceladas}
+                  style={{
+                    background: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <i className="bi bi-trash-fill"></i> Borrar Todo
+                </button>
+              </div>
               <TablaGeneral
                 data={displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))}
                 onColumnClick={onColumnClickHandlers}

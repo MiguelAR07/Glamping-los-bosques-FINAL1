@@ -60,6 +60,11 @@ export const reservation = {
       AND estado = 'Cancelado'
     RETURNING reserva_id
   `,
+  hardDeleteAllCanceledReservations: `
+    DELETE FROM reservas
+    WHERE estado = 'Cancelado'
+    RETURNING reserva_id
+  `,
   confirmReservationAndGetDetails: `
     WITH updated_reserva AS (
       UPDATE reservas

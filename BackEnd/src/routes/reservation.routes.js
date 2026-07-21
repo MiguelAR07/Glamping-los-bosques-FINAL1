@@ -14,7 +14,8 @@ import {
     getLatestReservationId,
     rescheduleReservation,
     getReservationServices,
-    cancelReservationForceMajeure
+    cancelReservationForceMajeure,
+    hardDeleteAllCanceledReservations
 } from '../controllers/reservation.controller.js';
 
 import { validateRules } from "../middleware/validate.middleware.js";
@@ -40,6 +41,7 @@ router.put('/activate/:id', activateReservation);
 router.put('/reschedule/:id', rescheduleReservation);
 router.delete('/delete/:id', cancelReservation);
 router.delete('/hard-delete/:id', hardDeleteReservation);
+router.delete('/hard-delete-all-canceled', hardDeleteAllCanceledReservations);
 router.get('/filters', reservationFilters);
 router.get('/stats', getReservationStats);
 

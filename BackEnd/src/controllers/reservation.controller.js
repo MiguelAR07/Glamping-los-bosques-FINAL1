@@ -166,6 +166,42 @@ export const hardDeleteReservation = async (req, res) => {
   }
 };
 
+export const hardDeleteAllCanceledReservations = async (req, res) => {
+  try {
+    await pool.query("BEGIN");
+
+    // Encontrar todas las reservas canceladas
+    const check = await pool.query("SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'");
+    
+    if (check.rows.length === 0) {
+      await pool.query("ROLLBACK");
+      return res.status(404).json({ message: 'No hay reservas canceladas para eliminar' });
+    }
+
+    // Eliminar reembolsos y pagos asociados a las facturas de reservas canceladas
+    await pool.query(
+      "DELETE FROM reembolsos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'))"
+    );
+    await pool.query(
+      "DELETE FROM pagos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'))"
+    );
+
+    // Eliminar facturas de reservas canceladas
+    await pool.query("DELETE FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado')");
+
+    // Eliminar las reservas
+    const result = await pool.query(reservation.hardDeleteAllCanceledReservations);
+
+    await pool.query("COMMIT");
+    res.json({ message: "Todas las reservas canceladas han sido eliminadas definitivamente", cantidad: result.rows.length });
+
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("Error en hardDeleteAllCanceledReservations:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const reservationFilters = async (req, res) => {
   try {
     const [incomingReservations, paidReservations, confirmedReservations, canceledReservations] = await Promise.all([
