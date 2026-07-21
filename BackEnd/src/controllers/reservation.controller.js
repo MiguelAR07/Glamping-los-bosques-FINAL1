@@ -130,7 +130,7 @@ export const hardDeleteReservation = async (req, res) => {
       await pool.query("ROLLBACK");
       return res.status(404).json({ message: 'Reserva no encontrada' });
     }
-    if (check.rows[0].estado !== 'Cancelado') {
+    if (!['Cancelado', 'Cancelada'].includes(check.rows[0].estado)) {
       await pool.query("ROLLBACK");
       return res.status(400).json({ message: 'Solo se pueden eliminar reservas canceladas' });
     }
@@ -171,7 +171,7 @@ export const hardDeleteAllCanceledReservations = async (req, res) => {
     await pool.query("BEGIN");
 
     // Encontrar todas las reservas canceladas
-    const check = await pool.query("SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'");
+    const check = await pool.query("SELECT reserva_id FROM reservas WHERE estado IN ('Cancelado', 'Cancelada')");
     
     if (check.rows.length === 0) {
       await pool.query("ROLLBACK");
@@ -180,14 +180,14 @@ export const hardDeleteAllCanceledReservations = async (req, res) => {
 
     // Eliminar reembolsos y pagos asociados a las facturas de reservas canceladas
     await pool.query(
-      "DELETE FROM reembolsos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'))"
+      "DELETE FROM reembolsos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado IN ('Cancelado', 'Cancelada')))"
     );
     await pool.query(
-      "DELETE FROM pagos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado'))"
+      "DELETE FROM pagos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado IN ('Cancelado', 'Cancelada')))"
     );
 
     // Eliminar facturas de reservas canceladas
-    await pool.query("DELETE FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado = 'Cancelado')");
+    await pool.query("DELETE FROM facturas WHERE reserva_id IN (SELECT reserva_id FROM reservas WHERE estado IN ('Cancelado', 'Cancelada'))");
 
     // Eliminar las reservas
     const result = await pool.query(reservation.hardDeleteAllCanceledReservations);

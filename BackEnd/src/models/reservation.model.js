@@ -57,12 +57,12 @@ export const reservation = {
   hardDeleteReservation: `
     DELETE FROM reservas
     WHERE reserva_id = $1
-      AND estado = 'Cancelado'
+      AND estado IN ('Cancelado', 'Cancelada')
     RETURNING reserva_id
   `,
   hardDeleteAllCanceledReservations: `
     DELETE FROM reservas
-    WHERE estado = 'Cancelado'
+    WHERE estado IN ('Cancelado', 'Cancelada')
     RETURNING reserva_id
   `,
   confirmReservationAndGetDetails: `
