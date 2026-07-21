@@ -146,7 +146,8 @@ function Paquetes() {
           if (!datos || datos.length === 0) return datos;
           const mapa = new Map();
           datos.forEach(item => {
-            const clave = `${item['Cabaña'] || ''}_${item['Tipo'] || ''}`;
+            const tipoPaquete = item.tipo || item['Tipo'] || '';
+            const clave = `${item['Cabaña'] || ''}_${tipoPaquete}`;
             const existente = mapa.get(clave);
             if (!existente || (item.id > existente.id)) {
               mapa.set(clave, item);
