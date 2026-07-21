@@ -225,6 +225,8 @@ SELECT
 	r.reserva_id AS ID,
 	tp.nombre || ' - ' || p.nombre AS Paquete,
 	c.nombre AS Cliente,
+    c.contacto AS "Celular",
+    c.numero_identificacion AS "Cédula",
 	r.fecha_registro AS fecha,
 	r.llegada,
 	r.salida,
