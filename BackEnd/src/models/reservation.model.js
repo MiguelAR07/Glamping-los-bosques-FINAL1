@@ -65,6 +65,12 @@ export const reservation = {
     WHERE estado IN ('Cancelado', 'Cancelada')
     RETURNING reserva_id
   `,
+  hardDeleteMultipleCanceledReservations: `
+    DELETE FROM reservas
+    WHERE reserva_id = ANY($1::int[])
+      AND estado IN ('Cancelado', 'Cancelada')
+    RETURNING reserva_id
+  `,
   confirmReservationAndGetDetails: `
     WITH updated_reserva AS (
       UPDATE reservas

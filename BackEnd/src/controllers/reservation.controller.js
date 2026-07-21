@@ -202,6 +202,49 @@ export const hardDeleteAllCanceledReservations = async (req, res) => {
   }
 };
 
+export const hardDeleteMultipleCanceledReservations = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Se requiere un arreglo de IDs válidos' });
+    }
+
+    await pool.query("BEGIN");
+
+    // Verificar cuáles de esos IDs son realmente reservas canceladas
+    const check = await pool.query("SELECT reserva_id FROM reservas WHERE reserva_id = ANY($1::int[]) AND estado IN ('Cancelado', 'Cancelada')", [ids]);
+    
+    if (check.rows.length === 0) {
+      await pool.query("ROLLBACK");
+      return res.status(404).json({ message: 'No hay reservas canceladas seleccionadas para eliminar' });
+    }
+
+    const validIds = check.rows.map(r => r.reserva_id);
+
+    // Eliminar reembolsos y pagos asociados
+    await pool.query(
+      "DELETE FROM reembolsos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id = ANY($1::int[]))", [validIds]
+    );
+    await pool.query(
+      "DELETE FROM pagos WHERE factura_id IN (SELECT factura_id FROM facturas WHERE reserva_id = ANY($1::int[]))", [validIds]
+    );
+
+    // Eliminar facturas
+    await pool.query("DELETE FROM facturas WHERE reserva_id = ANY($1::int[])", [validIds]);
+
+    // Eliminar las reservas
+    const result = await pool.query(reservation.hardDeleteMultipleCanceledReservations, [validIds]);
+
+    await pool.query("COMMIT");
+    res.json({ message: "Las reservas seleccionadas han sido eliminadas definitivamente", cantidad: result.rows.length });
+
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("Error en hardDeleteMultipleCanceledReservations:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const reservationFilters = async (req, res) => {
   try {
     const [incomingReservations, paidReservations, confirmedReservations, canceledReservations] = await Promise.all([

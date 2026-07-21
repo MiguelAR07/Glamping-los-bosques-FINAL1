@@ -99,6 +99,9 @@ function Reservas({ modulo }) {
     reservationFilterConfig
   );
   const [refreshStatsTrigger, setRefreshStatsTrigger] = useState(0);
+  const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+
+  const [selectedCanceladas, setSelectedCanceladas] = useState([]);
   const { data: statsData, fetchData: fetchStats } = useFetch();
 
   const handleFetchData = () => {
@@ -191,16 +194,24 @@ function Reservas({ modulo }) {
     }
   };
 
-  const eliminarTodasLasCanceladas = async () => {
+  const eliminarCanceladasSeleccionadas = async () => {
     const { default: Swal } = await import('sweetalert2');
+    
+    const isDeletingAll = selectedCanceladas.length === 0;
+    
+    const title = isDeletingAll ? '¿Borrar TODAS las reservas canceladas?' : '¿Borrar reservas seleccionadas?';
+    const text = isDeletingAll 
+      ? "Se eliminarán TODAS las reservas canceladas de forma permanente. ¡Esta acción no se puede deshacer!"
+      : `Se eliminarán permanentemente las ${selectedCanceladas.length} reservas seleccionadas.`;
+
     const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: "Se eliminarán TODAS las reservas canceladas de forma permanente. ¡Esta acción no se puede deshacer!",
+      title: title,
+      text: text,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, borrar todo',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -208,14 +219,29 @@ function Reservas({ modulo }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/hard-delete-all-canceled`, {
-        method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "true"
-        }
-      });
+      
+      let res;
+      if (isDeletingAll) {
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/hard-delete-all-canceled`, {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
+          }
+        });
+      } else {
+        const ids = selectedCanceladas.map(r => r.id || r.reserva_id);
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/hard-delete-multiple`, {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
+          },
+          body: JSON.stringify({ ids })
+        });
+      }
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -237,6 +263,7 @@ function Reservas({ modulo }) {
         confirmButtonColor: '#3085d6'
       });
 
+      setSelectedCanceladas([]);
       handleFetchData();
     } catch (err) {
       console.error("Error:", err);
@@ -382,7 +409,7 @@ function Reservas({ modulo }) {
                   Registro de Reservas Canceladas
                 </h2>
                 <button 
-                  onClick={eliminarTodasLasCanceladas}
+                  onClick={eliminarCanceladasSeleccionadas}
                   style={{
                     background: '#dc3545',
                     color: 'white',
@@ -396,13 +423,16 @@ function Reservas({ modulo }) {
                     gap: '8px'
                   }}
                 >
-                  <i className="bi bi-trash-fill"></i> Borrar Todo
+                  <i className="bi bi-trash-fill"></i> {selectedCanceladas.length > 0 ? `Borrar ${selectedCanceladas.length} Seleccionadas` : 'Borrar Todo'}
                 </button>
               </div>
               <TablaGeneral
                 data={displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))}
                 onColumnClick={onColumnClickHandlers}
                 onActive={activarReserva}
+                selectable={true}
+                selectedRows={selectedCanceladas}
+                onSelectionChange={setSelectedCanceladas}
                 onDelete={eliminarReservaCanceladaDefinitivo}
                 acciones={[
                   {

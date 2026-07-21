@@ -136,9 +136,25 @@ const Table = styled.table`
   }
 `;
 
-function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick }) {
+function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick, selectable, onSelectionChange, selectedRows = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // Adjust rows per page for better view
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      onSelectionChange && onSelectionChange(currentItems);
+    } else {
+      onSelectionChange && onSelectionChange([]);
+    }
+  };
+
+  const handleSelectRow = (fila, checked) => {
+    if (checked) {
+      onSelectionChange && onSelectionChange([...selectedRows, fila]);
+    } else {
+      onSelectionChange && onSelectionChange(selectedRows.filter(r => r.id !== fila.id && r.reserva_id !== fila.reserva_id));
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1); // Reset page on data change (e.g. search)
@@ -164,6 +180,15 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
         <Table>
           <thead>
             <tr>
+              {selectable && (
+                <th style={{ width: '40px' }}>
+                  <input 
+                    type="checkbox" 
+                    onChange={handleSelectAll}
+                    checked={currentItems.length > 0 && selectedRows.length === currentItems.length}
+                  />
+                </th>
+              )}
               {columnas.map((col, i) => (
                 <th key={i}>{col}</th>
               ))}
@@ -173,6 +198,15 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
           <tbody>
             {currentItems.map((fila, i) => (
               <tr key={i}>
+                {selectable && (
+                  <td>
+                    <input 
+                      type="checkbox" 
+                      onChange={(e) => handleSelectRow(fila, e.target.checked)}
+                      checked={selectedRows.some(r => (r.id && r.id === fila.id) || (r.reserva_id && r.reserva_id === fila.reserva_id))}
+                    />
+                  </td>
+                )}
                 {columnas.map((col, j) => (
                   <td key={j}>
                     {(() => {
