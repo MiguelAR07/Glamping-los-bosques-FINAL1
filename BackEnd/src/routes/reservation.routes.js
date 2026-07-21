@@ -40,8 +40,8 @@ router.get('/services/:id', getReservationServices);
 router.put('/activate/:id', activateReservation);
 router.put('/reschedule/:id', rescheduleReservation);
 router.delete('/delete/:id', cancelReservation);
-router.delete('/hard-delete/:id', hardDeleteReservation);
 router.delete('/hard-delete-all-canceled', hardDeleteAllCanceledReservations);
+router.delete('/hard-delete/:id', hardDeleteReservation);
 router.get('/filters', reservationFilters);
 router.get('/stats', getReservationStats);
 
