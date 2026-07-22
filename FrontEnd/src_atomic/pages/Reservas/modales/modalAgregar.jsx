@@ -234,6 +234,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       if (response.ok) {
         Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva creada exitosamente y correo enviado al cliente.' });
         fetchData();
+        window.dispatchEvent(new Event('forceNotificationCheck'));
         setModalAbierto(false);
       } else {
         Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data.error || data.message || 'Error desconocido'}` });

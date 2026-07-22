@@ -57,7 +57,13 @@ export const useReservationNotifications = () => {
       checkForNewReservations();
     }, 15000);
 
-    return () => clearInterval(interval);
+    const handleForceCheck = () => checkForNewReservations();
+    window.addEventListener('forceNotificationCheck', handleForceCheck);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('forceNotificationCheck', handleForceCheck);
+    };
   }, []);
 
   return { hasNewNotification, setHasNewNotification };
