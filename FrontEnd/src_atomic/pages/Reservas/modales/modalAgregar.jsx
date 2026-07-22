@@ -212,6 +212,10 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       submitData.append("reserva", JSON.stringify(reservaCopy));
       
       submitData.append("factura", JSON.stringify(formData.factura));
+      
+      if (comprobanteFile) {
+        submitData.append("comprobante", comprobanteFile);
+      }
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
         method: 'POST',
@@ -320,6 +324,11 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
           <label>Valor Restante por Pagar</label>
           <input required type="number" min="0" placeholder="Ej: 175000" value={formData.reserva.por_pagar} onChange={(e) => handleChange('reserva', 'por_pagar', e.target.value)} />
         </FormGroup>
+        
+        <FullWidthGroup>
+          <label>Comprobante de Pago (Opcional)</label>
+          <input type="file" accept="image/*,.pdf" onChange={handleFileChange} />
+        </FullWidthGroup>
 
         <BotonGuardar type="submit" disabled={loading}>
           {loading ? 'Procesando Reserva...' : 'Generar Reserva Rápida'}
