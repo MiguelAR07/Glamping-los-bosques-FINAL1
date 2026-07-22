@@ -324,9 +324,10 @@ export const createReservation = async (req, res) => {
             nuevo_paquete_id = packageResult.rows[0].paquete_id;
         } else if (reserva && reserva.paquete_id) {
             nuevo_paquete_id = reserva.paquete_id;
-            const pkgInfo = await pool.query("SELECT cabana_id FROM paquetes WHERE paquete_id = $1", [nuevo_paquete_id]);
+            const pkgInfo = await pool.query("SELECT cabana_id, tipo AS nombre FROM vista_paquetes WHERE id = $1", [nuevo_paquete_id]);
             if(pkgInfo.rows.length > 0) {
                cabana_id_check = pkgInfo.rows[0].cabana_id;
+               if (!paquete) paquete = { nombre: pkgInfo.rows[0].nombre };
             }
         }
 
