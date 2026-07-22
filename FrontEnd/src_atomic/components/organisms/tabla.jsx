@@ -212,8 +212,8 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                     {(() => {
                       const valor = fila[col];
                       const columnasMoneda = ["sueldo", "precio noche", "Pago restante", "monto", "total", "subtotal", "precio", "ingresos_generados"];
-                      const columnasFecha = ["actualizacion", "fecha", "fecha_mantenimiento", "fecha_registro", "llegada", "salida"];
-                      const columnasFechaHora = ["fecha_registro"];
+                      const columnasFecha = ["actualizacion", "fecha", "fecha_mantenimiento", "fecha_registro"];
+                      const columnasFechaHora = ["fecha_registro", "llegada", "salida"];
 
                       let formattedValue = valor;
                       if (columnasMoneda.includes(col)) {

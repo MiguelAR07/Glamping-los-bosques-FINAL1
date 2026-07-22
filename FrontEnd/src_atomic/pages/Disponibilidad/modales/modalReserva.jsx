@@ -117,13 +117,13 @@ function ModalReserva({ setModalAbierto, event, fetchData }) {
         </DetailRow>
 
         <DetailRow>
-          <strong>Día de Entrada:</strong>
-          <span>{format(event.start, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}</span>
+          <strong>Día y Hora de Entrada:</strong>
+          <span>{format(event.start, "EEEE d 'de' MMMM 'de' yyyy 'a las' h:mm a", { locale: es })}</span>
         </DetailRow>
 
         <DetailRow>
-          <strong>Día de Salida:</strong>
-          <span>{format(event.end, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}</span>
+          <strong>Día y Hora de Salida:</strong>
+          <span>{format(event.end, "EEEE d 'de' MMMM 'de' yyyy 'a las' h:mm a", { locale: es })}</span>
         </DetailRow>
 
         <ButtonGroup>

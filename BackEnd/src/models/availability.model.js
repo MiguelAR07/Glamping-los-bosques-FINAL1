@@ -4,8 +4,8 @@ export const availabilityQueries = {
         r.reserva_id AS id, 
         'reserva' as tipo, 
         c.nombre AS title, 
-        (r.llegada::text || 'T00:00:00') AS "start", 
-        (r.salida::text || 'T00:00:00') AS "end", 
+        r.llegada AS "start", 
+        r.salida AS "end", 
         p.cabana_id,
         cab.nombre as cabana_nombre,
         r.estado
