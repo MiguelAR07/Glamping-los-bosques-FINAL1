@@ -8,6 +8,7 @@ import Pagos from "../pages/Pagos/pagos"
 import Usuarios from "../pages/Usuarios/usuarios"
 import Disponibilidad from "../pages/Disponibilidad/disponibilidad"
 import CuentasBancarias from "../pages/CuentasBancarias/cuentasBancarias"
+import Clientes from "../pages/Clientes/clientes"
 
 export const userRole = localStorage.getItem('userRole') || "";
 
@@ -76,5 +77,12 @@ export const modulos = [
     componente: <CuentasBancarias />,
     ruta: '/metodos-pago',
     roles: ["administrador"]
+  },
+  {
+    icono: "bi bi-shield-check",
+    nombre: 'Clientes',
+    componente: <Clientes />,
+    ruta: '/clientes',
+    roles: ["recepcionista", "administrador"]
   }
 ];
