@@ -1,9 +1,15 @@
 import pool from '../config/db.js';
 import nodemailer from 'nodemailer';
 import { getEmails } from '../models/notification.model.js';
+import dns from 'dns';
+
+// Forzar la resolución de DNS a IPv4 primero para evitar ENETUNREACH en Render
+dns.setDefaultResultOrder('ipv4first');
 
 export const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
