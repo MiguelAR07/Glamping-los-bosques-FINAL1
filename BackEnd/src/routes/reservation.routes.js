@@ -34,6 +34,21 @@ router.put('/confirm/:id', confirmReservationPayment);
 router.put('/reject/:id', rejectReservationPayment);
 router.post('/force-cancel/:id', cancelReservationForceMajeure);
 
+import { transporter } from "../services/nodemailer.service.js";
+router.get('/test-email', async (req, res) => {
+    try {
+        const info = await transporter.sendMail({
+            from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+            to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com',
+            subject: 'Test Email Render',
+            text: 'Hello from Render!'
+        });
+        res.status(200).json({ success: true, info, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message, stack: error.stack, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
+    }
+});
+
 router.get('/', getreservations);
 router.post('/search', getReservationByInvoice);
 router.get('/latest-id', getLatestReservationId);
