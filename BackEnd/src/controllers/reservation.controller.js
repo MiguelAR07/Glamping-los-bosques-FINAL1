@@ -411,8 +411,8 @@ export const confirmReservationPayment = async (req, res) => {
         const data = result.rows[0];
 
         // Formatear las fechas para el correo
-        const llegadaFormateada = new Date(data.llegada).toLocaleString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
-        const salidaFormateada = new Date(data.salida).toLocaleString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+        const llegadaFormateada = new Date(data.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+        const salidaFormateada = new Date(data.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
 
         // 2. Enviar correo electrónico de confirmación al cliente (En segundo plano)
         if (data.cliente_email) {
