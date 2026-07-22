@@ -465,7 +465,8 @@ function Reservas({ modulo }) {
             hiddenColumns={['comprobante_url']}
             columnMapping={{
               'llegada': 'Fecha Entrada',
-              'salida': 'Fecha Salida'
+              'salida': 'Fecha Salida',
+              'Servicios adicionales': 'Servicios'
             }}
             acciones={[
               {
@@ -533,7 +534,8 @@ function Reservas({ modulo }) {
                 hiddenColumns={['comprobante_url']}
                 columnMapping={{
                   'llegada': 'Fecha Entrada',
-                  'salida': 'Fecha Salida'
+                  'salida': 'Fecha Salida',
+                  'Servicios adicionales': 'Servicios'
                 }}
                 acciones={[
                   {
