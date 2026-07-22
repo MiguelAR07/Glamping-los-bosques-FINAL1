@@ -455,6 +455,8 @@ function Reservas({ modulo }) {
     'Celular', 'Cédula'
   ];
 
+  const [selectedIncomeCabin, setSelectedIncomeCabin] = useState('General');
+
   const formatCurrencyLocal = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -462,6 +464,14 @@ function Reservas({ modulo }) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
+  };
+
+  const getIncomeTitle = () => {
+    if (selectedIncomeCabin === 'General') {
+      return statsData?.revenue_month ? formatCurrencyLocal(statsData.revenue_month) : '$0';
+    }
+    const cabinStats = statsData?.revenue_by_cabin?.find(c => c.cabana_id === parseInt(selectedIncomeCabin));
+    return cabinStats ? formatCurrencyLocal(cabinStats.total) : '$0';
   };
 
   const dynamicCardData = [
@@ -482,8 +492,33 @@ function Reservas({ modulo }) {
     },
     {
       bgColor: 'verde',
-      texto: 'Ingresos del Mes',
-      titulo: statsData?.revenue_month ? formatCurrencyLocal(statsData.revenue_month) : '$0',
+      texto: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Ingresos del Mes</span>
+          <select 
+            value={selectedIncomeCabin}
+            onChange={(e) => setSelectedIncomeCabin(e.target.value)}
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.2)', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '6px', 
+              padding: '2px 6px',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              outline: 'none'
+            }}
+          >
+            <option value="General" style={{color: '#333'}}>General</option>
+            {statsData?.revenue_by_cabin?.map(c => (
+              <option key={c.cabana_id} value={c.cabana_id} style={{color: '#333'}}>
+                {c.cabana_nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      ),
+      titulo: getIncomeTitle(),
     }
   ];
 

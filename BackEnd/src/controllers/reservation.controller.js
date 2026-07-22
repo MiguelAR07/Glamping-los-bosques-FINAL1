@@ -268,19 +268,21 @@ export const reservationFilters = async (req, res) => {
 
 export const getReservationStats = async (req, res) => {
   try {
-    const [revenue_graph, total_confirmed, total_pending, total_canceled, revenue_month] = await Promise.all([
+    const [revenue_graph, total_confirmed, total_pending, total_canceled, revenue_month, revenue_by_cabin] = await Promise.all([
       pool.query(reservationStats.getRevenueGraph),
       pool.query(reservationStats.totalConfirmed),
       pool.query(reservationStats.totalPending),
       pool.query(reservationStats.totalCanceled),
       pool.query(reservationStats.revenueMonth),
+      pool.query(reservationStats.revenueByCabin),
     ]);
     res.json({
       revenue_graph: revenue_graph.rows,
       total_confirmed: total_confirmed.rows[0].total,
       total_pending: total_pending.rows[0].total,
       total_canceled: total_canceled.rows[0].total,
-      revenue_month: revenue_month.rows[0].total
+      revenue_month: revenue_month.rows[0].total,
+      revenue_by_cabin: revenue_by_cabin.rows
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
