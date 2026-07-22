@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { X, Receipt, User, MapPin, Calendar, CreditCard, Clock } from "lucide-react";
+import { X, MapPin, Calendar, Users } from "lucide-react";
 
 const Overlay = styled.div`
   position: fixed;
@@ -16,130 +16,175 @@ const Overlay = styled.div`
 
 const ModalContent = styled.div`
   background: white;
-  border-radius: 16px;
+  border-radius: 24px;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 500px;
   position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  z-index: 20;
+  &:hover {
+    background: #f3f4f6;
+    color: #111827;
+  }
 `;
 
 const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 16px 16px 0 0;
-
-  h2 {
-    margin: 0;
-    color: #111827;
+  background: #059669; /* emerald-600 */
+  padding: 32px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  h1 {
     font-size: 1.5rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 10;
   }
-
-  button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #6b7280;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #e5e7eb;
-      color: #111827;
-    }
+  p {
+    color: #d1fae5; /* emerald-100 */
+    font-size: 1rem;
+    position: relative;
+    z-index: 10;
+    margin: 0;
   }
 `;
 
 const Body = styled.div`
-  padding: 24px;
-`;
+  padding: 32px;
+  background: #fafaf9; /* stone-50 */
+  overflow-y: auto;
+  flex-grow: 1;
 
-const Section = styled.div`
-  margin-bottom: 24px;
-  
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 2px solid #f3f4f6;
-    padding-bottom: 8px;
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1c1917; /* stone-900 */
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e7e5e4; /* stone-200 */
+    padding-bottom: 16px;
+    margin-top: 0;
   }
 `;
 
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
+const ItemRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .icon-container {
+    color: #059669; /* emerald-600 */
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .content {
+    p.title {
+      font-weight: 600;
+      color: #1c1917;
+      margin: 0;
+    }
+    p.desc {
+      font-size: 0.875rem;
+      color: #78716c; /* stone-500 */
+      margin: 0;
+    }
+    p.highlight {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #047857; /* emerald-700 */
+      margin: 4px 0 0 0;
+    }
   }
 `;
 
-const InfoBox = styled.div`
-  background: #f9fafb;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+const ClientRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e7e5e4;
+  margin-top: 8px;
 
-  label {
-    display: block;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
-    margin-bottom: 4px;
-    font-weight: 600;
-  }
-
-  p {
-    margin: 0;
-    color: #111827;
-    font-size: 1rem;
-    font-weight: 500;
+  .content {
+    p.label {
+      font-size: 0.75rem;
+      color: #a8a29e; /* stone-400 */
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin: 0 0 4px 0;
+    }
+    p.name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #44403c; /* stone-700 */
+      margin: 0;
+    }
+    p.doc {
+      font-size: 0.875rem;
+      color: #57534e; /* stone-600 */
+      margin: 0;
+    }
   }
 `;
 
 const TotalBox = styled.div`
-  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+  background: white;
+  padding: 20px;
   border-radius: 16px;
-  padding: 24px;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border: 1px solid #e7e5e4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   margin-top: 32px;
-  box-shadow: 0 10px 15px -3px rgba(4, 120, 87, 0.3);
 
-  .labels {
-    p {
-      margin: 0;
-      color: #d1fae5;
-      font-size: 0.875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-    }
+  h3 {
+    font-weight: 600;
+    color: #1c1917;
+    margin: 0 0 12px 0;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
   }
-
-  .amount {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin: 0;
+  
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    
+    span.label {
+      color: #78716c;
+      font-size: 0.875rem;
+    }
+    span.amount {
+      font-size: 1.875rem;
+      font-weight: 900;
+      color: #047857;
+      line-height: 1;
+    }
   }
 `;
 
@@ -148,106 +193,99 @@ const formatMoney = (value) => {
 };
 
 export default function ModalFactura({ factura, setModalAbierto }) {
-  const [reservaInfo, setReservaInfo] = useState(null);
+  const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch reservation details using the invoice ID to get all the data
-    const fetchReservation = async () => {
+    if (!factura || !factura.reserva) return;
+    const fetchReservaDetails = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/invoice`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ id: factura.id })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setReservaInfo(data[0]);
-          }
+        setLoading(true);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
+        const data = await res.json();
+        const r = data.find(x => x.id === factura.reserva || x.reserva_id === factura.reserva);
+        if (r) {
+          setDetails(r);
         }
-      } catch (error) {
-        console.error("Error fetching reservation details:", error);
+      } catch (err) {
+        console.error("Error fetching reservation details for invoice", err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchReservation();
-  }, [factura.id]);
+    fetchReservaDetails();
+  }, [factura]);
 
   if (!factura) return null;
 
   return (
     <Overlay onClick={() => setModalAbierto(false)}>
       <ModalContent onClick={e => e.stopPropagation()}>
+        <CloseButton onClick={() => setModalAbierto(false)}>
+          <X size={18} />
+        </CloseButton>
+
         <Header>
-          <h2><Receipt className="text-emerald-600" /> Factura #{factura.id}</h2>
-          <button onClick={() => setModalAbierto(false)}><X size={24} /></button>
+          <h1>Factura #{factura.id}</h1>
+          <p>Detalles de la estadía y facturación</p>
         </Header>
-        
+
         <Body>
+          <h2>Resumen de la Reserva</h2>
+
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Cargando información de la factura...</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#78716c' }}>
+              Cargando información...
+            </div>
           ) : (
             <>
-              <Section>
-                <h3><User size={18} /> Datos del Cliente</h3>
-                <Grid>
-                  <InfoBox>
-                    <label>Nombre</label>
-                    <p>{factura.cliente}</p>
-                  </InfoBox>
-                  <InfoBox>
-                    <label>Identificación</label>
-                    <p>{reservaInfo ? reservaInfo['Nro Identificación'] : 'N/A'}</p>
-                  </InfoBox>
-                  <InfoBox style={{ gridColumn: '1 / -1' }}>
-                    <label>Contacto</label>
-                    <p>{reservaInfo ? reservaInfo['Contacto'] : 'N/A'}</p>
-                  </InfoBox>
-                </Grid>
-              </Section>
+              <ItemRow>
+                <div className="icon-container"><MapPin size={20} /></div>
+                <div className="content">
+                  <p className="title">{details ? details.cabaña : 'Cabaña'}</p>
+                  <p className="desc">{details ? details.paquete : 'Plan de Estadía'}</p>
+                </div>
+              </ItemRow>
 
-              <Section>
-                <h3><Calendar size={18} /> Detalles de Estadía</h3>
-                <Grid>
-                  <InfoBox>
-                    <label>Fecha Llegada</label>
-                    <p>{reservaInfo && reservaInfo.Llegada ? new Date(reservaInfo.Llegada).toLocaleDateString('es-CO') : 'N/A'}</p>
-                  </InfoBox>
-                  <InfoBox>
-                    <label>Fecha Salida</label>
-                    <p>{reservaInfo && reservaInfo.Salida ? new Date(reservaInfo.Salida).toLocaleDateString('es-CO') : 'N/A'}</p>
-                  </InfoBox>
-                  <InfoBox>
-                    <label>Cabaña / Paquete</label>
-                    <p>{reservaInfo ? reservaInfo['Cabaña/Plan'] : 'N/A'}</p>
-                  </InfoBox>
-                  <InfoBox>
-                    <label>Estado</label>
-                    <p style={{ color: reservaInfo?.Estado === 'Confirmado' ? '#059669' : '#d97706', fontWeight: 'bold' }}>
-                      {reservaInfo ? reservaInfo.Estado : 'N/A'}
-                    </p>
-                  </InfoBox>
-                </Grid>
-              </Section>
+              <ItemRow>
+                <div className="icon-container"><Calendar size={20} /></div>
+                <div className="content">
+                  <p className="title">Fecha</p>
+                  <p className="desc">
+                    {details && details.llegada ? new Date(details.llegada).toLocaleDateString('es-CO') : ''} 
+                    {details && details.salida ? ` - ${new Date(details.salida).toLocaleDateString('es-CO')}` : ''}
+                  </p>
+                  <p className="highlight">
+                    {details && details.paquete && details.paquete.toLowerCase().includes('ocasional') 
+                      ? 'Ocasional' 
+                      : 'Check-in 3:00 PM / Check-out 1:00 PM'}
+                  </p>
+                </div>
+              </ItemRow>
+
+              <ItemRow>
+                <div className="icon-container"><Users size={20} /></div>
+                <div className="content">
+                  <p className="title">Huéspedes</p>
+                  <p className="desc">A confirmar</p>
+                </div>
+              </ItemRow>
+
+              <ClientRow>
+                <div className="content">
+                  <p className="label">A nombre de</p>
+                  <p className="name">{factura.cliente || (details ? details.cliente : '')}</p>
+                  <p className="doc">Documento / Cliente registrado</p>
+                </div>
+              </ClientRow>
 
               <TotalBox>
-                <div className="labels">
-                  <p>Total Facturado</p>
-                  <span style={{ color: '#a7f3d0', fontSize: '0.85rem' }}>Emisión: {new Date(factura.fecha).toLocaleDateString('es-CO')}</span>
+                <h3>Total a Pagar</h3>
+                <div className="total-row">
+                  <span className="label">Emisión: {new Date(factura.fecha || Date.now()).toLocaleDateString('es-CO')}</span>
+                  <span className="amount">{formatMoney(factura.total)}</span>
                 </div>
-                <h1 className="amount">{formatMoney(factura.total)}</h1>
               </TotalBox>
-              
-              <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                 <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Esta factura fue generada automáticamente por Glamping Los Bosques.</p>
-              </div>
             </>
           )}
         </Body>
