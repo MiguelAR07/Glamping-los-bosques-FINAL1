@@ -74,6 +74,8 @@ const BotonGuardar = styled.button`
 export default function ModalAgregar({ setModalAbierto, fetchData, initialDates }) {
   const [loading, setLoading] = useState(false);
   const [paquetes, setPaquetes] = useState([]);
+  const [cabanas, setCabanas] = useState([]);
+  const [selectedCabana, setSelectedCabana] = useState('');
   const [isOcasional, setIsOcasional] = useState(false);
   const [horasOcasional, setHorasOcasional] = useState({ entrada: '08:00', salida: '14:00' });
 
@@ -104,6 +106,17 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       })
       .catch(err => console.error("Error cargando paquetes", err));
+
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCabanas(data.filter(c => c.estado?.toLowerCase() === 'activo' || c.estado?.toLowerCase() === 'mantenimiento'));
+        } else if (data && data.success && Array.isArray(data.data)) {
+          setCabanas(data.data.filter(c => c.estado?.toLowerCase() === 'activo' || c.estado?.toLowerCase() === 'mantenimiento'));
+        }
+      })
+      .catch(err => console.error("Error cargando cabañas", err));
   }, []);
 
   const handleChange = (section, field, value) => {
@@ -224,13 +237,31 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
 
         <h3>Datos de la Estadía</h3>
         <FormGroup>
-          <label>Paquete Asignado</label>
-          <select required value={formData.reserva.paquete_id} onChange={(e) => handleChange('reserva', 'paquete_id', e.target.value)}>
-            <option value="">Seleccione un paquete</option>
-            {paquetes.map(p => (
-              <option key={p.paquete_id || p.id} value={p.paquete_id || p.id}>
-                {p.cabana_nombre || 'Cabaña'} - {p.tipo || 'Paquete'} ({p.dias || 1} días)
+          <label>Cabaña</label>
+          <select required value={selectedCabana} onChange={(e) => {
+            setSelectedCabana(e.target.value);
+            // Opcional: limpiar el paquete si cambian de cabaña
+            handleChange('reserva', 'paquete_id', '');
+          }}>
+            <option value="">Seleccione una cabaña</option>
+            {cabanas.map(c => (
+              <option key={c.cabana_id || c.id} value={c.cabana_id || c.id}>
+                {c.nombre} (Capacidad: {c.capacidad_personas || c.capacidad || 'N/A'})
               </option>
+            ))}
+          </select>
+        </FormGroup>
+
+        <FormGroup>
+          <label>Paquete Asignado</label>
+          <select required value={formData.reserva.paquete_id} onChange={(e) => handleChange('reserva', 'paquete_id', e.target.value)} disabled={!selectedCabana}>
+            <option value="">Seleccione un paquete</option>
+            {paquetes
+              .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
+              .map(p => (
+                <option key={p.paquete_id || p.id} value={p.paquete_id || p.id}>
+                  {p.cabana_nombre || 'Cabaña'} - {p.tipo || 'Paquete'} ({p.dias || 1} días)
+                </option>
             ))}
           </select>
         </FormGroup>
