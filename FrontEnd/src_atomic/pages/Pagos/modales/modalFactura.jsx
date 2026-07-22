@@ -22,7 +22,7 @@ const ModalContent = styled.div`
   width: 100%;
   max-width: 700px;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
@@ -57,7 +57,6 @@ const Header = styled.div`
   text-align: center;
   color: white;
   position: relative;
-  overflow: hidden;
   flex-shrink: 0;
   h1 {
     font-size: 1.5rem;
@@ -78,9 +77,7 @@ const Header = styled.div`
 const Body = styled.div`
   padding: 32px;
   background: #fafaf9; /* stone-50 */
-  overflow-y: auto;
-  flex-grow: 1;
-
+  
   h2 {
     font-size: 1.25rem;
     font-weight: 700;
