@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
-import { X, MapPin, Calendar, Users } from "lucide-react";
+import { X, MapPin, Calendar, Users, Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const Overlay = styled.div`
   position: fixed;
@@ -195,6 +197,25 @@ const formatMoney = (value) => {
 export default function ModalFactura({ factura, setModalAbierto }) {
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const printRef = useRef();
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current) return;
+    try {
+      const element = printRef.current;
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Factura_${factura.id}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
 
   useEffect(() => {
     if (!factura || !factura.reserva) return;
@@ -225,13 +246,14 @@ export default function ModalFactura({ factura, setModalAbierto }) {
           <X size={18} />
         </CloseButton>
 
-        <Header>
-          <h1>Factura #{factura.id}</h1>
-          <p>Detalles de la estadía y facturación</p>
-        </Header>
+        <div ref={printRef} style={{ background: 'white' }}>
+          <Header>
+            <h1>Factura #{factura.id}</h1>
+            <p>Detalles de la estadía y facturación</p>
+          </Header>
 
-        <Body>
-          <h2>Resumen de la Reserva</h2>
+          <Body>
+            <h2>Resumen de la Reserva</h2>
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#78716c' }}>
@@ -288,7 +310,29 @@ export default function ModalFactura({ factura, setModalAbierto }) {
               </TotalBox>
             </>
           )}
-        </Body>
+          </Body>
+        </div>
+        
+        <div style={{ textAlign: 'center', padding: '0 32px 32px 32px', background: '#fafaf9' }}>
+          <button 
+            onClick={handleDownloadPDF}
+            style={{
+              background: '#059669',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <Download size={18} /> Descargar Factura (PDF)
+          </button>
+        </div>
       </ModalContent>
     </Overlay>
   );
