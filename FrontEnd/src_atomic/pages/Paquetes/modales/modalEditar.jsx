@@ -73,14 +73,14 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
 
   const { formData, handleChange, handleSubmit, submitting } = useForm(
     {
-      cabana_id: paqueteAEditar.cabana_id || paqueteAEditar.cabana_id || '',
-      tipo_id: paqueteAEditar.tipo_id || paqueteAEditar.tipo_id || '',
-      nombre: paqueteAEditar.tipo || paqueteAEditar.Tipo || '',
-      dias_estadia: paqueteAEditar.dias || paqueteAEditar.dias || '',
-      descripcion: paqueteAEditar.descripcion || paqueteAEditar.descripcion || '',
+      cabana_id: paqueteAEditar.cabana_id ?? '',
+      tipo_id: paqueteAEditar.tipo_id ?? '',
+      nombre: paqueteAEditar.tipo ?? paqueteAEditar.Tipo ?? '',
+      dias_estadia: paqueteAEditar.dias ?? '',
+      descripcion: paqueteAEditar.descripcion ?? '',
 
-      precio_promocional: paqueteAEditar.precio_promocional || paqueteAEditar.precio || 0,
-      img_url: paqueteAEditar.img_url || '',
+      precio_promocional: paqueteAEditar.precio_promocional ?? paqueteAEditar.precio ?? 0,
+      img_url: paqueteAEditar.img_url ?? '',
 
       userName: localStorage.getItem('userName') || '',
     },

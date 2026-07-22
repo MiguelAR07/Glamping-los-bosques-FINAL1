@@ -4,13 +4,10 @@ dotenv.config();
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
-async function checkSchema() {
+async function checkFacturas() {
   try {
-    const res = await pool.query(`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_name = 'reservas'
-    `);
+    const res = await pool.query("SELECT column_name, data_type, column_default, is_generated, generation_expression FROM information_schema.columns WHERE table_name = 'facturas'");
+    console.log("FACTURAS SCHEMA:");
     console.log(res.rows);
   } catch (err) {
     console.error(err.message);
@@ -19,4 +16,4 @@ async function checkSchema() {
   }
 }
 
-checkSchema();
+checkFacturas();

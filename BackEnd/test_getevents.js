@@ -1,0 +1,48 @@
+import dotenv from 'dotenv';
+import pg from 'pg';
+dotenv.config();
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+async function test() {
+  try {
+    const getEvents = `
+      SELECT 
+          r.reserva_id AS id, 
+          'reserva' as tipo, 
+          c.nombre AS title, 
+          r.llegada AS "start", 
+          r.salida AS "end", 
+          p.cabana_id,
+          cab.nombre as cabana_nombre,
+          r.estado
+      FROM reservas r
+      JOIN clientes c ON r.cliente_id = c.cliente_id
+      JOIN paquetes p ON r.paquete_id = p.paquete_id
+      JOIN cabanas cab ON p.cabana_id = cab.cabana_id
+      WHERE r.estado <> 'Cancelado'
+      
+      UNION ALL
+      
+      SELECT 
+          fb.id, 
+          'bloqueo' as tipo, 
+          fb.motivo AS title, 
+          (fb.fecha_inicio::text || 'T00:00:00') AS "start", 
+          (fb.fecha_fin::text || 'T00:00:00') AS "end", 
+          fb.cabana_id,
+          COALESCE(cab.nombre, 'Todas las Cabañas') as cabana_nombre,
+          'Bloqueado' as estado
+      FROM fechas_bloqueadas fb
+      LEFT JOIN cabanas cab ON fb.cabana_id = cab.cabana_id
+    `;
+    const res = await pool.query(getEvents);
+    console.log("getEvents success, rows:", res.rowCount);
+  } catch (err) {
+    console.error("ERROR getEvents:", err.message);
+  } finally {
+    process.exit(0);
+  }
+}
+
+test();

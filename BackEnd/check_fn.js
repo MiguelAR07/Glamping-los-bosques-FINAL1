@@ -4,14 +4,10 @@ dotenv.config();
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
-async function checkSchema() {
+async function getProc() {
   try {
-    const res = await pool.query(`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_name = 'reservas'
-    `);
-    console.log(res.rows);
+    const res = await pool.query("SELECT prosrc FROM pg_proc WHERE proname = 'fn_calcular_total_factura'");
+    console.log(res.rows[0].prosrc);
   } catch (err) {
     console.error(err.message);
   } finally {
@@ -19,4 +15,4 @@ async function checkSchema() {
   }
 }
 
-checkSchema();
+getProc();

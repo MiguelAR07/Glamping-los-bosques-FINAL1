@@ -1,16 +1,14 @@
-import 'dotenv/config';
 import pool from './src/config/db.js';
 
-async function checkDb() {
+async function test() {
   try {
-    const cabanas = await pool.query('SELECT COUNT(*) FROM cabanas');
-    const paquetes = await pool.query('SELECT COUNT(*) FROM paquetes');
-    console.log(`Cabanas count: ${cabanas.rows[0].count}`);
-    console.log(`Paquetes count: ${paquetes.rows[0].count}`);
-  } catch (error) {
-    console.error("DB Error:", error.message);
-  } finally {
-    process.exit();
-  }
+    const r = await pool.query(`
+      SELECT p.paquete_id, p.nombre, p.estado, p.tipo_id, c.nombre as cabana 
+      FROM paquetes p 
+      JOIN cabanas c ON p.cabana_id = c.cabana_id 
+      WHERE c.nombre ILIKE '%roble%'
+    `);
+    console.table(r.rows);
+  } catch(e) { console.error(e); } finally { process.exit(0); }
 }
-checkDb();
+test();

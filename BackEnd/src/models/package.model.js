@@ -4,7 +4,6 @@ export const packages = {
     SELECT
       * 
     FROM vista_paquetes
-    WHERE estado = 'Activo'
     ORDER BY fecha DESC
   `,
   getPackageById: `
