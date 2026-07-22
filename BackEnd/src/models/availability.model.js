@@ -4,8 +4,8 @@ export const availabilityQueries = {
         r.reserva_id AS id, 
         'reserva' as tipo, 
         c.nombre AS title, 
-        r.llegada AS "start", 
-        r.salida AS "end", 
+        (r.llegada::text || 'T00:00:00') AS "start", 
+        (r.salida::text || 'T00:00:00') AS "end", 
         p.cabana_id,
         cab.nombre as cabana_nombre,
         r.estado
@@ -21,8 +21,8 @@ export const availabilityQueries = {
         fb.id, 
         'bloqueo' as tipo, 
         fb.motivo AS title, 
-        fb.fecha_inicio AS "start", 
-        fb.fecha_fin AS "end", 
+        (fb.fecha_inicio::text || 'T00:00:00') AS "start", 
+        (fb.fecha_fin::text || 'T00:00:00') AS "end", 
         fb.cabana_id,
         COALESCE(cab.nombre, 'Todas las Cabañas') as cabana_nombre,
         'Bloqueado' as estado
