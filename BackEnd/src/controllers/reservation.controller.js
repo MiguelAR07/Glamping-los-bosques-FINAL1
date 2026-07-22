@@ -573,7 +573,7 @@ export const uploadPaymentReceipt = async (req, res) => {
     }
 };
 
-import { sendReservationConfirmedEmail, sendReservationRejectedEmail, sendAdminNotificationEmail } from "../services/nodemailer.service.js";
+import { sendReservationRejectedEmail, sendAdminNotificationEmail } from "../services/nodemailer.service.js";
 import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
 import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp, sendRescheduleWhatsApp } from "../services/whatsapp.service.js";
 
