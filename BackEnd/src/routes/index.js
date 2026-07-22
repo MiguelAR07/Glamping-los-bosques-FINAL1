@@ -3,21 +3,6 @@ import { verificarToken } from '../middleware/auth.middleware.js';
 
 import loginRouter from './login.routes.js';
 import cabinRouter from './cabin.routes.js';
-
-import { transporter } from "../services/nodemailer.service.js";
-router.get('/test-email-public', async (req, res) => {
-    try {
-        const info = await transporter.sendMail({
-            from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
-            to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com',
-            subject: 'Test Email Render',
-            text: 'Hello from Render!'
-        });
-        res.status(200).json({ success: true, info, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message, stack: error.stack, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
-    }
-});
 import cabinDamageRouter from './cabinDamage.routes.js';
 import clientRouter from './customer.routes.js';
 import reservationRouter from './reservation.routes.js';
@@ -35,7 +20,23 @@ import promocionRouter from './promocion.routes.js';
 import availabilityRouter from './availability.routes.js';
 import comprobanteRouter from './comprobante.routes.js';
 import cuentasBancariasRouter from './cuentas_bancarias.routes.js';
+
 const router = Router();
+
+import { transporter } from "../services/nodemailer.service.js";
+router.get('/test-email-public', async (req, res) => {
+    try {
+        const info = await transporter.sendMail({
+            from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+            to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com',
+            subject: 'Test Email Render',
+            text: 'Hello from Render!'
+        });
+        res.status(200).json({ success: true, info, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message, stack: error.stack, user: process.env.EMAIL_USER, pass: !!process.env.EMAIL_PASS });
+    }
+});
 
 router.use('/login', loginRouter);
 
