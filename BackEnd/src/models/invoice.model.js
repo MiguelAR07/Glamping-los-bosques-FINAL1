@@ -27,8 +27,7 @@ export const invoice = {
       $1 * (1 - $2 / 100.0),             
       $1 * (1 - $2 / 100.0)           
     FROM reservas r
-    JOIN clientes c ON r.cliente_id = c.cliente_id
-    WHERE r.reserva_id = $4 AND c.email = $5
+    WHERE r.reserva_id = $3
     RETURNING factura_id, fecha_factura, total;
   `,
   // Se actualiza el total de la factura cuando se agregan nuevos productos o servicios

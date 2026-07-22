@@ -5,6 +5,7 @@ import { customer } from "../models/customer.model.js";
 import { packages } from "../models/package.model.js";
 
 import pool from "../config/db.js";
+import { transporter } from "../services/nodemailer.service.js";
 
 export const getreservations = async (req, res) => {
   try {
@@ -352,12 +353,36 @@ export const createReservation = async (req, res) => {
         const invoiceResult = await pool.query(invoice.createInvoice, [
             factura.subtotal,        // $1
             factura.descuento || 0,  // $2
-            null,                    // $3 (no usado pero lo paso para mantener orden)
-            nueva_reserva_id,        // $4
-            cliente.email            // $5
+            nueva_reserva_id         // $3
         ]);
 
         await pool.query("COMMIT");
+
+        // Enviar correos de reserva manual en segundo plano
+        try {
+            const llegadaFormateada = new Date(reserva.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+            const salidaFormateada = new Date(reserva.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+
+            // Correo al administrador
+            await transporter.sendMail({
+                from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+                to: process.env.EMAIL_USER,
+                subject: '🔔 Nueva Reserva Manual Creada',
+                html: `<h1>Nueva Reserva Manual</h1><p>Se ha creado manualmente una reserva para <strong>${cliente.nombre}</strong>.</p><ul><li>Llegada: ${llegadaFormateada}</li><li>Salida: ${salidaFormateada}</li></ul><p>Revisa el panel de control para más detalles.</p>`
+            });
+
+            // Correo al cliente (si se proporcionó)
+            if (cliente.email && cliente.email.trim() !== '') {
+                await transporter.sendMail({
+                    from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
+                    to: cliente.email,
+                    subject: '⛺ Tu reserva ha sido creada',
+                    html: `<h1>¡Hola ${cliente.nombre}!</h1><p>Hemos registrado manualmente tu reserva en <strong>Glamping Los Bosques</strong>.</p><ul><li>📅 Llegada: ${llegadaFormateada}</li><li>📅 Salida: ${salidaFormateada}</li></ul><p>¡Te esperamos pronto!</p>`
+                });
+            }
+        } catch (emailError) {
+            console.error("Error enviando correos de reserva manual:", emailError);
+        }
 
         res.status(201).json({
             success: true,

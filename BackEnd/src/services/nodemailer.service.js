@@ -2,7 +2,7 @@ import pool from '../config/db.js';
 import nodemailer from 'nodemailer';
 import { getEmails } from '../models/notification.model.js';
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
