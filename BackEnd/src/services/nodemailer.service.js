@@ -95,38 +95,77 @@ export const sendVerificationCodeEmail = async (email, code) => {
   }
 }
 
-export const sendReservationConfirmedEmail = async (email, clienteNombre, llegada, salida) => {
+export const sendReservationConfirmedEmail = async (email, invoiceData) => {
   try {
+    const { 
+      facturaId, clienteNombre, documento, cabana, plan, 
+      llegada, salida, huespedes, total, pagoRestante, amountPaid 
+    } = invoiceData;
+
     const response = await transporter.sendMail({
       from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
       to: email,
-      subject: '✅ ¡Tu reserva está confirmada!',
-      text: `Hola ${clienteNombre}, Nos alegra informarte que hemos validado tu comprobante de pago exitosamente. Tu reserva en Glamping Los Bosques está confirmada. Llegada: ${llegada}, Salida: ${salida}. ¡Te esperamos!`,
+      subject: `✅ ¡Tu reserva está confirmada! Factura #${facturaId}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
-          <h1 style="color: #059669; text-align: center;">¡Pago Recibido y Reserva Confirmada!</h1>
-          <p>Hola <strong>${clienteNombre}</strong>,</p>
-          <p>Nos alegra informarte que hemos validado tu comprobante de pago exitosamente.</p>
-          <p>Tu reserva en <strong>Glamping Los Bosques</strong> ya es oficial y estamos listos para recibirte.</p>
-          
-          <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #166534;">Detalles de tu estadía:</h3>
-            <ul style="list-style: none; padding-left: 0;">
-              <li>📅 <strong>Llegada:</strong> ${llegada}</li>
-              <li>📅 <strong>Salida:</strong> ${salida}</li>
-            </ul>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background-color: #059669; padding: 32px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Factura #${facturaId}</h1>
+            <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 16px;">Detalles de la estadía y facturación</p>
           </div>
           
-          <p>Si tienes alguna pregunta adicional antes de tu viaje, no dudes en contactarnos.</p>
-          <p style="text-align: center; font-size: 18px; margin-top: 30px;">¡Te esperamos pronto!</p>
+          <div style="padding: 32px; background-color: #fafaf9;">
+            <h2 style="margin: 0 0 24px 0; font-size: 20px; color: #1c1917; border-bottom: 1px solid #e7e5e4; padding-bottom: 16px;">Resumen de la Reserva</h2>
+            
+            <div style="margin-bottom: 20px;">
+              <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">${cabana}</p>
+              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${plan}</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Fecha</p>
+              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${llegada} - ${salida}</p>
+              <p style="margin: 4px 0 0 0; color: #059669; font-weight: bold; font-size: 14px;">Check-in 3:00 PM / Check-out 1:00 PM</p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Huéspedes</p>
+              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${huespedes}</p>
+            </div>
+            
+            <div style="margin-top: 32px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <p style="margin: 0; font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase;">A NOMBRE DE</p>
+              <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: 600; color: #111827;">${clienteNombre}</p>
+              <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Documento: ${documento}</p>
+            </div>
+
+            <div style="margin-top: 24px; background: white; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #4b5563; font-weight: 600;">TOTAL A PAGAR</span>
+                <span style="color: #059669; font-size: 24px; font-weight: 800;">$${Number(total).toLocaleString('es-CO')}</span>
+              </div>
+              <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: #6b7280;">Abono pagado:</span>
+                  <span style="color: #374151;">$${Number(amountPaid).toLocaleString('es-CO')}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #6b7280;">Saldo pendiente en Glamping:</span>
+                  <span style="color: #dc2626; font-weight: 600;">$${Number(pagoRestante).toLocaleString('es-CO')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="text-align: center; padding: 24px; background: white; border-top: 1px solid #e5e7eb;">
+            <p style="color: #666; margin: 0;">¡Te esperamos pronto en Glamping Los Bosques!</p>
+          </div>
         </div>
       `
     });
 
     return response;
   } catch (error) {
-    console.error('❌ Error enviando email de confirmación:', error);
-    // No lanzamos el error para evitar que se cancele la confirmación de la reserva
+    console.error('❌ Error enviando email de confirmación (factura):', error);
     return null;
   }
 }

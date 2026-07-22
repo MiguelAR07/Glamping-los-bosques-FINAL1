@@ -5,7 +5,7 @@ import { customer } from "../models/customer.model.js";
 import { packages } from "../models/package.model.js";
 
 import pool from "../config/db.js";
-import { transporter } from "../services/nodemailer.service.js";
+import { transporter, sendReservationConfirmedEmail } from "../services/nodemailer.service.js";
 
 export const getreservations = async (req, res) => {
   try {
@@ -91,6 +91,53 @@ export const activateReservation = async (req, res) => {
     }
 
     await pool.query("COMMIT");
+
+    // 5. Enviar el correo de confirmación con la factura al cliente
+    if (invData && invData.rows.length > 0) {
+      const subtotal = Number(invData.rows[0].subtotal) || 0;
+      const descuento = Number(invData.rows[0].descuento) || 0;
+      const por_pagar = Number(invData.rows[0].por_pagar) || 0;
+      const amountPaid = (subtotal - descuento) - por_pagar;
+
+      (async () => {
+        try {
+          const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
+          const clientEmailRes = await pool.query("SELECT email FROM clientes c JOIN reservas r ON c.cliente_id = r.cliente_id WHERE r.reserva_id = $1", [id]);
+          
+          if (vistaRes.rows.length > 0 && clientEmailRes.rows.length > 0) {
+            const details = vistaRes.rows[0];
+            const clientEmail = clientEmailRes.rows[0].email;
+            
+            const paqueteCompleto = details.paquete || '';
+            const planParts = paqueteCompleto.split(' - ');
+            const plan = planParts.length > 1 ? planParts[0] : (paqueteCompleto || 'Plan de Estadía');
+            const cabana = planParts.length > 1 ? planParts[1] : 'Cabaña';
+            
+            const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
+            
+            const invoiceData = {
+              facturaId: factura_id,
+              clienteNombre: details.cliente,
+              documento: details['Cédula'] || 'No registrado',
+              cabana: cabana,
+              plan: plan,
+              llegada: formatDate(details.llegada),
+              salida: formatDate(details.salida),
+              huespedes: details['Servicios adicionales'] || 'A confirmar',
+              total: subtotal - descuento,
+              pagoRestante: por_pagar,
+              amountPaid: amountPaid
+            };
+
+            await sendReservationConfirmedEmail(clientEmail, invoiceData);
+            console.log(`✅ Email de confirmación y factura enviado a ${clientEmail}`);
+          }
+        } catch (emailErr) {
+          console.error("❌ Error asíncrono enviando correo de factura:", emailErr);
+        }
+      })();
+    }
+
     res.json({ message: "Reserva reactivada y reembolso anulado", data: result.rows[0] });
 
   } catch (error) {
