@@ -21,8 +21,8 @@ export const availabilityQueries = {
         fb.id, 
         'bloqueo' as tipo, 
         fb.motivo AS title, 
-        (fb.fecha_inicio::text || 'T00:00:00') AS "start", 
-        (fb.fecha_fin::text || 'T00:00:00') AS "end", 
+        (fb.fecha_inicio::text || 'T00:00:00')::timestamp with time zone AS "start", 
+        (fb.fecha_fin::text || 'T00:00:00')::timestamp with time zone AS "end",
         fb.cabana_id,
         COALESCE(cab.nombre, 'Todas las Cabañas') as cabana_nombre,
         'Bloqueado' as estado
