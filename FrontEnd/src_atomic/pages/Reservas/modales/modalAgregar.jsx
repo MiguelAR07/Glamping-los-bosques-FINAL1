@@ -258,6 +258,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
             <option value="">Seleccione un paquete</option>
             {paquetes
               .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
+              .filter((p, index, self) => index === self.findIndex((t) => t.tipo === p.tipo && (t.cabana_id === p.cabana_id)))
               .map(p => (
                 <option key={p.paquete_id || p.id} value={p.paquete_id || p.id}>
                   {p.cabana_nombre || 'Cabaña'} - {p.tipo || 'Paquete'} ({p.dias || 1} días)
