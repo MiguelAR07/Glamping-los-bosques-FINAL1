@@ -388,75 +388,77 @@ export const createReservation = async (req, res) => {
         await pool.query("COMMIT");
 
         // Enviar correos de reserva manual en segundo plano
-        try {
-            const llegadaFormateada = new Date(reserva.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
-            const salidaFormateada = new Date(reserva.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+        (async () => {
+            try {
+                const llegadaFormateada = new Date(reserva.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+                const salidaFormateada = new Date(reserva.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
 
-            // Correo al administrador
-            await transporter.sendMail({
-                from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
-                to: process.env.EMAIL_USER,
-                subject: '🔔 Nueva Reserva Manual Creada',
-                html: `<h1>Nueva Reserva Manual</h1>
-                       <p>Se ha creado manualmente una reserva en el sistema.</p>
-                       <ul>
-                           <li><strong>Cliente:</strong> ${cliente.nombre}</li>
-                           <li><strong>Cédula:</strong> ${cliente.numero_identificacion}</li>
-                           <li><strong>Cabaña:</strong> ${nombre_cabana || 'N/A'}</li>
-                           <li><strong>Tipo de Plan:</strong> ${planName}</li>
-                           <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
-                           <li><strong>Salida:</strong> ${salidaFormateada}</li>
-                       </ul>
-                       <p>Revisa el panel de control para más detalles.</p>`
-            });
-
-            // Correo al cliente (si se proporcionó)
-            if (cliente.email && cliente.email.trim() !== '') {
-                const subtotal = Number(factura.subtotal) || 0;
-                const porPagar = Number(reserva.por_pagar) || 0;
-                const deposito = subtotal - porPagar;
-                
+                // Correo al administrador
                 await transporter.sendMail({
-                    from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
-                    to: cliente.email,
-                    subject: '🏕️ Confirmación de Reserva - Glamping Los Bosques',
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
-                        <h1 style="color: #059669; text-align: center;">¡Gracias por tu reserva, ${cliente.nombre}!</h1>
-                        <p>Hemos registrado manualmente tu reserva con éxito. Por favor, asegúrate de subir tu comprobante de pago para que un administrador pueda confirmar tu estadía.</p>
-                        
-                        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <h3 style="margin-top: 0; color: #166534;">Tus Detalles de Reserva:</h3>
-                            <ul style="list-style: none; padding-left: 0;">
-                            <li>🏕️ <strong>Plan:</strong> ${paquete?.nombre || 'Reserva Glamping'}</li>
-                            <li>📅 <strong>Llegada:</strong> ${llegadaFormateada}</li>
-                            <li>📅 <strong>Salida:</strong> ${salidaFormateada}</li>
-                            <li>💰 <strong>Total de estadía:</strong> $${subtotal.toLocaleString('es-CO')}</li>
-                            <li>💰 <strong>Anticipo (50%):</strong> $${deposito.toLocaleString('es-CO')}</li>
-                            <li>💰 <strong>Saldo por pagar al ingreso:</strong> $${porPagar.toLocaleString('es-CO')}</li>
-                            </ul>
-                        </div>
-                        
-                        <p>Te esperamos pronto para que disfrutes de una experiencia inolvidable en la naturaleza.</p>
-                        
-                        <div style="text-align: center; margin: 30px 0;">
-                            <p style="margin-bottom: 10px; color: #166534; font-weight: bold;">¿Tienes alguna pregunta o necesitas ayuda?</p>
-                            <a href="https://wa.me/573103599065" style="background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                            💬 Contáctanos por WhatsApp
-                            </a>
-                        </div>
-
-                        <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
-                            Glamping Los Bosques<br>
-                            Este es un correo automático, por favor no respondas a esta dirección.
-                        </p>
-                        </div>
-                    `
+                    from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+                    to: process.env.EMAIL_USER,
+                    subject: '🔔 Nueva Reserva Manual Creada',
+                    html: `<h1>Nueva Reserva Manual</h1>
+                           <p>Se ha creado manualmente una reserva en el sistema.</p>
+                           <ul>
+                               <li><strong>Cliente:</strong> ${cliente.nombre}</li>
+                               <li><strong>Cédula:</strong> ${cliente.numero_identificacion}</li>
+                               <li><strong>Cabaña:</strong> ${nombre_cabana || 'N/A'}</li>
+                               <li><strong>Tipo de Plan:</strong> ${planName}</li>
+                               <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
+                               <li><strong>Salida:</strong> ${salidaFormateada}</li>
+                           </ul>
+                           <p>Revisa el panel de control para más detalles.</p>`
                 });
+
+                // Correo al cliente (si se proporcionó)
+                if (cliente.email && cliente.email.trim() !== '') {
+                    const subtotal = Number(factura.subtotal) || 0;
+                    const porPagar = Number(reserva.por_pagar) || 0;
+                    const deposito = subtotal - porPagar;
+                    
+                    await transporter.sendMail({
+                        from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
+                        to: cliente.email,
+                        subject: '🏕️ Confirmación de Reserva - Glamping Los Bosques',
+                        html: `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+                            <h1 style="color: #059669; text-align: center;">¡Gracias por tu reserva, ${cliente.nombre}!</h1>
+                            <p>Hemos registrado manualmente tu reserva con éxito. Por favor, asegúrate de subir tu comprobante de pago para que un administrador pueda confirmar tu estadía.</p>
+                            
+                            <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <h3 style="margin-top: 0; color: #166534;">Tus Detalles de Reserva:</h3>
+                                <ul style="list-style: none; padding-left: 0;">
+                                <li>🏕️ <strong>Plan:</strong> ${planName}</li>
+                                <li>📅 <strong>Llegada:</strong> ${llegadaFormateada}</li>
+                                <li>📅 <strong>Salida:</strong> ${salidaFormateada}</li>
+                                <li>💰 <strong>Total de estadía:</strong> $${subtotal.toLocaleString('es-CO')}</li>
+                                <li>💰 <strong>Anticipo (50%):</strong> $${deposito.toLocaleString('es-CO')}</li>
+                                <li>💰 <strong>Saldo por pagar al ingreso:</strong> $${porPagar.toLocaleString('es-CO')}</li>
+                                </ul>
+                            </div>
+                            
+                            <p>Te esperamos pronto para que disfrutes de una experiencia inolvidable en la naturaleza.</p>
+                            
+                            <div style="text-align: center; margin: 30px 0;">
+                                <p style="margin-bottom: 10px; color: #166534; font-weight: bold;">¿Tienes alguna pregunta o necesitas ayuda?</p>
+                                <a href="https://wa.me/573103599065" style="background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                💬 Contáctanos por WhatsApp
+                                </a>
+                            </div>
+
+                            <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
+                                Glamping Los Bosques<br>
+                                Este es un correo automático, por favor no respondas a esta dirección.
+                            </p>
+                            </div>
+                        `
+                    });
+                }
+            } catch (emailError) {
+                console.error("Error enviando correos de reserva manual:", emailError);
             }
-        } catch (emailError) {
-            console.error("Error enviando correos de reserva manual:", emailError);
-        }
+        })();
 
         res.status(201).json({
             success: true,
