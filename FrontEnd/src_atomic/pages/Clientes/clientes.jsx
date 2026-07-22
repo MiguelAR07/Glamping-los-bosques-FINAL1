@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import TablaGeneral from "../../components/organisms/tabla";
-import { useFetch } from "../../hooks/useFetch";
+import { useFetch } from "../../hooks/fetchConnect";
 
 function Clientes() {
   const { data, loading, error, fetchData } = useFetch();
