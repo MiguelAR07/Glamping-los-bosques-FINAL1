@@ -44,8 +44,7 @@ export const activateReservation = async (req, res) => {
 
     await pool.query("BEGIN");
 
-    // 1. Activar la reserva y obtener datos necesarios (como factura_id)
-    // Asegúrate que tu consulta SQL devuelva la fila activada: RETURNING *
+    // 1. Activar la reserva
     const result = await pool.query(
       reservationModels.activateReservation,
       [id]
@@ -56,14 +55,40 @@ export const activateReservation = async (req, res) => {
       return res.status(404).json({ message: 'La reserva no existe.' });
     }
 
-    const factura_id = result.rows[0].factura_id;
+    // 2. Obtener factura_id y calcular el pago inicial
+    const invData = await pool.query("SELECT f.factura_id, f.subtotal, f.descuento, r.por_pagar FROM facturas f JOIN reservas r ON f.reserva_id = r.reserva_id WHERE f.reserva_id = $1", [id]);
+    
+    let factura_id = null;
+    if (invData.rows.length > 0) {
+      factura_id = invData.rows[0].factura_id;
+      const subtotal = Number(invData.rows[0].subtotal) || 0;
+      const descuento = Number(invData.rows[0].descuento) || 0;
+      const por_pagar = Number(invData.rows[0].por_pagar) || 0;
+      const amountPaid = (subtotal - descuento) - por_pagar;
 
-    // 2. Anular el reembolso asociado a esa factura
-    // Es "Cancelado" porque el dinero ya no se debe devolver, se queda en la empresa
-    await pool.query(
-      refounds.updateRefound,
-      ["Cancelado", factura_id] 
-    );
+      // 3. Registrar el pago en la tabla 'pagos' para reflejar ingresos
+      if (amountPaid > 0) {
+        // Obtener un método de pago por defecto (ej. Transferencia)
+        const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
+        const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
+
+        // Verificar si ya existe el pago inicial para esta factura (evitar duplicados si se reactiva)
+        const checkPago = await pool.query("SELECT 1 FROM pagos WHERE factura_id = $1 AND total_pagado = $2", [factura_id, amountPaid]);
+        if (checkPago.rows.length === 0) {
+          await pool.query(
+            "INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Completado', $3)",
+            [factura_id, metodo_id, amountPaid]
+          );
+        }
+      }
+
+      // 4. Anular el reembolso asociado a esa factura
+      // Es "Cancelado" porque el dinero ya no se debe devolver, se queda en la empresa
+      await pool.query(
+        refounds.updateRefound,
+        ["Cancelado", factura_id] 
+      );
+    }
 
     await pool.query("COMMIT");
     res.json({ message: "Reserva reactivada y reembolso anulado", data: result.rows[0] });
