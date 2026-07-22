@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { X, Receipt, User, MapPin, Calendar, CreditCard, Clock } from "lucide-react";
-import { formatCurrency, formatDate } from "../../../../utils/formatUtils"; // Adjust import if needed or just define them
 
 const Overlay = styled.div`
   position: fixed;
