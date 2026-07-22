@@ -109,6 +109,16 @@ export const cancelReservation = async (req, res) => {
        }
     }
 
+    // Obtener correo del cliente para notificar la cancelación
+    const clientData = await pool.query(
+      "SELECT c.email, c.nombre FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1",
+      [id]
+    );
+
+    if (clientData.rows.length > 0 && clientData.rows[0].email) {
+      sendCancelEmail(clientData.rows[0].email, clientData.rows[0].nombre).catch(err => console.error("Error al enviar email de cancelación:", err));
+    }
+
     await pool.query("COMMIT");
     res.json({ message: "Cancelada con éxito", reembolso: montoAPagar });
 
@@ -614,7 +624,7 @@ export const getLatestReservationId = async (req, res) => {
   }
 };
 
-import { sendRescheduleEmail } from "../services/nodemailer.service.js";
+import { sendRescheduleEmail, sendCancelEmail } from "../services/nodemailer.service.js";
 
 export const rescheduleReservation = async (req, res) => {
     try {

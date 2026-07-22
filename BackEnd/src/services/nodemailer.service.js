@@ -244,6 +244,38 @@ export const sendRescheduleEmail = async (clienteEmail, clienteNombre, llegada, 
   }
 };
 
+export const sendCancelEmail = async (clienteEmail, clienteNombre) => {
+  try {
+    await transporter.sendMail({
+      from: '"Glamping Los Bosques" <panelglampinglosbosques@gmail.com>',
+      to: clienteEmail,
+      subject: '❌ Cancelación de tu Reserva',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h1 style="color: #c92a2a; text-align: center;">Reserva Cancelada</h1>
+          <p>Hola <strong>${clienteNombre}</strong>,</p>
+          <p>Te informamos que tu reserva ha sido <strong>cancelada</strong>.</p>
+          
+          <div style="background-color: #fff5f5; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #c92a2a;">
+            <p style="color: #333; font-size: 16px;">Cualquier duda o solicitud de reembolso, por favor contáctanos lo más pronto posible.</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://wa.me/573103599065" style="background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              💬 Contáctanos por WhatsApp
+            </a>
+          </div>
+          
+          <p style="text-align: center; font-size: 18px; margin-top: 30px;">Atentamente,<br/>Glamping Los Bosques</p>
+        </div>
+      `
+    });
+    console.log('✅ Email de cancelación enviado.');
+  } catch (error) {
+    console.error('❌ Error enviando email de cancelación:', error);
+  }
+};
+
 export const sendForceMajeureCancelEmail = async (clienteEmail, clienteNombre) => {
   try {
     await transporter.sendMail({
