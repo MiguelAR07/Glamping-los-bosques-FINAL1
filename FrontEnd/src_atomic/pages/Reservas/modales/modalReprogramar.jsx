@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import Swal from 'sweetalert2';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -94,12 +95,12 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
 
   const handleReprogramar = async () => {
     if (!llegada || !salida) {
-      alert('Debes seleccionar ambas fechas.');
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'Debes seleccionar ambas fechas.' });
       return;
     }
 
     if (new Date(salida) < new Date(llegada)) {
-      alert('La fecha de salida no puede ser anterior a la fecha de llegada.');
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'La fecha de salida no puede ser anterior a la fecha de llegada.' });
       return;
     }
 
@@ -119,16 +120,16 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
       });
 
       if (response.ok) {
-        alert("Reserva reprogramada exitosamente. Se ha notificado al cliente por correo.");
+        Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva reprogramada exitosamente. Se ha notificado al cliente por correo.' });
         onSuccess();
         onClose();
       } else {
         const errData = await response.json();
-        alert(`Error: ${errData.message || 'No se pudo reprogramar la reserva'}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: errData.message || 'No se pudo reprogramar la reserva' });
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión al reprogramar la reserva.");
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Error de conexión al reprogramar la reserva.' });
     } finally {
       setLoading(false);
     }

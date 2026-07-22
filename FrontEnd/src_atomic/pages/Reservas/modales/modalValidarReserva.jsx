@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import Swal from 'sweetalert2';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -144,7 +145,7 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
 
   const handleReject = async () => {
     if (!motivo.trim()) {
-      alert("Por favor, ingresa un motivo para rechazar la reserva.");
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, ingresa un motivo para rechazar la reserva.' });
       return;
     }
     setLoading(true);

@@ -1,5 +1,6 @@
 import SquareCard from "../../components/molecules/cards/squareCard";
 import styled from "styled-components";
+import Swal from "sweetalert2";
 
 import { useFilters } from "../../hooks/useFilters";
 import { deleteUtils } from "../../utils/deleteUtils";
@@ -356,7 +357,7 @@ function Reservas({ modulo }) {
       }
       window.open(finalUrl, "_blank");
     } else {
-      alert("No hay comprobante asociado a esta reserva.");
+      Swal.fire({ icon: 'info', title: 'Información', text: 'No hay comprobante asociado a esta reserva.' });
     }
   };
 
@@ -371,16 +372,16 @@ function Reservas({ modulo }) {
         }
       });
       if (response.ok) {
-        alert("Reserva confirmada exitosamente y notificaciones enviadas.");
+        Swal.fire({ icon: 'success', title: 'Confirmada', text: 'Reserva confirmada exitosamente y notificaciones enviadas.' });
         setReservaAValidar(null);
         handleFetchData();
       } else {
         const errData = await response.json();
-        alert(`Error: ${errData.message || 'No se pudo confirmar la reserva'}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: errData.message || 'No se pudo confirmar la reserva' });
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión al confirmar la reserva.");
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Error de conexión al confirmar la reserva.' });
     }
   };
 
@@ -396,16 +397,16 @@ function Reservas({ modulo }) {
         body: JSON.stringify({ motivo })
       });
       if (response.ok) {
-        alert("Reserva rechazada exitosamente y cliente notificado.");
+        Swal.fire({ icon: 'success', title: 'Rechazada', text: 'Reserva rechazada exitosamente y cliente notificado.' });
         setReservaAValidar(null);
         handleFetchData();
       } else {
         const errData = await response.json();
-        alert(`Error: ${errData.message || 'No se pudo rechazar la reserva'}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: errData.message || 'No se pudo rechazar la reserva' });
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión al rechazar la reserva.");
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Error de conexión al rechazar la reserva.' });
     }
   };
 

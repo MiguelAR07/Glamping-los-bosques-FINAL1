@@ -1,6 +1,8 @@
+import React, { useState } from 'react';
 import ModalPlantilla from "../../../components/organisms/Modales/modalPlantilla";
 import { useForm } from "../../../hooks/useForm";
 import styled from "styled-components";
+import Swal from 'sweetalert2';
 
 const Form = styled.form`
   display: flex;
@@ -64,7 +66,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, usuarioAEditar
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'Las contraseñas no coinciden' });
       return;
     }
 

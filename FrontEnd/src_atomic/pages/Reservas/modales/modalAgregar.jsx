@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ModalPlantilla from "../../../components/organisms/Modales/modalPlantilla";
+import Swal from 'sweetalert2';
 
 const FormGrid = styled.form`
   display: grid;
@@ -178,16 +179,19 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
     e.preventDefault();
     setLoading(true);
 
+    const arr = new Date(formData.reserva.llegada);
+    const dep = new Date(formData.reserva.salida);
+
     // Validar fechas: para planes ocasionales y día de sol, el mismo día es válido
     if (isOcasional) {
-      if (new Date(formData.reserva.salida) < new Date(formData.reserva.llegada)) {
-        alert("La fecha de salida no puede ser anterior a la fecha de llegada.");
+      if (arr > dep) {
+        Swal.fire({ icon: 'warning', title: 'Atención', text: 'La fecha de salida no puede ser anterior a la fecha de llegada.' });
         setLoading(false);
         return;
       }
     } else {
-      if (new Date(formData.reserva.salida) <= new Date(formData.reserva.llegada)) {
-        alert("La fecha de salida debe ser posterior a la fecha de llegada.");
+      if (arr >= dep) {
+        Swal.fire({ icon: 'warning', title: 'Atención', text: 'La fecha de salida debe ser posterior a la fecha de llegada.' });
         setLoading(false);
         return;
       }
@@ -227,16 +231,16 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        alert("Reserva creada exitosamente y correo enviado al cliente.");
+      if (response.ok) {
+        Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva creada exitosamente y correo enviado al cliente.' });
         fetchData();
         setModalAbierto(false);
       } else {
-        alert(`Error al crear la reserva: ${data.message || 'Error desconocido'}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data.message || 'Error desconocido'}` });
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión al crear la reserva");
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Error de conexión al crear la reserva' });
     } finally {
       setLoading(false);
     }
