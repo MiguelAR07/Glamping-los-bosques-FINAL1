@@ -13,6 +13,13 @@ export const customer = {
   createCustomer: `
     INSERT INTO clientes (nombre, email, contacto, tipo_identificacion, numero_identificacion, pais_residencia)
     VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (numero_identificacion) DO UPDATE 
+    SET 
+      nombre = EXCLUDED.nombre,
+      email = EXCLUDED.email,
+      contacto = EXCLUDED.contacto,
+      tipo_identificacion = EXCLUDED.tipo_identificacion,
+      pais_residencia = EXCLUDED.pais_residencia
     RETURNING cliente_id, nombre
   `,
   getAllEmails: `
