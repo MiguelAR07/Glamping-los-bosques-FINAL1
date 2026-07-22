@@ -414,6 +414,48 @@ function Reservas({ modulo }) {
     paquete: handlePackageClick
   };
 
+  const formatTimeOnly = (dateStr) => {
+    if (!dateStr) return "N / A";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "N / A";
+      return new Intl.DateTimeFormat("es-CO", { hour: "2-digit", minute: "2-digit", hour12: true }).format(d);
+    } catch(e) { return "N / A"; }
+  };
+  
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "N / A";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "N / A";
+      return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+    } catch(e) { return "N / A"; }
+  };
+
+  const mapReservasData = (dataArray) => {
+    if (!dataArray) return [];
+    return dataArray.map(r => {
+      return {
+        ...r,
+        'Cliente': r.cliente,
+        'Paquete': r.paquete,
+        'Fecha Entrada': formatDateOnly(r.llegada),
+        'Hora Entrada': formatTimeOnly(r.llegada),
+        'Fecha Salida': formatDateOnly(r.salida),
+        'Hora Salida': formatTimeOnly(r.salida),
+        'Servicios': r["Servicios adicionales"] && r["Servicios adicionales"].trim() !== "" ? r["Servicios adicionales"] : "Ninguno",
+        'Estado': r.estado,
+        'Total Restante': r["Pago restante"]
+      };
+    });
+  };
+
+  const hiddenColumnsList = [
+    'comprobante_url', 'id', 'cliente', 'paquete', 'llegada', 'salida', 'estado', 
+    'Pago restante', 'Servicios adicionales', 'fecha', 'cliente_id', 'paquete_id', 'reserva_id',
+    'Celular', 'Cédula'
+  ];
+
   return (
     <>
       <CardsCont>
@@ -455,19 +497,15 @@ function Reservas({ modulo }) {
             )}
           </div>
           <TablaGeneral
-            data={displayData.filter(r => !r.estado || !r.estado.toLowerCase().includes('cancelad'))}
+            data={mapReservasData(displayData.filter(r => !r.estado || !r.estado.toLowerCase().includes('cancelad')))}
             onColumnClick={onColumnClickHandlers}
             onActive={activarReserva}
             onDelete={eliminarReserva}
             selectable={true}
             selectedRows={selectedActivas}
             onSelectionChange={setSelectedActivas}
-            hiddenColumns={['comprobante_url']}
-            columnMapping={{
-              'llegada': 'Fecha Entrada',
-              'salida': 'Fecha Salida',
-              'Servicios adicionales': 'Servicios'
-            }}
+            hiddenColumns={hiddenColumnsList}
+            columnMapping={{}}
             acciones={[
               {
                 title: "Ver Cliente",
@@ -524,19 +562,15 @@ function Reservas({ modulo }) {
                 </button>
               </div>
               <TablaGeneral
-                data={displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad'))}
+                data={mapReservasData(displayData.filter(r => r.estado && r.estado.toLowerCase().includes('cancelad')))}
                 onColumnClick={onColumnClickHandlers}
                 onActive={activarReserva}
                 selectable={true}
                 selectedRows={selectedCanceladas}
                 onSelectionChange={setSelectedCanceladas}
                 onDelete={eliminarReservaCanceladaDefinitivo}
-                hiddenColumns={['comprobante_url']}
-                columnMapping={{
-                  'llegada': 'Fecha Entrada',
-                  'salida': 'Fecha Salida',
-                  'Servicios adicionales': 'Servicios'
-                }}
+                hiddenColumns={hiddenColumnsList}
+                columnMapping={{}}
                 acciones={[
                   {
                     title: "Ver Cliente",
