@@ -157,6 +157,27 @@ export const reservationStats = {
       AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
     GROUP BY TO_CHAR(pg.fecha_pago, 'YYYY-MM')
     ORDER BY fecha ASC;
+  `,
+  totalConfirmed: `
+    SELECT COUNT(*) AS total
+    FROM reservas
+    WHERE estado IN ('Confirmado', 'Confirmada', 'Activo', 'Pagado')
+  `,
+  totalPending: `
+    SELECT COUNT(*) AS total
+    FROM reservas
+    WHERE estado = 'Por validar'
+  `,
+  totalCanceled: `
+    SELECT COUNT(*) AS total
+    FROM reservas
+    WHERE estado IN ('Cancelado', 'Cancelada')
+  `,
+  revenueMonth: `
+    SELECT COALESCE(SUM(pg.total_pagado), 0) AS total
+    FROM pagos pg
+    WHERE pg.estado IN ('Completado', 'Agregado Manual')
+      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
   `
 }
 

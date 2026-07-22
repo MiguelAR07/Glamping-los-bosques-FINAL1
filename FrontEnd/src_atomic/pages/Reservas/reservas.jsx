@@ -1,5 +1,4 @@
 import SquareCard from "../../components/molecules/cards/squareCard";
-import { reservasCardData } from "./componentsData/reservasData";
 import styled from "styled-components";
 
 import { useFilters } from "../../hooks/useFilters";
@@ -456,11 +455,43 @@ function Reservas({ modulo }) {
     'Celular', 'Cédula'
   ];
 
+  const formatCurrencyLocal = (value) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const dynamicCardData = [
+    {
+      bgColor: 'verde',
+      texto: 'Reservas Confirmadas',
+      titulo: statsData?.total_confirmed || '0',
+    },
+    {
+      bgColor: '',
+      texto: 'Por Validar',
+      titulo: statsData?.total_pending || '0',
+    },
+    {
+      bgColor: '',
+      texto: 'Canceladas',
+      titulo: statsData?.total_canceled || '0',
+    },
+    {
+      bgColor: 'verde',
+      texto: 'Ingresos del Mes',
+      titulo: statsData?.revenue_month ? formatCurrencyLocal(statsData.revenue_month) : '$0',
+    }
+  ];
+
   return (
     <>
       <CardsCont>
         <LinearGraph data={statsData?.revenue_graph} title="Ganancias por mes" />
-        <SquareCard squareData={reservasCardData} />
+        <SquareCard squareData={dynamicCardData} />
       </CardsCont>
       <HeaderAcciones>
         <ReservasSearch onResult={setReservas} onFilterChange={setFilterMode} />
