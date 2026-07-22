@@ -3,7 +3,6 @@ export const cabin = {
     SELECT 
       *
     FROM vista_cabanas
-    WHERE estado <> 'Inactivo'
     ORDER BY actualizacion DESC
   `,
   getCabinByName: `
@@ -11,8 +10,7 @@ export const cabin = {
       *
     FROM vista_cabanas
     WHERE 
-      estado <> 'inactivo'
-      AND nombre ILIKE '%' || $1 || '%'
+      nombre ILIKE '%' || $1 || '%'
   `,
   getCabinImgs: `
     SELECT * 

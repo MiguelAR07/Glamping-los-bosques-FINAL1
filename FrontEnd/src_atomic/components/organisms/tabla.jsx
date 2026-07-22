@@ -289,10 +289,10 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                       <button
                         className="accion-btn"
                         onClick={() => onDelete(fila)}
-                        title="Eliminar"
+                        title="Desactivar / Eliminar"
                         style={{ color: "#DC3545" }}
                       >
-                        <i className="bi bi-bag-dash-fill" style={{ fontSize: '1.1rem' }}></i>
+                        <i className="bi bi-trash-fill" style={{ fontSize: '1.1rem' }}></i>
                       </button>
                     )}
                     {(onActive && fila.estado === 'Inactivo') && (
@@ -302,7 +302,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         title="Activar"
                         style={{ color: "#28a745" }}
                       >
-                        <i className="bi bi-bag-plus-fill" style={{ fontSize: '1.1rem' }}></i>
+                        <i className="bi bi-arrow-counterclockwise" style={{ fontSize: '1.1rem' }}></i>
                       </button>
                     )}
                     {acciones && acciones.map((accion, k) => {
