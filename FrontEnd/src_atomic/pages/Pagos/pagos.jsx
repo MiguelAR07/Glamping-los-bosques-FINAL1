@@ -90,16 +90,14 @@ function Pagos() {
     setModalFacturaAbierto(true);
   };
 
-  const renderAcciones = (fila) => {
-    if (activeTab === 'invoices') {
-      return (
-        <button className="columnClick" onClick={() => handleViewFactura(fila)} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <i className="bi bi-receipt"></i> Ver Factura
-        </button>
-      );
+  const accionesFactura = activeTab === 'invoices' ? [
+    {
+      title: 'Ver Factura',
+      icono: <i className="bi bi-receipt" style={{ fontSize: '1.2rem' }}></i>,
+      color: '#1a4700',
+      onClick: handleViewFactura
     }
-    return null;
-  };
+  ] : null;
 
   return (
     <>
@@ -142,7 +140,7 @@ function Pagos() {
         {displayData && (
           <TablaGeneral 
             data={displayData} 
-            acciones={renderAcciones}
+            acciones={accionesFactura}
           />
         )}
       </div>
