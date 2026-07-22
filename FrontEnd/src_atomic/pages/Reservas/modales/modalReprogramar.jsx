@@ -98,8 +98,8 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
       return;
     }
 
-    if (new Date(salida) <= new Date(llegada)) {
-      alert('La fecha de salida debe ser posterior a la fecha de llegada.');
+    if (new Date(salida) < new Date(llegada)) {
+      alert('La fecha de salida no puede ser anterior a la fecha de llegada.');
       return;
     }
 

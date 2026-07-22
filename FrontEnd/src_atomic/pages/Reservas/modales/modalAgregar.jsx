@@ -178,11 +178,19 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
     e.preventDefault();
     setLoading(true);
 
-    // Validar fechas
-    if (new Date(formData.reserva.salida) <= new Date(formData.reserva.llegada)) {
-      alert("La fecha de salida debe ser posterior a la fecha de llegada.");
-      setLoading(false);
-      return;
+    // Validar fechas: para planes ocasionales y día de sol, el mismo día es válido
+    if (isOcasional) {
+      if (new Date(formData.reserva.salida) < new Date(formData.reserva.llegada)) {
+        alert("La fecha de salida no puede ser anterior a la fecha de llegada.");
+        setLoading(false);
+        return;
+      }
+    } else {
+      if (new Date(formData.reserva.salida) <= new Date(formData.reserva.llegada)) {
+        alert("La fecha de salida debe ser posterior a la fecha de llegada.");
+        setLoading(false);
+        return;
+      }
     }
 
     try {
