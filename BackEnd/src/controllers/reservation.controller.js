@@ -541,8 +541,8 @@ export const rescheduleReservation = async (req, res) => {
             [llegada, salida, id]
         );
 
-        const llegadaFormateada = new Date(llegada).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-        const salidaFormateada = new Date(salida).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const llegadaFormateada = new Date(llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        const salidaFormateada = new Date(salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 
         // Enviar correo electrónico (En segundo plano)
         if (data.cliente_email) {

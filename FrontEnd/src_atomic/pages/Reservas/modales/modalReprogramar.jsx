@@ -113,8 +113,8 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ 
-          llegada: new Date(llegada + "T05:00:00").toISOString(), 
-          salida: new Date(salida + "T05:00:00").toISOString() 
+          llegada: new Date(llegada + "T15:00:00").toISOString(), 
+          salida: new Date(salida + "T13:00:00").toISOString() 
         })
       });
 
