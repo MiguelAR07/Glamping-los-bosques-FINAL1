@@ -411,7 +411,6 @@ function Reservas({ modulo }) {
   };
 
   const onColumnClickHandlers = {
-    cliente: handleClientClick,
     paquete: handlePackageClick
   };
 
@@ -463,7 +462,18 @@ function Reservas({ modulo }) {
             selectable={true}
             selectedRows={selectedActivas}
             onSelectionChange={setSelectedActivas}
+            hiddenColumns={['comprobante_url']}
+            columnMapping={{
+              'llegada': 'Fecha Entrada',
+              'salida': 'Fecha Salida'
+            }}
             acciones={[
+              {
+                title: "Ver Cliente",
+                icono: <i className="bi bi-person-lines-fill" style={{ fontSize: '1.2rem' }}></i>,
+                color: "#1a4700",
+                onClick: handleClientClick
+              },
               {
                 title: "Validar Reserva (Confirmar o Rechazar)",
                 icono: <i className="bi bi-shield-check" style={{ fontSize: '1.2rem' }}></i>,
@@ -520,7 +530,18 @@ function Reservas({ modulo }) {
                 selectedRows={selectedCanceladas}
                 onSelectionChange={setSelectedCanceladas}
                 onDelete={eliminarReservaCanceladaDefinitivo}
+                hiddenColumns={['comprobante_url']}
+                columnMapping={{
+                  'llegada': 'Fecha Entrada',
+                  'salida': 'Fecha Salida'
+                }}
                 acciones={[
+                  {
+                    title: "Ver Cliente",
+                    icono: <i className="bi bi-person-lines-fill" style={{ fontSize: '1.2rem' }}></i>,
+                    color: "#1a4700",
+                    onClick: handleClientClick
+                  },
                   {
                     title: "Ver Comprobante",
                     icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,

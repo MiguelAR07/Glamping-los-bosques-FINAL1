@@ -136,9 +136,9 @@ const Table = styled.table`
   }
 `;
 
-function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick, selectable, onSelectionChange, selectedRows = [] }) {
+function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick, selectable, onSelectionChange, selectedRows = [], hiddenColumns = [], columnMapping = {} }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // Adjust rows per page for better view
+  const itemsPerPage = 8;
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -157,15 +157,14 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
   };
 
   useEffect(() => {
-    setCurrentPage(1); // Reset page on data change (e.g. search)
+    setCurrentPage(1);
   }, [data]);
 
   if (!data || data.length === 0) {
     return <p style={{ marginTop: '20px', color: '#6b7280' }}>No hay datos para mostrar</p>;
   }
 
-  // Se filtran todas las columnas que terminen en _id
-  const columnas = Object.keys(data[0]).filter(col => !col.endsWith('_id'));
+  const columnas = Object.keys(data[0]).filter(col => !col.endsWith('_id') && !hiddenColumns.includes(col));
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -190,7 +189,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                 </th>
               )}
               {columnas.map((col, i) => (
-                <th key={i}>{col}</th>
+                <th key={i}>{columnMapping[col] || col}</th>
               ))}
               {(!hideActions && (acciones || onEdit || onDelete || onActive)) && <th>Acciones</th>}
             </tr>
