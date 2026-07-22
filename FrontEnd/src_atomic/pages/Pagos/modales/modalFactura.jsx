@@ -221,13 +221,11 @@ export default function ModalFactura({ factura, setModalAbierto }) {
         setLoading(true);
         const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
         const data = await res.json();
-        const r = data.find(x => x.id === factura.reserva || x.reserva_id === factura.reserva);
-        if (r) {
-          setDetails(r);
-        }
+        const found = data.find(r => Number(r.reserva_id) === Number(factura.reserva) || Number(r.id) === Number(factura.reserva));
+        setDetails(found);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching reservation details for invoice", err);
-      } finally {
         setLoading(false);
       }
     };
@@ -235,6 +233,21 @@ export default function ModalFactura({ factura, setModalAbierto }) {
   }, [factura]);
 
   if (!factura) return null;
+
+  // Extraer partes del paquete (ej: "Romantico - Cabaña 1")
+  const paqueteCompleto = details && details.paquete ? details.paquete : '';
+  const planParts = paqueteCompleto.split(' - ');
+  const cabaña = planParts.length > 1 ? planParts[0] : (details ? details.paquete : 'Cabaña');
+  const planName = planParts.length > 1 ? planParts[1] : 'Plan de Estadía';
+
+  // Formato de fechas
+  const formatFecha = (fechaStr) => {
+    if (!fechaStr) return '';
+    const date = new Date(fechaStr);
+    // Para compensar la zona horaria si es necesario
+    const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    return utcDate.toLocaleDateString('es-CO');
+  };
 
   return (
     <Overlay onClick={() => setModalAbierto(false)}>
@@ -261,8 +274,8 @@ export default function ModalFactura({ factura, setModalAbierto }) {
               <ItemRow>
                 <div className="icon-container"><MapPin size={20} /></div>
                 <div className="content">
-                  <p className="title">{details ? details.cabaña : 'Cabaña'}</p>
-                  <p className="desc">{details ? details.paquete : 'Plan de Estadía'}</p>
+                  <p className="title">{cabaña}</p>
+                  <p className="desc">{planName}</p>
                 </div>
               </ItemRow>
 
@@ -271,11 +284,11 @@ export default function ModalFactura({ factura, setModalAbierto }) {
                 <div className="content">
                   <p className="title">Fecha</p>
                   <p className="desc">
-                    {details && details.llegada ? new Date(details.llegada).toLocaleDateString('es-CO') : ''} 
-                    {details && details.salida ? ` - ${new Date(details.salida).toLocaleDateString('es-CO')}` : ''}
+                    {details && details.llegada ? formatFecha(details.llegada) : ''} 
+                    {details && details.salida ? ` - ${formatFecha(details.salida)}` : ''}
                   </p>
                   <p className="highlight">
-                    {details && details.paquete && details.paquete.toLowerCase().includes('ocasional') 
+                    {paqueteCompleto.toLowerCase().includes('ocasional') 
                       ? 'Ocasional' 
                       : 'Check-in 3:00 PM / Check-out 1:00 PM'}
                   </p>
@@ -286,15 +299,19 @@ export default function ModalFactura({ factura, setModalAbierto }) {
                 <div className="icon-container"><Users size={20} /></div>
                 <div className="content">
                   <p className="title">Huéspedes</p>
-                  <p className="desc">A confirmar</p>
+                  <p className="desc">
+                    {details && details["Servicios adicionales"] 
+                      ? details["Servicios adicionales"] 
+                      : 'A confirmar'}
+                  </p>
                 </div>
               </ItemRow>
 
               <ClientRow>
                 <div className="content">
                   <p className="label">A nombre de</p>
-                  <p className="name">{factura.cliente || (details ? details.cliente : '')}</p>
-                  <p className="doc">Documento / Cliente registrado</p>
+                  <p className="name">{details ? details.cliente : factura.cliente}</p>
+                  <p className="doc">Documento: {details && details.Cédula ? details.Cédula : (details && details["Cédula"] ? details["Cédula"] : 'No registrado')}</p>
                 </div>
               </ClientRow>
 
