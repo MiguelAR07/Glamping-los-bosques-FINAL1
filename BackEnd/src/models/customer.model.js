@@ -33,7 +33,7 @@ export const customer = {
     FROM clientes c
     JOIN reservas r ON c.cliente_id = r.cliente_id
     JOIN paquetes p ON r.paquete_id = p.paquete_id
-    JOIN cabanas cab ON p.cabana_id = cab.id
+    JOIN cabanas cab ON p.cabana_id = cab.cabana_id
     WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
     ORDER BY r.llegada DESC;
   `
