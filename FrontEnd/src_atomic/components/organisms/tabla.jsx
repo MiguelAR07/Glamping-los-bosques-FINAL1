@@ -224,9 +224,10 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                       } else if (col === 'img_url') {
                         formattedValue = valor ? <img src={valor} alt="preview" style={{width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
                       } else if (col === 'comprobante') {
+                        const fileUrl = valor && valor.startsWith('http') ? valor : `${import.meta.env.VITE_API_BASE_URL}/${valor && valor.replace(/\\/g, '/')}`;
                         formattedValue = valor ? (
                           <a 
-                            href={valor} 
+                            href={fileUrl} 
                             target="_blank" 
                             rel="noreferrer" 
                             style={{
