@@ -18,13 +18,12 @@ export const invoice = {
     WHERE cliente ILIKE '%' || $1 || '%'
   `,
   createInvoice: `
-    INSERT INTO facturas (reserva_id, fecha_factura, subtotal, descuento, total, total_restante)
+    INSERT INTO facturas (reserva_id, fecha_factura, subtotal, descuento, total_restante)
     SELECT 
       r.reserva_id,    
       CURRENT_DATE,   
       $1,             
       $2,             
-      $1 * (1 - $2 / 100.0),             
       $1 * (1 - $2 / 100.0)           
     FROM reservas r
     WHERE r.reserva_id = $3
