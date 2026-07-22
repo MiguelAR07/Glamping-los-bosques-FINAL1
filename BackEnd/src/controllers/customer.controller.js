@@ -16,6 +16,15 @@ export const getCustomerData = async (req, res) => {
   }
 };
 
+export const getCustomerSecurityLog = async (req, res) => {
+  try {
+    const result = await pool.query(customer.getCustomerSecurityLog);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getCustomerById = async (req, res) => {
   try {
     const { id } = req.params;
