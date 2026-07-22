@@ -7,6 +7,7 @@ import { useFilters } from "../../hooks/useFilters";
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import TablaGeneral from "../../components/organisms/tabla";
 import ModalAgregar from "./modales/modalAgregar";
+import ModalFactura from "./modales/modalFactura";
 
 import PagosCard from "./componentsData/pagosCards";
 import Buscador, {
@@ -54,7 +55,9 @@ const TablaFactura = styled.div`
 `;
 
 function Pagos() {
-  const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [modalFacturaAbierto, setModalFacturaAbierto] = useState(false);
+  const [selectedFactura, setSelectedFactura] = useState(null);
   const { data, loading, error, fetchData } = useFetch();
 
   const [pagos, setPagos] = useState(null);
@@ -81,6 +84,22 @@ function Pagos() {
   useEffect(() => {
     fetchData(`${import.meta.env.VITE_API_BASE_URL}/api/payments`);
   }, [fetchData]);
+
+  const handleViewFactura = (factura) => {
+    setSelectedFactura(factura);
+    setModalFacturaAbierto(true);
+  };
+
+  const renderAcciones = (fila) => {
+    if (activeTab === 'invoices') {
+      return (
+        <button className="columnClick" onClick={() => handleViewFactura(fila)} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <i className="bi bi-receipt"></i> Ver Factura
+        </button>
+      );
+    }
+    return null;
+  };
 
   return (
     <>
@@ -123,6 +142,7 @@ function Pagos() {
         {displayData && (
           <TablaGeneral 
             data={displayData} 
+            acciones={renderAcciones}
           />
         )}
       </div>
@@ -131,6 +151,13 @@ function Pagos() {
         <ModalAgregar
           setModalAbierto={setModalAbierto}
           fetchData={handleFetchData}
+        />
+      )}
+
+      {modalFacturaAbierto && selectedFactura && (
+        <ModalFactura 
+          factura={selectedFactura}
+          setModalAbierto={setModalFacturaAbierto}
         />
       )}
     </>
