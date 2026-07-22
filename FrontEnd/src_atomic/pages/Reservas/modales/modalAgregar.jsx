@@ -71,20 +71,20 @@ const BotonGuardar = styled.button`
   }
 `;
 
-export default function ModalAgregar({ setModalAbierto, fetchData }) {
+export default function ModalAgregar({ setModalAbierto, fetchData, initialDates }) {
   const [loading, setLoading] = useState(false);
-  const [cabañas, setCabañas] = useState([]);
-  const [tiposPaquete, setTiposPaquete] = useState([]);
+  const [paquetes, setPaquetes] = useState([]);
+  const [isOcasional, setIsOcasional] = useState(false);
+  const [horasOcasional, setHorasOcasional] = useState({ entrada: '08:00', salida: '14:00' });
 
   const [formData, setFormData] = useState({
     cliente: {
       nombre: '', email: '', contacto: '', tipo_identificacion: 'CC', numero_identificacion: '', pais_residencia: 'Colombia'
     },
     reserva: {
-      llegada: '', salida: '', por_pagar: 0
-    },
-    paquete: {
-      cabana_id: '', dias_estadia: 1, tipo_id: '', descripcion: 'Reserva manual creada por Admin'
+      llegada: initialDates?.start ? new Date(initialDates.start).toISOString().split('T')[0] : '', 
+      salida: initialDates?.end ? new Date(initialDates.end).toISOString().split('T')[0] : '', 
+      por_pagar: 0, paquete_id: ''
     },
     factura: {
       subtotal: 0, descuento: 0
@@ -94,30 +94,28 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
   const [comprobanteFile, setComprobanteFile] = useState(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins`)
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/packages`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          setCabañas(data.filter(c => c.estado?.toLowerCase() === 'activo' || c.estado?.toLowerCase() === 'mantenimiento'));
+          setPaquetes(data.filter(p => p.estado?.toLowerCase() === 'activo'));
         } else if (data && data.success && Array.isArray(data.data)) {
-          setCabañas(data.data.filter(c => c.estado?.toLowerCase() === 'activo' || c.estado?.toLowerCase() === 'mantenimiento'));
+          setPaquetes(data.data.filter(p => p.estado?.toLowerCase() === 'activo'));
         }
       })
-      .catch(err => console.error("Error cargando cabañas", err));
-
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/packages/types`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setTiposPaquete(data);
-        } else if (data.success && Array.isArray(data.data)) {
-          setTiposPaquete(data.data);
-        }
-      })
-      .catch(err => console.error("Error cargando tipos de paquete", err));
+      .catch(err => console.error("Error cargando paquetes", err));
   }, []);
 
   const handleChange = (section, field, value) => {
+    if (section === 'reserva' && field === 'paquete_id') {
+      const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
+      if (selectedPkg && selectedPkg.tipo && selectedPkg.tipo.toLowerCase().includes('ocasional')) {
+        setIsOcasional(true);
+      } else {
+        setIsOcasional(false);
+      }
+    }
+
     setFormData(prev => {
       const newForm = {
         ...prev,
@@ -127,19 +125,9 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
         }
       };
 
-      // Auto-calcular días de estadía
-      if (section === 'reserva' && (field === 'llegada' || field === 'salida')) {
-        const start = newForm.reserva.llegada;
-        const end = newForm.reserva.salida;
-        if (start && end) {
-          const startDate = new Date(start);
-          const endDate = new Date(end);
-          const diffTime = endDate - startDate;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays > 0) {
-            newForm.paquete.dias_estadia = diffDays;
-          }
-        }
+      // Si es ocasional, igualar fecha de salida a la de llegada
+      if (isOcasional && section === 'reserva' && field === 'llegada') {
+        newForm.reserva.salida = value;
       }
 
       return newForm;
@@ -177,11 +165,15 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
       
       // Ajustar fechas a ISO 
       const reservaCopy = { ...formData.reserva };
-      reservaCopy.llegada = new Date(reservaCopy.llegada + "T15:00:00").toISOString();
-      reservaCopy.salida = new Date(reservaCopy.salida + "T11:00:00").toISOString();
+      if (isOcasional) {
+        reservaCopy.llegada = new Date(reservaCopy.llegada + `T${horasOcasional.entrada}:00`).toISOString();
+        reservaCopy.salida = new Date(reservaCopy.llegada.split('T')[0] + `T${horasOcasional.salida}:00`).toISOString();
+      } else {
+        reservaCopy.llegada = new Date(reservaCopy.llegada + "T15:00:00").toISOString();
+        reservaCopy.salida = new Date(reservaCopy.salida + "T13:00:00").toISOString();
+      }
       submitData.append("reserva", JSON.stringify(reservaCopy));
       
-      submitData.append("paquete", JSON.stringify(formData.paquete));
       submitData.append("factura", JSON.stringify(formData.factura));
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
@@ -232,31 +224,39 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
 
         <h3>Datos de la Estadía</h3>
         <FormGroup>
-          <label>Cabaña Asignada</label>
-          <select required value={formData.paquete.cabana_id} onChange={(e) => handleChange('paquete', 'cabana_id', e.target.value)}>
-            <option value="">Seleccione una cabaña</option>
-            {cabañas.map(c => (
-              <option key={c.cabana_id || c.id} value={c.cabana_id || c.id}>{c.nombre} (Capacidad: {c.capacidad_personas || c.capacidad || 'N/A'})</option>
+          <label>Paquete Asignado</label>
+          <select required value={formData.reserva.paquete_id} onChange={(e) => handleChange('reserva', 'paquete_id', e.target.value)}>
+            <option value="">Seleccione un paquete</option>
+            {paquetes.map(p => (
+              <option key={p.paquete_id || p.id} value={p.paquete_id || p.id}>
+                {p.cabana_nombre || 'Cabaña'} - {p.tipo || 'Paquete'} ({p.dias || 1} días)
+              </option>
             ))}
           </select>
         </FormGroup>
+
         <FormGroup>
-          <label>Tipo de Plan</label>
-          <select required value={formData.paquete.tipo_id} onChange={(e) => handleChange('paquete', 'tipo_id', e.target.value)}>
-            <option value="">Seleccione un plan</option>
-            {tiposPaquete.map(t => (
-              <option key={t.tipo_id || t.id} value={t.tipo_id || t.id}>{t.nombre}</option>
-            ))}
-          </select>
-        </FormGroup>
-        <FormGroup>
-          <label>Fecha de Llegada</label>
+          <label>{isOcasional ? 'Fecha de Reserva' : 'Fecha de Llegada'}</label>
           <input required type="date" value={formData.reserva.llegada} onChange={(e) => handleChange('reserva', 'llegada', e.target.value)} />
         </FormGroup>
-        <FormGroup>
-          <label>Fecha de Salida</label>
-          <input required type="date" value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
-        </FormGroup>
+        
+        {isOcasional ? (
+          <>
+            <FormGroup>
+              <label>Hora de Entrada</label>
+              <input required type="time" value={horasOcasional.entrada} onChange={(e) => setHorasOcasional(p => ({ ...p, entrada: e.target.value }))} />
+            </FormGroup>
+            <FormGroup>
+              <label>Hora de Salida</label>
+              <input required type="time" value={horasOcasional.salida} onChange={(e) => setHorasOcasional(p => ({ ...p, salida: e.target.value }))} />
+            </FormGroup>
+          </>
+        ) : (
+          <FormGroup>
+            <label>Fecha de Salida</label>
+            <input required type="date" value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
+          </FormGroup>
+        )}
 
         <h3>Finanzas</h3>
         <FormGroup>

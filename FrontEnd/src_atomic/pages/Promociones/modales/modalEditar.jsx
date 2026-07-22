@@ -159,8 +159,8 @@ export default function ModalEditar({ setModalAbierto, fetchData, promocionAEdit
         </div>
 
         <div>
-          <label style={{display:'block', marginBottom:'5px', fontWeight:'bold', fontSize:'14px'}}>Sube una nueva imagen (Solo PNG, opcional si ya tiene):</label>
-          <input type="file" accept=".png, image/png" onChange={handleImageUpload} />
+          <label style={{display:'block', marginBottom:'5px', fontWeight:'bold', fontSize:'14px'}}>Cambiar imagen (Cualquier formato):</label>
+          <input type="file" accept="image/*" onChange={handleImageUpload} />
           {formData.img_url && (
             <div style={{marginTop:'10px'}}>
               <span style={{fontSize:'12px', display:'block', marginBottom:'5px'}}>Vista previa:</span>

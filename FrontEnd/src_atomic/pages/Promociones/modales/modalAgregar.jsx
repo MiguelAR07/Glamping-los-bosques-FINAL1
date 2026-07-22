@@ -147,8 +147,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
         </div>
 
         <div>
-          <label style={{display:'block', marginBottom:'5px', fontWeight:'bold', fontSize:'14px'}}>Sube la imagen (Solo PNG):</label>
-          <input type="file" accept=".png, image/png" onChange={handleImageUpload} required />
+          <label style={{display:'block', marginBottom:'5px', fontWeight:'bold', fontSize:'14px'}}>Sube la imagen (Cualquier formato):</label>
+          <input type="file" accept="image/*" onChange={handleImageUpload} required />
           {formData.img_url && (
             <img src={formData.img_url} alt="Preview" style={{marginTop:'10px', maxHeight:'100px', borderRadius:'5px'}} />
           )}

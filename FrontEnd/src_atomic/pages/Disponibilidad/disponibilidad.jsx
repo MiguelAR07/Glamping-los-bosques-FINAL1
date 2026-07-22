@@ -5,6 +5,7 @@ import 'moment/locale/es';
 import { useFetch } from '../../hooks/fetchConnect';
 import ModalBloqueo from './modales/modalBloqueo';
 import ModalReserva from './modales/modalReserva';
+import ModalAgregar from '../Reservas/modales/modalAgregar';
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import ModalAlerta from "../../components/organisms/Modales/modalAlerta";
 
@@ -175,10 +176,42 @@ const LegendDot = styled.span`
 
 /* ========== COMPONENTE PRINCIPAL ========== */
 
+function ModalSeleccionAccion({ setModalAbierto, onBloquear, onReservar, dateStr }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: 'white', padding: '30px', borderRadius: '12px', minWidth: '300px', textAlign: 'center' }}>
+        <h3 style={{ marginTop: 0, color: '#43523A', marginBottom: '20px' }}>Opciones para {dateStr}</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <button 
+            onClick={onReservar}
+            style={{ padding: '12px', background: '#43523A', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            <i className="bi bi-calendar-check-fill" style={{marginRight: '8px'}}></i> Generar Reserva
+          </button>
+          <button 
+            onClick={onBloquear}
+            style={{ padding: '12px', background: '#c92a2a', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            <i className="bi bi-lock-fill" style={{marginRight: '8px'}}></i> Bloquear Fecha
+          </button>
+          <button 
+            onClick={() => setModalAbierto(false)}
+            style={{ padding: '10px', background: '#ccc', color: '#333', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '10px' }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Disponibilidad() {
   const [rawEvents, setRawEvents] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalReservaAbierto, setModalReservaAbierto] = useState(false);
+  const [modalAccionAbierto, setModalAccionAbierto] = useState(false);
+  const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [cabanas, setCabanas] = useState([]);
   const [selectedDates, setSelectedDates] = useState(null);
@@ -310,7 +343,7 @@ function Disponibilidad() {
 
   const handleDayClick = (day) => {
     setSelectedDates({ start: day.toDate(), end: day.clone().add(1, 'day').toDate() });
-    setModalAbierto(true);
+    setModalAccionAbierto(true);
   };
 
   const handleShowMore = (e, day, dayEvents) => {
@@ -443,6 +476,29 @@ function Disponibilidad() {
           fetchData={loadEvents}
           cabanas={cabanas}
           initialDates={selectedDates}
+        />
+      )}
+
+      {modalAgregarAbierto && (
+        <ModalAgregar
+          setModalAbierto={setModalAgregarAbierto}
+          fetchData={loadEvents}
+          initialDates={selectedDates}
+        />
+      )}
+
+      {modalAccionAbierto && (
+        <ModalSeleccionAccion
+          setModalAbierto={setModalAccionAbierto}
+          dateStr={moment(selectedDates?.start).format('DD/MM/YYYY')}
+          onBloquear={() => {
+            setModalAccionAbierto(false);
+            setModalAbierto(true);
+          }}
+          onReservar={() => {
+            setModalAccionAbierto(false);
+            setModalAgregarAbierto(true);
+          }}
         />
       )}
 
