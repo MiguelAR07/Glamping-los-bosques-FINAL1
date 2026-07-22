@@ -7,9 +7,12 @@ import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
 export const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: '172.217.203.109', // Forzar IPv4 directo (smtp.gmail.com) para evitar IPv6 ENETUNREACH
   port: 465,
   secure: true,
+  tls: {
+    servername: 'smtp.gmail.com' // Necesario para que el certificado SSL no falle
+  },
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
