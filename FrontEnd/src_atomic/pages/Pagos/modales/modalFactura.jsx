@@ -234,11 +234,11 @@ export default function ModalFactura({ factura, setModalAbierto }) {
 
   if (!factura) return null;
 
-  // Extraer partes del paquete (ej: "Romantico - Cabaña 1")
+  // Extraer partes del paquete (ej: "Plan Romántico - Cabaña 1")
   const paqueteCompleto = details && details.paquete ? details.paquete : '';
   const planParts = paqueteCompleto.split(' - ');
-  const cabaña = planParts.length > 1 ? planParts[0] : (details ? details.paquete : 'Cabaña');
-  const planName = planParts.length > 1 ? planParts[1] : 'Plan de Estadía';
+  const planName = planParts.length > 1 ? planParts[0] : (details ? details.paquete : 'Plan de Estadía');
+  const cabaña = planParts.length > 1 ? planParts[1] : 'Cabaña';
 
   // Formato de fechas
   const formatFecha = (fechaStr) => {
