@@ -593,18 +593,68 @@ export const confirmReservationPayment = async (req, res) => {
 
         const data = result.rows[0];
 
+        // 1.5 Obtener factura_id y calcular el pago inicial
+        const invData = await pool.query("SELECT f.factura_id, f.subtotal, f.descuento, r.por_pagar FROM facturas f JOIN reservas r ON f.reserva_id = r.reserva_id WHERE f.reserva_id = $1", [id]);
+        
+        let factura_id = null;
+        let amountPaid = 0;
+        let subtotal = 0;
+        let descuento = 0;
+        let por_pagar = 0;
+
+        if (invData.rows.length > 0) {
+            factura_id = invData.rows[0].factura_id;
+            subtotal = Number(invData.rows[0].subtotal) || 0;
+            descuento = Number(invData.rows[0].descuento) || 0;
+            por_pagar = Number(invData.rows[0].por_pagar) || 0;
+            amountPaid = (subtotal - descuento) - por_pagar;
+
+            // Registrar el pago en la tabla 'pagos' para reflejar ingresos
+            if (amountPaid > 0) {
+                const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
+                const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
+
+                const checkPago = await pool.query("SELECT 1 FROM pagos WHERE factura_id = $1 AND total_pagado = $2", [factura_id, amountPaid]);
+                if (checkPago.rows.length === 0) {
+                    await pool.query(
+                        "INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Completado', $3)",
+                        [factura_id, metodo_id, amountPaid]
+                    );
+                }
+            }
+        }
+
         // Formatear las fechas para el correo
+        const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
         const llegadaFormateada = new Date(data.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
         const salidaFormateada = new Date(data.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
 
         // 2. Enviar correo electrónico de confirmación al cliente (En segundo plano)
-        if (data.cliente_email) {
-            sendReservationConfirmedEmail(
-                data.cliente_email, 
-                data.cliente_nombre, 
-                llegadaFormateada, 
-                salidaFormateada
-            ).catch(err => console.error(err));
+        if (data.cliente_email && invData.rows.length > 0) {
+            const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
+            if (vistaRes.rows.length > 0) {
+                const details = vistaRes.rows[0];
+                const paqueteCompleto = details.paquete || '';
+                const planParts = paqueteCompleto.split(' - ');
+                const plan = planParts.length > 1 ? planParts[0] : (paqueteCompleto || 'Plan de Estadía');
+                const cabana = planParts.length > 1 ? planParts[1] : 'Cabaña';
+
+                const invoiceData = {
+                    facturaId: factura_id,
+                    clienteNombre: details.cliente,
+                    documento: details['Cédula'] || 'No registrado',
+                    cabana: cabana,
+                    plan: plan,
+                    llegada: formatDate(details.llegada),
+                    salida: formatDate(details.salida),
+                    huespedes: details['Servicios adicionales'] || 'A confirmar',
+                    total: subtotal - descuento,
+                    pagoRestante: por_pagar,
+                    amountPaid: amountPaid
+                };
+
+                sendReservationConfirmedEmail(data.cliente_email, invoiceData).catch(err => console.error(err));
+            }
         }
 
         // 2.1 Enviar correo de notificación al administrador (En segundo plano)
