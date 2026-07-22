@@ -77,7 +77,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   const [cabanas, setCabanas] = useState([]);
   const [selectedCabana, setSelectedCabana] = useState('');
   const [isOcasional, setIsOcasional] = useState(false);
-  const [horasOcasional, setHorasOcasional] = useState({ entrada: '08:00', salida: '14:00' });
+  const [horasReserva, setHorasReserva] = useState({ entrada: '15:00', salida: '13:00' });
 
   const [formData, setFormData] = useState({
     cliente: {
@@ -124,8 +124,10 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
       if (selectedPkg && selectedPkg.tipo && selectedPkg.tipo.toLowerCase().includes('ocasional')) {
         setIsOcasional(true);
+        setHorasReserva({ entrada: '08:00', salida: '14:00' });
       } else {
         setIsOcasional(false);
+        setHorasReserva({ entrada: '15:00', salida: '13:00' });
       }
     }
 
@@ -138,9 +140,19 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       };
 
-      // Si es ocasional, igualar fecha de salida a la de llegada
-      if (isOcasional && section === 'reserva' && field === 'llegada') {
-        newForm.reserva.salida = value;
+      // Auto-calcular días de estadía si cambian las fechas
+      if (section === 'reserva' && (field === 'llegada' || field === 'salida')) {
+        const start = newForm.reserva.llegada;
+        const end = newForm.reserva.salida;
+        if (start && end) {
+          const startDate = new Date(start);
+          const endDate = new Date(end);
+          const diffTime = endDate - startDate;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays > 0) {
+            newForm.reserva.dias_estadia = diffDays;
+          }
+        }
       }
 
       return newForm;
@@ -176,15 +188,10 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       
       submitData.append("cliente", JSON.stringify(clienteFinal));
       
-      // Ajustar fechas a ISO 
+      // Ajustar fechas a ISO usando las horas personalizadas siempre
       const reservaCopy = { ...formData.reserva };
-      if (isOcasional) {
-        reservaCopy.llegada = new Date(reservaCopy.llegada + `T${horasOcasional.entrada}:00`).toISOString();
-        reservaCopy.salida = new Date(reservaCopy.llegada.split('T')[0] + `T${horasOcasional.salida}:00`).toISOString();
-      } else {
-        reservaCopy.llegada = new Date(reservaCopy.llegada + "T15:00:00").toISOString();
-        reservaCopy.salida = new Date(reservaCopy.salida + "T13:00:00").toISOString();
-      }
+      reservaCopy.llegada = new Date(`${reservaCopy.llegada}T${horasReserva.entrada}:00`).toISOString();
+      reservaCopy.salida = new Date(`${reservaCopy.salida}T${horasReserva.salida}:00`).toISOString();
       submitData.append("reserva", JSON.stringify(reservaCopy));
       
       submitData.append("factura", JSON.stringify(formData.factura));
@@ -268,27 +275,24 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         </FormGroup>
 
         <FormGroup>
-          <label>{isOcasional ? 'Fecha de Reserva' : 'Fecha de Llegada'}</label>
+          <label>Fecha de Llegada</label>
           <input required type="date" value={formData.reserva.llegada} onChange={(e) => handleChange('reserva', 'llegada', e.target.value)} />
         </FormGroup>
         
-        {isOcasional ? (
-          <>
-            <FormGroup>
-              <label>Hora de Entrada</label>
-              <input required type="time" value={horasOcasional.entrada} onChange={(e) => setHorasOcasional(p => ({ ...p, entrada: e.target.value }))} />
-            </FormGroup>
-            <FormGroup>
-              <label>Hora de Salida</label>
-              <input required type="time" value={horasOcasional.salida} onChange={(e) => setHorasOcasional(p => ({ ...p, salida: e.target.value }))} />
-            </FormGroup>
-          </>
-        ) : (
-          <FormGroup>
-            <label>Fecha de Salida</label>
-            <input required type="date" value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
-          </FormGroup>
-        )}
+        <FormGroup>
+          <label>Fecha de Salida</label>
+          <input required type="date" value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
+        </FormGroup>
+
+        <FormGroup>
+          <label>Hora de Entrada</label>
+          <input required type="time" value={horasReserva.entrada} onChange={(e) => setHorasReserva(p => ({ ...p, entrada: e.target.value }))} />
+        </FormGroup>
+        
+        <FormGroup>
+          <label>Hora de Salida</label>
+          <input required type="time" value={horasReserva.salida} onChange={(e) => setHorasReserva(p => ({ ...p, salida: e.target.value }))} />
+        </FormGroup>
 
         <h3>Finanzas</h3>
         <FormGroup>

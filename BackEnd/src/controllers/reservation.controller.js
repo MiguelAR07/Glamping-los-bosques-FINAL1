@@ -296,8 +296,10 @@ export const createReservation = async (req, res) => {
         ]);
 
         let nuevo_paquete_id;
+        let cabana_id_check = null;
 
         if (paquete && Object.keys(paquete).length > 0) {
+            cabana_id_check = paquete.cabana_id;
             const packageResult = await pool.query(packages.createPackage, [
                 paquete.cabana_id,
                 paquete.dias_estadia,
@@ -309,7 +311,28 @@ export const createReservation = async (req, res) => {
             nuevo_paquete_id = packageResult.rows[0].paquete_id;
         } else if (reserva && reserva.paquete_id) {
             nuevo_paquete_id = reserva.paquete_id;
+            const pkgInfo = await pool.query("SELECT cabana_id FROM paquetes WHERE paquete_id = $1", [nuevo_paquete_id]);
+            if(pkgInfo.rows.length > 0) {
+               cabana_id_check = pkgInfo.rows[0].cabana_id;
+            }
         }
+
+        // --- ESCUDO ANTI-CHOQUES ---
+        if (cabana_id_check) {
+            const overlapCheck = await pool.query(`
+                SELECT r.reserva_id 
+                FROM reservas r
+                JOIN paquetes p ON r.paquete_id = p.paquete_id
+                WHERE p.cabana_id = $1
+                  AND r.estado NOT IN ('Cancelado', 'Cancelada')
+                  AND (r.llegada < $3 AND r.salida > $2)
+            `, [cabana_id_check, reserva.llegada, reserva.salida]);
+
+            if (overlapCheck.rows.length > 0) {
+                throw new Error("El horario seleccionado choca con una reserva existente en esta cabaña. Por favor, selecciona otro horario o cabaña.");
+            }
+        }
+        // ---------------------------
 
         const nuevo_cliente_id = customerResult.rows[0].cliente_id;
         const facturaUrl = req.file ? req.file.path : null;
