@@ -351,6 +351,12 @@ export const createReservation = async (req, res) => {
         const nuevo_cliente_id = customerResult.rows[0].cliente_id;
         const facturaUrl = req.file ? req.file.path : null;
 
+        let nombre_cabana = '';
+        if (cabana_id_check) {
+            const cabInfo = await pool.query("SELECT nombre FROM cabanas WHERE cabana_id = $1", [cabana_id_check]);
+            if(cabInfo.rows.length > 0) nombre_cabana = cabInfo.rows[0].nombre;
+        }
+
         const reservationResult = await pool.query(reservation.createReservation, [
             reserva.llegada,    // $1
             reserva.salida,     // $2
@@ -369,6 +375,16 @@ export const createReservation = async (req, res) => {
             nueva_reserva_id         // $3
         ]);
 
+        const planName = paquete?.nombre || 'Reserva Glamping';
+        const tituloNotificacion = "¡Nueva Reserva Manual!";
+        const asuntoNotificacion = `Reserva manual de ${cliente.nombre}`;
+        const mensajeNotificacion = `Se registró manualmente una reserva para ${cliente.nombre} (${cliente.numero_identificacion}). Llegada: ${new Date(reserva.llegada).toLocaleDateString('es-CO')}. Plan: ${planName}.`;
+        
+        await pool.query(
+            "INSERT INTO notificaciones (titulo, asunto, mensaje) VALUES ($1, $2, $3)",
+            [tituloNotificacion, asuntoNotificacion, mensajeNotificacion]
+        );
+
         await pool.query("COMMIT");
 
         // Enviar correos de reserva manual en segundo plano
@@ -381,7 +397,17 @@ export const createReservation = async (req, res) => {
                 from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
                 to: process.env.EMAIL_USER,
                 subject: '🔔 Nueva Reserva Manual Creada',
-                html: `<h1>Nueva Reserva Manual</h1><p>Se ha creado manualmente una reserva para <strong>${cliente.nombre}</strong>.</p><ul><li>Llegada: ${llegadaFormateada}</li><li>Salida: ${salidaFormateada}</li></ul><p>Revisa el panel de control para más detalles.</p>`
+                html: `<h1>Nueva Reserva Manual</h1>
+                       <p>Se ha creado manualmente una reserva en el sistema.</p>
+                       <ul>
+                           <li><strong>Cliente:</strong> ${cliente.nombre}</li>
+                           <li><strong>Cédula:</strong> ${cliente.numero_identificacion}</li>
+                           <li><strong>Cabaña:</strong> ${nombre_cabana || 'N/A'}</li>
+                           <li><strong>Tipo de Plan:</strong> ${planName}</li>
+                           <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
+                           <li><strong>Salida:</strong> ${salidaFormateada}</li>
+                       </ul>
+                       <p>Revisa el panel de control para más detalles.</p>`
             });
 
             // Correo al cliente (si se proporcionó)
