@@ -236,11 +236,11 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         fetchData();
         setModalAbierto(false);
       } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data.message || 'Error desconocido'}` });
+        Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data.error || data.message || 'Error desconocido'}` });
       }
     } catch (error) {
       console.error(error);
-      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Error de conexión al crear la reserva' });
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Ocurrió un error al procesar la solicitud (revisa la consola para más detalles).' });
     } finally {
       setLoading(false);
     }
