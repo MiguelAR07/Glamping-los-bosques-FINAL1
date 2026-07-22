@@ -122,9 +122,18 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   const handleChange = (section, field, value) => {
     if (section === 'reserva' && field === 'paquete_id') {
       const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
-      if (selectedPkg && selectedPkg.tipo && selectedPkg.tipo.toLowerCase().includes('ocasional')) {
-        setIsOcasional(true);
-        setHorasReserva({ entrada: '08:00', salida: '14:00' });
+      if (selectedPkg && selectedPkg.tipo) {
+        const tipoLower = selectedPkg.tipo.toLowerCase();
+        if (tipoLower.includes('ocasional')) {
+          setIsOcasional(true);
+          setHorasReserva({ entrada: '08:00', salida: '14:00' });
+        } else if (tipoLower.includes('sol')) {
+          setIsOcasional(true);
+          setHorasReserva({ entrada: '10:00', salida: '17:00' });
+        } else {
+          setIsOcasional(false);
+          setHorasReserva({ entrada: '15:00', salida: '13:00' });
+        }
       } else {
         setIsOcasional(false);
         setHorasReserva({ entrada: '15:00', salida: '13:00' });
