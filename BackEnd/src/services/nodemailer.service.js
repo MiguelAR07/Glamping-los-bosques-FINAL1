@@ -1,23 +1,47 @@
 import pool from '../config/db.js';
-import nodemailer from 'nodemailer';
 import { getEmails } from '../models/notification.model.js';
-import dns from 'dns';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
-// Forzar la resolución de DNS a IPv4 primero para evitar ENETUNREACH en Render
-dns.setDefaultResultOrder('ipv4first');
+export const transporter = {
+  sendMail: async (options) => {
+    let toEmail = options.to;
+    let toName = 'Cliente';
+    
+    // Extraer correo de formatos como '"Nombre" <correo>' si es necesario
+    if (typeof options.to === 'string' && options.to.includes('<')) {
+        const match = options.to.match(/(.*)<(.*)>/);
+        if (match) {
+            toName = match[1].replace(/"/g, '').trim() || toName;
+            toEmail = match[2].trim();
+        }
+    }
 
-export const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  connectionTimeout: 10000, // 10 segundos
-  greetingTimeout: 10000,
-  socketTimeout: 10000
-});
+    const payload = {
+      sender: { name: 'Sistema Glamping', email: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com' },
+      to: [{ email: toEmail, name: toName }],
+      subject: options.subject,
+      htmlContent: options.html || `<p>${options.text || ''}</p>`
+    };
+
+    const res = await fetch(BREVO_API_URL, {
+      method: 'POST',
+      headers: {
+        'api-key': BREVO_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Error enviando por Brevo:", errText);
+      throw new Error("Error enviando por Brevo");
+    }
+    
+    return await res.json();
+  }
+};
 
 export const sendSystemOnlineEmail = async (urlPublica) => {
   try {
