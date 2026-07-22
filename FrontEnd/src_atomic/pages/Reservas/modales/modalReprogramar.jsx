@@ -139,7 +139,7 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
       <ModalContent onClick={e => e.stopPropagation()}>
         <h2>Reprogramar Reserva</h2>
         <p>Cliente: <strong>{reserva.cliente}</strong></p>
-        <p>Estancia Actual: {new Date(reserva.llegada).toLocaleDateString()} al {new Date(reserva.salida).toLocaleDateString()}</p>
+        <p>Estancia Actual: {new Date(reserva.llegada).toLocaleString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })} al {new Date(reserva.salida).toLocaleString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
         
         <FormGroup>
           <label>Nueva Fecha de Llegada</label>
