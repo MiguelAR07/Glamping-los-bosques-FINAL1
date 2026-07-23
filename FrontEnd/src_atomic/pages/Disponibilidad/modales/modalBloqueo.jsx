@@ -75,7 +75,7 @@ const ButtonGroup = styled.div`
 
 function ModalBloqueo({ setModalAbierto, fetchData, cabanas, initialDates }) {
   const [formData, setFormData] = useState({
-    cabana_id: 'all',
+    cabanas_ids: [],
     fecha_inicio: initialDates?.start ? format(initialDates.start, 'yyyy-MM-dd') : '',
     fecha_fin: initialDates?.end ? format(initialDates.end, 'yyyy-MM-dd') : '',
     motivo: ''
@@ -87,6 +87,26 @@ function ModalBloqueo({ setModalAbierto, fetchData, cabanas, initialDates }) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handleCheckboxChange = (id) => {
+    if (id === 'all') {
+      setFormData(prev => ({
+        ...prev,
+        cabanas_ids: prev.cabanas_ids.includes('all') ? [] : ['all']
+      }));
+      return;
+    }
+
+    setFormData(prev => {
+      let newIds = prev.cabanas_ids.filter(c => c !== 'all'); // quita 'all' si escoge especificas
+      if (newIds.includes(id)) {
+        newIds = newIds.filter(c => c !== id);
+      } else {
+        newIds.push(id);
+      }
+      return { ...prev, cabanas_ids: newIds };
     });
   };
 
@@ -122,13 +142,30 @@ function ModalBloqueo({ setModalAbierto, fetchData, cabanas, initialDates }) {
         <h3>Bloquear Fechas (V2)</h3>
         <form onSubmit={handleSubmit}>
           <FormGroup>
-            <label>Cabaña</label>
-            <select name="cabana_id" value={formData.cabana_id} onChange={handleChange} required>
-              <option value="all">Todas las cabañas</option>
+            <label>Cabañas a bloquear</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', maxHeight: '150px', overflowY: 'auto' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'normal' }}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.cabanas_ids.includes('all')}
+                  onChange={() => handleCheckboxChange('all')}
+                  style={{ width: 'auto' }}
+                />
+                Todas las cabañas
+              </label>
+              <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #eee' }} />
               {cabanas.map(c => (
-                <option key={c.cabana_id || c.id} value={c.cabana_id || c.id}>{c.nombre}</option>
+                <label key={c.cabana_id || c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'normal' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.cabanas_ids.includes(c.cabana_id || c.id)}
+                    onChange={() => handleCheckboxChange(c.cabana_id || c.id)}
+                    style={{ width: 'auto' }}
+                  />
+                  {c.nombre}
+                </label>
               ))}
-            </select>
+            </div>
           </FormGroup>
 
           <FormGroup>
