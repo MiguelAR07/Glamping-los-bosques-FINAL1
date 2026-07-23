@@ -117,8 +117,8 @@ export default function ModalEditar({ setModalAbierto, fetchData, promocionAEdit
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type !== "image/png") {
-        alert("Por favor, sube únicamente imágenes en formato PNG.");
+      if (!file.type.startsWith("image/")) {
+        alert("Por favor, sube un archivo de imagen válido.");
         e.target.value = "";
         return;
       }
