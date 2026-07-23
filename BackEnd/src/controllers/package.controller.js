@@ -117,7 +117,15 @@ export const updatePackage = async (req, res) => {
 
     const result = await pool.query(
       packages.updatePackage,
-      [cabana_id, tipo_id, d_estadia, descripcion, img_url, p_promocional, id]
+      [
+        cabana_id ?? null, 
+        tipo_id ?? null, 
+        d_estadia ?? null, 
+        descripcion ?? null, 
+        img_url ?? null, 
+        p_promocional, 
+        id ?? null
+      ]
     );
 
     await pool.query(notification.createNotification, [
