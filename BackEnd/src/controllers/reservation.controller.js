@@ -632,12 +632,22 @@ export const confirmReservationPayment = async (req, res) => {
         // 2. Enviar correo electrónico de confirmación al cliente (En segundo plano)
         if (data.cliente_email && invData.rows.length > 0) {
             const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
-            if (vistaRes.rows.length > 0) {
+            const cabanaRes = await pool.query(`
+                SELECT c.nombre AS cabana_nombre, tp.nombre AS tipo_plan, p.nombre AS paquete_nombre
+                FROM reservas r 
+                JOIN paquetes p ON r.paquete_id = p.paquete_id 
+                JOIN cabanas c ON p.cabana_id = c.cabana_id 
+                JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id 
+                WHERE r.reserva_id = $1
+            `, [id]);
+
+            if (vistaRes.rows.length > 0 && cabanaRes.rows.length > 0) {
                 const details = vistaRes.rows[0];
-                const paqueteCompleto = details.paquete || '';
-                const planParts = paqueteCompleto.split(' - ');
-                const plan = planParts.length > 1 ? planParts[0] : (paqueteCompleto || 'Plan de Estadía');
-                const cabana = planParts.length > 1 ? planParts[1] : 'Cabaña';
+                const realData = cabanaRes.rows[0];
+                
+                // Nombres reales
+                const plan = `${realData.tipo_plan} - ${realData.paquete_nombre}`;
+                const cabana = realData.cabana_nombre;
 
                 const invoiceData = {
                     facturaId: factura_id,
