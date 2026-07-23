@@ -25,6 +25,11 @@ export const promocionModel = {
     DELETE FROM Promociones
     WHERE promocion_id = $1
   `,
+  deactivate: `
+    UPDATE Promociones
+    SET estado = 'Inactivo'
+    WHERE promocion_id = $1
+  `,
   activate: `
     UPDATE Promociones
     SET estado = 'Activo'

@@ -132,3 +132,13 @@ export const activatePromocion = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const deactivatePromocion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(promocionModel.deactivate, [id]);
+    res.json({ message: "Promoción desactivada" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

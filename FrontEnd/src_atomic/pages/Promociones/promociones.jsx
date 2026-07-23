@@ -2,8 +2,8 @@ import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { useFetch } from "../../hooks/fetchConnect";
 import { useFilters } from "../../hooks/useFilters";
-import { deleteUtils } from "../../utils/deleteUtils";
 import { activateUtils } from "../../utils/activateUtils";
+import Swal from 'sweetalert2';
 
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import BotonTab from "../../components/atoms/buttons/button";
@@ -59,13 +59,69 @@ function Promociones() {
     setModalEditarAbierto(true);
   };
 
-  const eliminarPromocion = (promocion) => {
-    deleteUtils.eliminarRegistro(
-      "promociones",
-      promocion.id,
-      promocion.nombre,
-      handleFetchData
-    );
+  const eliminarPromocion = async (promocion) => {
+    const result = await Swal.fire({
+      title: 'Opciones de Eliminación',
+      text: `¿Deseas desactivar o eliminar permanentemente "${promocion.nombre}"?`,
+      icon: 'warning',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Desactivar',
+      denyButtonText: 'Eliminar Permanentemente',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#f39c12',
+      denyButtonColor: '#d33',
+    });
+
+    if (result.isConfirmed) {
+      // Desactivar
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/promociones/deactivate/${promocion.id}`, {
+          method: 'PUT',
+          headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+          Swal.fire('¡Desactivada!', 'La promoción ha sido desactivada.', 'success');
+          handleFetchData();
+        }
+      } catch (e) { console.error(e); }
+    } else if (result.isDenied) {
+      // Eliminar Permanentemente
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/promociones/delete/${promocion.id}`, {
+          method: 'DELETE',
+          headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+          Swal.fire('¡Eliminada!', 'La promoción fue eliminada de la base de datos.', 'success');
+          handleFetchData();
+        }
+      } catch (e) { console.error(e); }
+    }
+  };
+
+  const eliminarPermanente = async (promocion) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar permanentemente?',
+      text: `"${promocion.nombre}" se borrará de la base de datos y no se podrá recuperar.`,
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+    });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/promociones/delete/${promocion.id}`, {
+          method: 'DELETE',
+          headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+          Swal.fire('¡Eliminada!', 'La promoción fue eliminada.', 'success');
+          handleFetchData();
+        }
+      } catch (e) { console.error(e); }
+    }
   };
 
   const activarPromocion = (promocion) => {
@@ -103,6 +159,15 @@ function Promociones() {
           onEdit={editarPromocion}
           onActive={activarPromocion}
           onDelete={eliminarPromocion}
+          acciones={[
+            {
+              title: "Eliminar Permanentemente",
+              icono: <i className="bi bi-trash3-fill" style={{ fontSize: '1.1rem' }}></i>,
+              color: "#6c757d",
+              condition: (fila) => fila.estado === 'Inactivo',
+              onClick: (fila) => eliminarPermanente(fila)
+            }
+          ]}
         />
       )}
 
