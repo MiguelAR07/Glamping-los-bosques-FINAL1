@@ -163,6 +163,15 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
           </div>
           
           <div style="text-align: center; padding: 24px; background: white; border-top: 1px solid #e5e7eb;">
+            ${pagoRestante > 0 ? `
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba;">
+              <p style="margin: 0; color: #856404; text-align: left;">
+                <strong>⚠️ Importante:</strong> Tienes un saldo pendiente de <strong>$${pagoRestante.toLocaleString('es-CO')}</strong>.<br>
+                Por favor, recuerda pagar este 50% restante antes de tu llegada a nuestras instalaciones.<br><br>
+                👉 <a href="https://glampinglosbosques.com/pagar-saldo/${invoiceData.facturaId || invoiceData.reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">Sube el comprobante de tu saldo restante haciendo clic aquí.</a>
+              </p>
+            </div>
+            ` : ''}
             <p style="color: #666; margin: 0;">¡Te esperamos pronto en Glamping Los Bosques!</p>
           </div>
         </div>
