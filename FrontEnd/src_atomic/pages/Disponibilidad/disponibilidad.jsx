@@ -431,7 +431,7 @@ function Disponibilidad() {
                     title={`${evt.type === 'bloqueo' ? '🔒 ' : ''}${evt.title} (${evt.cabana})`}
                     onClick={(e) => handleEventClick(e, evt)}
                   >
-                    {evt.type === 'bloqueo' ? '🔒 ' : ''}{evt.title}
+                    {evt.type === 'bloqueo' ? '🔒 ' : ''}{evt.title} ({evt.cabana})
                   </EventPill>
                 ))}
                 {hiddenCount > 0 && (
