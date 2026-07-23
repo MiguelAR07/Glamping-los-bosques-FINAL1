@@ -142,7 +142,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
           </div>
           <div style={{ flex: 1 }}>
             <label style={{display:'block', marginBottom:'5px', fontWeight:'bold', fontSize:'14px'}}>Fecha Fin (Límite):</label>
-            <input type="date" name="fecha_fin" value={formData.fecha_fin} onChange={handleChange} required />
+            <input type="date" name="fecha_fin" value={formData.fecha_fin} min={formData.fecha_inicio} onChange={handleChange} required />
           </div>
         </div>
 
