@@ -9,6 +9,7 @@ import Usuarios from "../pages/Usuarios/usuarios"
 import Disponibilidad from "../pages/Disponibilidad/disponibilidad"
 import CuentasBancarias from "../pages/CuentasBancarias/cuentasBancarias"
 import Clientes from "../pages/Clientes/clientes"
+import SaldosRestantes from "../pages/SaldosRestantes/saldosRestantes"
 
 export const userRole = localStorage.getItem('userRole') || "";
 
@@ -83,6 +84,13 @@ export const modulos = [
     nombre: 'Clientes',
     componente: <Clientes />,
     ruta: '/clientes',
+    roles: ["recepcionista", "administrador"]
+  },
+  {
+    icono: "bi bi-currency-dollar",
+    nombre: 'Saldos Restantes',
+    componente: <SaldosRestantes />,
+    ruta: '/saldos',
     roles: ["recepcionista", "administrador"]
   }
 ];

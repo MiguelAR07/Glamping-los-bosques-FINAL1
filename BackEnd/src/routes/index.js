@@ -20,6 +20,7 @@ import promocionRouter from './promocion.routes.js';
 import availabilityRouter from './availability.routes.js';
 import comprobanteRouter from './comprobante.routes.js';
 import cuentasBancariasRouter from './cuentas_bancarias.routes.js';
+import balanceRouter from './balance.routes.js';
 
 const router = Router();
 
@@ -39,6 +40,7 @@ router.get('/test-email-public', async (req, res) => {
 });
 
 router.use('/login', loginRouter);
+router.use('/balance', balanceRouter);
 
 router.use(verificarToken);
 router.use('/cabins', cabinRouter);
