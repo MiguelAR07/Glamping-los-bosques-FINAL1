@@ -96,24 +96,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
   return (
     <ModalPlantilla modulo="editar paquete" onClose={() => setModalAbierto(false)}>
       <Form onSubmit={(e) => handleSubmit(e, () => setModalAbierto(false))}>
-        <SelectBase 
-          name="cabana_id" 
-          options={cabanas} 
-          value={formData.cabana_id} 
-          onChange={handleChange} 
-          valueKey="id" 
-          nameKey="nombre" 
-          required 
-        />
-        <SelectBase 
-          name="tipo_id" 
-          options={tipos} 
-          value={formData.tipo_id} 
-          onChange={handleChange} 
-          valueKey="id" 
-          nameKey="nombre" 
-          required 
-        />
+
         <input 
           type="number" 
           name="dias_estadia" 
@@ -125,17 +108,11 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
         <input 
           type="number" 
           name="precio_promocional" 
-          placeholder="Precio del Paquete (opcional, si es diferente al cálculo)"  
+          placeholder="Precio Oficial" 
           value={formData.precio_promocional} 
           onChange={handleChange} 
         />
-        <input 
-          type="text" 
-          name="img_url" 
-          placeholder="URL de la imagen (Ej: /public/promos/foto1.jpg)" 
-          value={formData.img_url} 
-          onChange={handleChange} 
-        />
+
         <textarea 
           name="descripcion" 
           placeholder="Descripción del paquete" 
