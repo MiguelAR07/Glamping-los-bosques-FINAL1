@@ -444,6 +444,7 @@ function Reservas({ modulo }) {
         'Fecha Salida': formatDateOnly(r.salida),
         'Hora Salida': formatTimeOnly(r.salida),
         'Servicios': r["Servicios adicionales"] && r["Servicios adicionales"].trim() !== "" ? r["Servicios adicionales"] : "Ninguno",
+        'Huéspedes': `${r.adultos || 2} Ad / ${r.ninos || 0} Ni / ${r.mascotas || 0} Mas`,
         'Estado': r.estado,
         'Total Restante': r["Pago restante"]
       };
@@ -453,7 +454,7 @@ function Reservas({ modulo }) {
   const hiddenColumnsList = [
     'comprobante_url', 'id', 'cliente', 'paquete', 'llegada', 'salida', 'estado', 
     'Pago restante', 'Servicios adicionales', 'fecha', 'cliente_id', 'paquete_id', 'reserva_id',
-    'Celular', 'Cédula'
+    'Celular', 'Cédula', 'adultos', 'ninos', 'mascotas'
   ];
 
   const [selectedIncomeCabin, setSelectedIncomeCabin] = useState('General');
