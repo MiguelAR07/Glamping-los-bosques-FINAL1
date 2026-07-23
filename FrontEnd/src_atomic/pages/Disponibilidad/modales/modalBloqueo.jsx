@@ -107,7 +107,8 @@ function ModalBloqueo({ setModalAbierto, fetchData, cabanas, initialDates }) {
         setModalAbierto(false);
         fetchData();
       } else {
-        setAlertaConfig({ isOpen: true, message: "Error al bloquear las fechas.", type: 'alert', isError: true });
+        const errData = await res.json();
+        setAlertaConfig({ isOpen: true, message: errData.message || "Error al bloquear las fechas.", type: 'alert', isError: true });
       }
     } catch (error) {
       console.error(error);
@@ -118,14 +119,14 @@ function ModalBloqueo({ setModalAbierto, fetchData, cabanas, initialDates }) {
   return (
     <ModalOverlay onClick={() => setModalAbierto(false)}>
       <ModalContent onClick={e => e.stopPropagation()}>
-        <h3>Bloquear Fechas</h3>
+        <h3>Bloquear Fechas (V2)</h3>
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Cabaña</label>
             <select name="cabana_id" value={formData.cabana_id} onChange={handleChange} required>
               <option value="all">Todas las cabañas</option>
               {cabanas.map(c => (
-                <option key={c.cabana_id} value={c.cabana_id}>{c.nombre}</option>
+                <option key={c.cabana_id || c.id} value={c.cabana_id || c.id}>{c.nombre}</option>
               ))}
             </select>
           </FormGroup>

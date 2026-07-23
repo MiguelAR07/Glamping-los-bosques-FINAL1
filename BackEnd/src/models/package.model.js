@@ -31,7 +31,7 @@ export const packages = {
       dias_estadia = COALESCE(NULLIF($3::text, '')::integer, dias_estadia),
       descripcion = COALESCE(NULLIF($4, ''), descripcion),
       img_url = COALESCE(NULLIF($5, ''), img_url),
-      precio_promocional = COALESCE(NULLIF($6::text, '')::numeric, precio_promocional),
+      precio_promocional = $6::numeric,
       fecha_registro = CURRENT_DATE
     WHERE paquete_id = $7
     RETURNING paquete_id, fecha_registro

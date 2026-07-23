@@ -17,7 +17,15 @@ export const addBlockedDate = async (req, res) => {
     const { cabana_id, fecha_inicio, fecha_fin, motivo } = req.body;
     
     // Si cabana_id viene vacío o como "all", lo ponemos a null para bloquear todas
-    const cabanaIdVal = (cabana_id === 'all' || !cabana_id) ? null : parseInt(cabana_id, 10);
+    const cabanaIdVal = (cabana_id === 'all' || !cabana_id || cabana_id === 'undefined') ? null : parseInt(cabana_id, 10);
+    
+    console.log("INTENTO DE BLOQUEO:");
+    console.log("req.body:", req.body);
+    console.log("cabanaIdVal procesado:", cabanaIdVal);
+
+    if (isNaN(cabanaIdVal) && cabanaIdVal !== null) {
+        return res.status(400).json({ message: "El ID de la cabaña no es válido: " + cabana_id });
+    }
 
     try {
         const result = await pool.query(availabilityQueries.addBlockedDate, [
@@ -53,7 +61,7 @@ export const addBlockedDate = async (req, res) => {
         res.status(201).json({ message: "Fecha bloqueada con éxito", data: result.rows[0] });
     } catch (error) {
         console.error("Error al bloquear fecha:", error);
-        res.status(500).json({ message: "Error al guardar el bloqueo de fecha" });
+        res.status(500).json({ message: "Error en la BD al guardar el bloqueo: " + error.message });
     }
 };
 

@@ -112,9 +112,13 @@ export const updatePromocion = async (req, res) => {
 export const deletePromocion = async (req, res) => {
   try {
     const { id } = req.params;
+    await pool.query("BEGIN");
+    await pool.query(promocionModel.clearCabanas, [id]);
     await pool.query(promocionModel.delete, [id]);
-    res.json({ message: "Promoción desactivada" });
+    await pool.query("COMMIT");
+    res.json({ message: "Promoción eliminada permanentemente" });
   } catch (error) {
+    await pool.query("ROLLBACK");
     res.status(500).json({ message: error.message });
   }
 };

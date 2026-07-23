@@ -78,6 +78,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   const [cabanas, setCabanas] = useState([]);
   const [selectedCabana, setSelectedCabana] = useState('');
   const [isOcasional, setIsOcasional] = useState(false);
+  const [isFinSemana, setIsFinSemana] = useState(false);
   const [horasReserva, setHorasReserva] = useState({ entrada: '15:00', salida: '13:00' });
 
   const [formData, setFormData] = useState({
@@ -125,6 +126,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
       if (selectedPkg && selectedPkg.tipo) {
         const tipoLower = selectedPkg.tipo.toLowerCase();
+        setIsFinSemana(tipoLower.includes('fin de semana') || tipoLower.includes('fin semana'));
+        
         if (tipoLower.includes('ocasional')) {
           setIsOcasional(true);
           setHorasReserva({ entrada: '08:00', salida: '14:00' });
@@ -137,6 +140,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       } else {
         setIsOcasional(false);
+        setIsFinSemana(false);
         setHorasReserva({ entrada: '15:00', salida: '13:00' });
       }
     }
@@ -150,16 +154,36 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       };
 
+      if (section === 'reserva' && field === 'llegada') {
+        if (isFinSemana) {
+          // JS getUTCDay() => 0: Domingo, 1: Lunes, 2: Martes, 3: Miércoles, 4: Jueves, 5: Viernes, 6: Sábado
+          const dateSelected = new Date(value);
+          const dayOfWeek = dateSelected.getUTCDay();
+          if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Lunes a Jueves
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'El plan de fin de semana solo aplica para viernes, sábado y domingo.' });
+            newForm.reserva.llegada = '';
+            return newForm;
+          }
+        }
+      }
+
       // Auto-calcular días de estadía si cambian las fechas
       if (section === 'reserva' && (field === 'llegada' || field === 'salida')) {
-        const start = newForm.reserva.llegada;
-        const end = newForm.reserva.salida;
+        let start = newForm.reserva.llegada;
+        let end = newForm.reserva.salida;
+        
+        // Auto-llenado ocasional/sol
+        if (field === 'llegada' && isOcasional) {
+          end = value;
+          newForm.reserva.salida = value;
+        }
+
         if (start && end) {
           const startDate = new Date(start);
           const endDate = new Date(end);
           const diffTime = endDate - startDate;
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays > 0) {
+          if (diffDays >= 0) { // Permitir 0 días para ocasional
             newForm.reserva.dias_estadia = diffDays;
           }
         }
@@ -307,7 +331,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         
         <FormGroup>
           <label>Fecha de Salida</label>
-          <input required type="date" value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
+          <input required type="date" min={formData.reserva.llegada} value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
         </FormGroup>
 
         <FormGroup>
