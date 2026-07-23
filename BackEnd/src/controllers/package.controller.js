@@ -71,7 +71,7 @@ export const createPackageType = async (req, res) => {
     );
     
     await pool.query(notification.createNotification, [
-      userName,
+      userName || 'Sistema',
       "Paquetes",
       `El paquete ${nombre} ha sido creado`
     ]);
@@ -129,7 +129,7 @@ export const updatePackage = async (req, res) => {
     );
 
     await pool.query(notification.createNotification, [
-      userName,
+      userName ?? 'Sistema',
       "Paquete",
       `El paquete #${id} ha sido actualizado`
     ]);
@@ -164,7 +164,7 @@ export const deletePackage = async (req, res) => {
     );
 
     await pool.query(notification.createNotification, [
-      userName,
+      userName ?? 'Sistema',
       "Paquete",
       `El paquete #${id} ha sido eliminado`
     ]);
@@ -198,7 +198,7 @@ export const activatePackage = async (req, res) => {
     );
 
     await pool.query(notification.createNotification, [
-      userName,
+      userName ?? 'Sistema',
       "Paquete",
       `El paquete #${id} ha sido activado`
     ]);
