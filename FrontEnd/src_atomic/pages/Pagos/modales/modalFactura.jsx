@@ -219,9 +219,17 @@ export default function ModalFactura({ factura, setModalAbierto }) {
     const fetchReservaDetails = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (!res.ok) throw new Error("Error fetching reservations");
+        
         const data = await res.json();
-        const found = data.find(r => Number(r.reserva_id) === Number(factura.reserva) || Number(r.id) === Number(factura.reserva));
+        const found = Array.isArray(data) ? data.find(r => Number(r.reserva_id) === Number(factura.reserva) || Number(r.id) === Number(factura.reserva)) : null;
         setDetails(found);
         setLoading(false);
       } catch (err) {
