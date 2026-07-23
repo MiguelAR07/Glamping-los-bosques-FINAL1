@@ -306,11 +306,20 @@ export default function ModalFactura({ factura, setModalAbierto }) {
               <ItemRow>
                 <div className="icon-container"><Users size={20} /></div>
                 <div className="content">
-                  <p className="title">Huéspedes</p>
+                  <p className="title">Huéspedes y Mascotas</p>
                   <p className="desc">
-                    {details && details["Servicios adicionales"] 
+                    Adultos y niños mayores a 3 años: <strong>{details && details.adultos !== undefined ? details.adultos : 2}</strong>
+                  </p>
+                  <p className="desc">
+                    Niños menores a 3 años: <strong>{details && details.ninos ? details.ninos : 0}</strong>
+                  </p>
+                  <p className="desc">
+                    Mascotas: <strong>{details && details.mascotas ? details.mascotas : 0}</strong>
+                  </p>
+                  <p className="desc" style={{ marginTop: '8px' }}>
+                    <strong>Servicios adicionales:</strong> {details && details["Servicios adicionales"] 
                       ? details["Servicios adicionales"] 
-                      : 'A confirmar'}
+                      : 'Ninguno'}
                   </p>
                 </div>
               </ItemRow>
