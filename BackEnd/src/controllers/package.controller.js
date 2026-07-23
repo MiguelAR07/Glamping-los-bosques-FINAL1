@@ -105,7 +105,12 @@ export const updatePackage = async (req, res) => {
       userName
     } = req.body;
     
-    const p_promocional = precio_promocional === "" ? null : precio_promocional;
+    let p_promocional = null;
+    if (precio_promocional !== "" && precio_promocional !== null && precio_promocional !== undefined && precio_promocional !== "null") {
+      p_promocional = Number(precio_promocional);
+      if (isNaN(p_promocional)) p_promocional = null;
+    }
+
     const d_estadia = dias_estadia === "" ? null : dias_estadia;
 
     await pool.query("BEGIN");
@@ -130,6 +135,7 @@ export const updatePackage = async (req, res) => {
     })
   } catch (error) {
     await pool.query("ROLLBACK");
+    console.error("ERROR EN UPDATE PACKAGE:", error);
     res.status(500).json({
       message: 'Error al actualizar paquete',
       error: error.message
