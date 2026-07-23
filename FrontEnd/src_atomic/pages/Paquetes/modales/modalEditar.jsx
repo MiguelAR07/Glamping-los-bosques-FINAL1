@@ -125,7 +125,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, paqueteAEditar
         <input 
           type="number" 
           name="precio_promocional" 
-          placeholder="Precio Especial Promocional" 
+          placeholder="Precio del Paquete (opcional, si es diferente al cálculo)"  
           value={formData.precio_promocional} 
           onChange={handleChange} 
         />
