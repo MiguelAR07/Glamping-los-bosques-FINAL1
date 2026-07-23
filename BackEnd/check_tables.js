@@ -1,18 +1,14 @@
-import pg from 'pg';
+import pool from './src/config/db.js';
 
-const { Pool } = pg;
-const pool = new Pool({
-  connectionString: 'postgresql://postgres.pxzhqxrdajlcahkvadsj:GlampingDB2026@aws-1-us-east-1.pooler.supabase.com:6543/postgres'
-});
+const get = async () => {
+    try {
+        const res = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+        console.table(res.rows);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        pool.end();
+    }
+};
 
-async function check() {
-  try {
-    const res = await pool.query(`SELECT * FROM login`);
-    console.log("Logins:", res.rows);
-  } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    pool.end();
-  }
-}
-check();
+get();

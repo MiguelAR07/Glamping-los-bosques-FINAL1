@@ -2,8 +2,8 @@ import pool from './src/config/db.js';
 
 const get = async () => {
     try {
-        const res = await pool.query("SELECT pg_get_viewdef('vista_reservas', true);");
-        console.log(res.rows[0].pg_get_viewdef);
+        const res = await pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'reservas'");
+        console.table(res.rows);
     } catch (e) {
         console.error(e);
     } finally {

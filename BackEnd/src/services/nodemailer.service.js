@@ -99,7 +99,8 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
   try {
     const { 
       facturaId, clienteNombre, documento, cabana, plan, 
-      llegada, salida, huespedes, total, pagoRestante, amountPaid 
+      llegada, salida, huespedes, total, pagoRestante, amountPaid,
+      adultos, ninos, mascotas
     } = invoiceData;
 
     const response = await transporter.sendMail({
@@ -128,8 +129,13 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
             </div>
 
             <div style="margin-bottom: 20px;">
-              <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Huéspedes</p>
-              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">${huespedes}</p>
+              <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Huéspedes y Mascotas</p>
+              <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #666; font-size: 14px;">
+                <li>Adultos / &gt;3 años: <strong>${adultos !== undefined ? adultos : 2}</strong></li>
+                <li>Niños &lt;3 años: <strong>${ninos || 0}</strong></li>
+                <li>Mascotas: <strong>${mascotas || 0}</strong></li>
+              </ul>
+              <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;"><strong>Servicios adicionales:</strong> ${huespedes}</p>
             </div>
             
             <div style="margin-top: 32px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">

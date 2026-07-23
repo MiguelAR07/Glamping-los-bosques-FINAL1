@@ -126,7 +126,10 @@ export const activateReservation = async (req, res) => {
               huespedes: details['Servicios adicionales'] || 'A confirmar',
               total: subtotal - descuento,
               pagoRestante: por_pagar,
-              amountPaid: amountPaid
+              amountPaid: amountPaid,
+              adultos: details.adultos,
+              ninos: details.ninos,
+              mascotas: details.mascotas
             };
 
             await sendReservationConfirmedEmail(clientEmail, invoiceData);
@@ -445,7 +448,10 @@ export const createReservation = async (req, res) => {
             nuevo_cliente_id,    // $3
             nuevo_paquete_id,    // $4
             reserva.por_pagar,   // $5
-            facturaUrl          // $6
+            facturaUrl,          // $6
+            reserva.adultos !== undefined ? reserva.adultos : 2, // $7
+            reserva.ninos || 0,   // $8
+            reserva.mascotas || 0 // $9
         ])
 
         if (reservationResult.rowCount === 0) throw new Error("El paquete seleccionado no existe o no está activo.");
@@ -487,6 +493,9 @@ export const createReservation = async (req, res) => {
                                <li><strong>Cédula:</strong> ${cliente.numero_identificacion}</li>
                                <li><strong>Cabaña:</strong> ${nombre_cabana || 'N/A'}</li>
                                <li><strong>Tipo de Plan:</strong> ${planName}</li>
+                               <li><strong>Adultos:</strong> ${reserva.adultos || 2}</li>
+                               <li><strong>Niños (< 3 años):</strong> ${reserva.ninos || 0}</li>
+                               <li><strong>Mascotas:</strong> ${reserva.mascotas || 0}</li>
                                <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
                                <li><strong>Salida:</strong> ${salidaFormateada}</li>
                            </ul>
@@ -660,7 +669,10 @@ export const confirmReservationPayment = async (req, res) => {
                     huespedes: details['Servicios adicionales'] || 'A confirmar',
                     total: subtotal - descuento,
                     pagoRestante: por_pagar,
-                    amountPaid: amountPaid
+                    amountPaid: amountPaid,
+                    adultos: data.adultos,
+                    ninos: data.ninos,
+                    mascotas: data.mascotas
                 };
 
                 sendReservationConfirmedEmail(data.cliente_email, invoiceData).catch(err => console.error(err));

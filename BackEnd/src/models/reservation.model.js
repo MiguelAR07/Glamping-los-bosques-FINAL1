@@ -13,7 +13,7 @@ export const reservation = {
     ORDER BY fecha DESC
   `,
   createReservation: `
-    INSERT INTO reservas (paquete_id, cliente_id, fecha_registro, llegada, salida, estado, por_pagar, factura_url)
+    INSERT INTO reservas (paquete_id, cliente_id, fecha_registro, llegada, salida, estado, por_pagar, factura_url, adultos, ninos, mascotas)
     SELECT
         p.paquete_id,
         c.cliente_id,
@@ -22,7 +22,10 @@ export const reservation = {
         $2, -- salida
         'Por validar',
         $5, -- por_pagar
-        $6  -- factura_url, comprobante de pago
+        $6, -- factura_url, comprobante de pago
+        $7, -- adultos
+        $8, -- ninos
+        $9  -- mascotas
     FROM paquetes p, clientes c
     WHERE c.cliente_id = $3
       AND p.paquete_id = $4
