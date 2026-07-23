@@ -575,7 +575,7 @@ export const uploadPaymentReceipt = async (req, res) => {
 
 import { sendReservationRejectedEmail, sendAdminNotificationEmail } from "../services/nodemailer.service.js";
 import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
-import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp, sendRescheduleWhatsApp } from "../services/whatsapp.service.js";
+import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp, sendRescheduleWhatsApp, sendAdminNotificationWhatsApp } from "../services/whatsapp.service.js";
 
 export const confirmReservationPayment = async (req, res) => {
     try {
@@ -679,6 +679,9 @@ export const confirmReservationPayment = async (req, res) => {
         if (data.cliente_contacto) {
             sendReservationConfirmedWhatsApp(data.cliente_contacto, data.cliente_nombre).catch(err => console.error(err));
         }
+
+        // 4.1 Enviar WhatsApp al Admin (En segundo plano)
+        sendAdminNotificationWhatsApp(data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
 
         await pool.query("COMMIT");
 

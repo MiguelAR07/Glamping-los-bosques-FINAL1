@@ -51,6 +51,52 @@ export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) 
   }
 };
 
+export const sendAdminNotificationWhatsApp = async (clienteNombre, llegadaFormateada, salidaFormateada) => {
+  try {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_ID;
+    const adminPhone = process.env.WHATSAPP_ADMIN_PHONE; // Deben configurar esto
+
+    const cleanPhone = String(adminPhone || '').replace(/\D/g, '');
+
+    if (!token || !phoneId || !adminPhone) {
+      console.warn("⚠️ Meta WhatsApp API o número de admin no configurado. Simulación WSP NOTIFICACIÓN ADMIN: Nueva reserva confirmada de " + clienteNombre);
+      return;
+    }
+
+    const url = `https://graph.facebook.com/v19.0/${phoneId}/messages`;
+    
+    const body = {
+      messaging_product: "whatsapp",
+      to: cleanPhone,
+      type: "text",
+      text: {
+        body: `🔔 *NUEVA RESERVA CONFIRMADA*\n\nSe acaba de confirmar exitosamente el pago y la reserva de *${clienteNombre}*.\n\n📅 Llegada: ${llegadaFormateada}\n📅 Salida: ${salidaFormateada}\n\nPor favor, verifica el panel de control para más detalles.`
+      }
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(`✅ WhatsApp de notificación enviado al ADMIN (${cleanPhone})`);
+    } else {
+      console.error(`❌ Error de la API de Meta WhatsApp enviando al ADMIN:`, data);
+    }
+  } catch (error) {
+    console.error('❌ Error ejecutando envío de WhatsApp al ADMIN:', error);
+  }
+};
+
 export const sendReservationRejectedWhatsApp = async (telefono, clienteNombre, motivo) => {
   try {
     const token = process.env.WHATSAPP_TOKEN;
