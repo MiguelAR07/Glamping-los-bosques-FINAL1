@@ -45,7 +45,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
     {
       nombre: cabanaAEditar.nombre || cabanaAEditar.nombre || '',
       capacidad_personas: cabanaAEditar.capacidad || cabanaAEditar.capacidad || '',
-      precio_noche: cabanaAEditar["Precio noche"] || cabanaAEditar["precio noche"] || '',
+      precio_noche: cabanaAEditar["Precio desde"] || cabanaAEditar["Precio noche"] || cabanaAEditar["precio noche"] || '',
       descripcion: cabanaAEditar.descripcion || cabanaAEditar.descripcion || '',
       es_promocion: cabanaAEditar.es_promocion || false,
       precio_promocional: cabanaAEditar.precio_promocional || 0,
@@ -86,7 +86,7 @@ export default function ModalEditar({ setModalAbierto, fetchData, cabanaAEditar 
           min="0"
           step="0.01" 
           name="precio_noche" 
-          placeholder="Precio por noche" 
+          placeholder="Precio desde" 
           value={formData.precio_noche} 
           onChange={handleChange} 
           required 

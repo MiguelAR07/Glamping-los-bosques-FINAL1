@@ -61,7 +61,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData }) {
       <Form onSubmit={(e) => handleSubmit(e, () => setModalAbierto(false))}>
         <input type="text" name="nombre" placeholder="Nombre de la cabaña" value={formData.nombre} onChange={handleChange} required />
         <input type="number" min="0" name="capacidad_personas" placeholder="Capacidad de personas" value={formData.capacidad_personas} onChange={handleChange} required />
-        <input type="number" min="0" step="0.01" name="precio_noche" placeholder="Precio por noche" value={formData.precio} onChange={handleChange} required />
+        <input type="number" min="0" step="0.01" name="precio_noche" placeholder="Precio desde" value={formData.precio} onChange={handleChange} required />
         <textarea name="descripcion" placeholder="Descripción de la cabaña" value={formData.descripcion} onChange={handleChange} required />
         <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <input 
