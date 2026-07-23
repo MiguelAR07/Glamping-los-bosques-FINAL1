@@ -493,8 +493,8 @@ export const createReservation = async (req, res) => {
                                <li><strong>Cédula:</strong> ${cliente.numero_identificacion}</li>
                                <li><strong>Cabaña:</strong> ${nombre_cabana || 'N/A'}</li>
                                <li><strong>Tipo de Plan:</strong> ${planName}</li>
-                               <li><strong>Adultos:</strong> ${reserva.adultos || 2}</li>
-                               <li><strong>Niños (< 3 años):</strong> ${reserva.ninos || 0}</li>
+                               <li><strong>Adultos y niños mayores a 3 años:</strong> ${reserva.adultos || 2}</li>
+                               <li><strong>Niños menores a 3 años:</strong> ${reserva.ninos || 0}</li>
                                <li><strong>Mascotas:</strong> ${reserva.mascotas || 0}</li>
                                <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
                                <li><strong>Salida:</strong> ${salidaFormateada}</li>

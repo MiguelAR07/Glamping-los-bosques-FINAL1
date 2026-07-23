@@ -131,8 +131,8 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
             <div style="margin-bottom: 20px;">
               <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Huéspedes y Mascotas</p>
               <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #666; font-size: 14px;">
-                <li>Adultos / &gt;3 años: <strong>${adultos !== undefined ? adultos : 2}</strong></li>
-                <li>Niños &lt;3 años: <strong>${ninos || 0}</strong></li>
+                <li>Adultos y niños mayores a 3 años: <strong>${adultos !== undefined ? adultos : 2}</strong></li>
+                <li>Niños menores a 3 años: <strong>${ninos || 0}</strong></li>
                 <li>Mascotas: <strong>${mascotas || 0}</strong></li>
               </ul>
               <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;"><strong>Servicios adicionales:</strong> ${huespedes}</p>
