@@ -176,7 +176,7 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
   }
 }
 
-export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida) => {
+export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida, adultos = 2, ninos = 0, mascotas = 0) => {
   try {
     await transporter.sendMail({
       from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
@@ -190,6 +190,9 @@ export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida)
             <ul style="list-style: none; padding-left: 0;">
               <li>📅 <strong>Llegada:</strong> ${llegada}</li>
               <li>📅 <strong>Salida:</strong> ${salida}</li>
+              <li>👥 <strong>Adultos y niños mayores a 3 años:</strong> ${adultos}</li>
+              <li>👶 <strong>Niños menores a 3 años:</strong> ${ninos}</li>
+              <li>🐾 <strong>Mascotas:</strong> ${mascotas}</li>
             </ul>
           </div>
           <p style="text-align: center;">Revisa el panel de control para más detalles.</p>

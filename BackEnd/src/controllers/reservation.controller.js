@@ -680,7 +680,7 @@ export const confirmReservationPayment = async (req, res) => {
         }
 
         // 2.1 Enviar correo de notificación al administrador (En segundo plano)
-        sendAdminNotificationEmail(data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
+        sendAdminNotificationEmail(data.cliente_nombre, llegadaFormateada, salidaFormateada, data.adultos, data.ninos, data.mascotas).catch(err => console.error(err));
 
         // 3. Enviar SMS de confirmación (En segundo plano)
         if (data.cliente_contacto) {
