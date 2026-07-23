@@ -339,6 +339,24 @@ export default function ModalFactura({ factura, setModalAbierto }) {
                   <span className="amount">{formatMoney(factura.total)}</span>
                 </div>
               </TotalBox>
+
+              {details && Number(details['Pago restante'] || 0) > 0 && (
+                <div style={{
+                  marginTop: '20px',
+                  padding: '16px',
+                  backgroundColor: '#fff3cd',
+                  border: '1px solid #ffeeba',
+                  borderRadius: '12px',
+                  color: '#856404',
+                  fontSize: '0.875rem'
+                }}>
+                  <p style={{ margin: 0, fontWeight: 'bold' }}>⚠️ Importante: Saldo Pendiente</p>
+                  <p style={{ margin: '4px 0 0 0' }}>
+                    Recuerda pagar el 50% restante (<strong>{formatMoney(Number(details['Pago restante']))}</strong>) antes de estar en nuestras instalaciones. 
+                    Puedes hacerlo a través del <strong>enlace que fue enviado a tu correo en la factura de confirmación</strong>.
+                  </p>
+                </div>
+              )}
             </>
           )}
           </Body>
