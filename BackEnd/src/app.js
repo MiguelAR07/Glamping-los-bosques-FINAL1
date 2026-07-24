@@ -18,4 +18,14 @@ app.get("/", (req, res) => {
   res.send("API de PostgreSQL corriendo");
 });
 
+// Manejador global de errores para asegurar que siempre se devuelva JSON
+app.use((err, req, res, next) => {
+  console.error("Error no manejado:", err);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Error interno del servidor",
+    error: err.toString()
+  });
+});
+
 export default app;
