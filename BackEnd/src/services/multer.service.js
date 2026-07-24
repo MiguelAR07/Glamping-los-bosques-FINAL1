@@ -9,7 +9,8 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary.v2, // Usar .v2 para ser explícito
   params: {
     folder: "comprobantes",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "pdf"],
+    resource_type: "auto"
   },
 });
 
