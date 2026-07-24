@@ -5,6 +5,39 @@ import Swal from 'sweetalert2';
 import styled from "styled-components";
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import TablaGeneral from "../../components/organisms/tabla";
+import ModalPlantilla from "../../components/organisms/Modales/modalPlantilla";
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  button {
+    padding: 10px;
+    background-color: #43523A;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    &:hover {
+      background-color: #2c3825;
+    }
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  }
+`;
 
 const Botones = styled.div`
   display: flex;
@@ -304,22 +337,14 @@ function SaldosRestantes() {
             )}
 
             {showGlobalModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 1050
-                }}>
-                    <div style={{
-                        background: 'white', padding: '20px', borderRadius: '10px',
-                        maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto'
-                    }}>
-                        <h4>Registro Manual de Saldo</h4>
-                        <div className="form-group mt-3">
+                <ModalPlantilla modulo="Registro Manual de Saldo" onClose={() => setShowGlobalModal(false)}>
+                    <Form onSubmit={(e) => { e.preventDefault(); handleGlobalSubmit(); }}>
+                        <div>
                             <label><strong>Seleccionar Cliente / Reserva</strong></label>
                             <select 
-                                className="form-control" 
                                 value={globalForm.reservaId} 
                                 onChange={(e) => setGlobalForm({...globalForm, reservaId: e.target.value})}
+                                required
                             >
                                 <option value="">-- Selecciona una reserva pendiente --</option>
                                 {saldos.filter(s => s.estado_saldo !== 'Aprobado').map(s => (
@@ -328,10 +353,9 @@ function SaldosRestantes() {
                             </select>
                         </div>
 
-                        <div className="form-group mt-3">
+                        <div>
                             <label><strong>Método de Pago</strong></label>
                             <select 
-                                className="form-control"
                                 value={globalForm.metodo}
                                 onChange={(e) => setGlobalForm({...globalForm, metodo: e.target.value})}
                             >
@@ -341,25 +365,22 @@ function SaldosRestantes() {
                         </div>
 
                         {globalForm.metodo === 'Transferencia' && (
-                            <div className="form-group mt-3">
+                            <div>
                                 <label><strong>Subir Comprobante (Foto/PDF)</strong></label>
                                 <input 
                                     type="file" 
-                                    className="form-control"
                                     accept="image/*,application/pdf"
                                     onChange={(e) => setAdminFile(e.target.files[0])}
+                                    required={globalForm.metodo === 'Transferencia'}
                                 />
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                            <button className="btn btn-secondary" onClick={() => setShowGlobalModal(false)}>Cancelar</button>
-                            <button className="btn btn-success" onClick={handleGlobalSubmit} disabled={uploading}>
-                                {uploading ? 'Guardando...' : 'Registrar Pago'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                        <button type="submit" disabled={uploading}>
+                            {uploading ? 'Guardando...' : 'Registrar Pago'}
+                        </button>
+                    </Form>
+                </ModalPlantilla>
             )}
         </div>
     );
