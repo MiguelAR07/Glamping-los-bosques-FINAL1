@@ -77,8 +77,7 @@ function SaldosRestantes() {
             "Debe": `$${Number(item['Pago restante'] || 0).toLocaleString()}`,
             "Estado Saldo": item.estado_saldo === 'Aprobado' ? 'Confirmado' : item.estado_saldo === 'Rechazado' ? 'Cancelado' : item.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente',
             "comprobante_saldo_url": item.comprobante_saldo_url,
-            "estado_saldo_raw": item.estado_saldo,
-            ...item
+            "estado_saldo_raw": item.estado_saldo
         }));
     };
 
@@ -258,7 +257,7 @@ function SaldosRestantes() {
             ) : (
                 <TablaGeneral
                     data={mapSaldosData(saldos)}
-                    hiddenColumns={['id', 'comprobante_saldo_url', 'estado_saldo_raw', 'id_cabana', 'id_cliente', 'fecha', 'comprobante_url', 'comprobante_url1', 'estado_saldo', 'ninos', 'mascotas', 'Servicios adicionales', 'Pago restante', 'comprobante_pagado_url']}
+                    hiddenColumns={['id', 'comprobante_saldo_url', 'estado_saldo_raw']}
                     columnMapping={{}}
                     rowClassNameCondition={(fila) => fila.estado_saldo_raw === 'Aprobado' ? 'row-success' : ''}
                     acciones={[
