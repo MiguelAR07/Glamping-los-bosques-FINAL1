@@ -220,6 +220,8 @@ function SaldosRestantes() {
                 <p>Cargando...</p>
             ) : saldos.length === 0 ? (
                 <div className="card shadow-sm p-4 text-center text-muted">
+                    <p className="m-0">No hay comprobantes pendientes por revisar.</p>
+                </div>
             ) : (
                 <TablaGeneral
                     data={mapSaldosData(saldos)}
