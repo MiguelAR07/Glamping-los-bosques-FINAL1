@@ -1,18 +1,16 @@
-/**
- * Formatea un número o string numérico a moneda (COP por defecto).
- * @param {number|string} amount - La cifra a formatear.
- * @returns {string} - La cifra formateada o "$ 0" si no es válida.
- */
+export const formatColombianPeso = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") {
+    return "0";
+  }
+  const num = Math.round(Number(amount));
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
 export const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount)) {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") {
     return "$ 0";
   }
-
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0, // Ajusta a 2 si necesitas centavos
-  }).format(amount);
+  return `$ ${formatColombianPeso(amount)}`;
 };
 
 /**
