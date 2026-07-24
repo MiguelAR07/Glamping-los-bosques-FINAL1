@@ -88,7 +88,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
     reserva: {
       llegada: initialDates?.start ? new Date(initialDates.start).toISOString().split('T')[0] : '', 
       salida: initialDates?.end ? new Date(initialDates.end).toISOString().split('T')[0] : '', 
-      por_pagar: 0, paquete_id: ''
+      por_pagar: 0, paquete_id: '',
+      adultos: 2, ninos: 0, mascotas: 0
     },
     factura: {
       subtotal: 0, descuento: 0
@@ -327,6 +328,26 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         <FormGroup>
           <label>Fecha de Llegada</label>
           <input required type="date" value={formData.reserva.llegada} onChange={(e) => handleChange('reserva', 'llegada', e.target.value)} />
+        </FormGroup>
+        
+        <FormGroup>
+          <label>Fecha de Salida</label>
+          <input required type="date" min={formData.reserva.llegada} value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
+        </FormGroup>
+
+        <FormGroup>
+          <label>Adultos / Personas</label>
+          <input required type="number" min="1" value={formData.reserva.adultos} onChange={(e) => handleChange('reserva', 'adultos', parseInt(e.target.value))} />
+        </FormGroup>
+
+        <FormGroup>
+          <label>Niños (-3 años)</label>
+          <input required type="number" min="0" value={formData.reserva.ninos} onChange={(e) => handleChange('reserva', 'ninos', parseInt(e.target.value))} />
+        </FormGroup>
+
+        <FormGroup>
+          <label>Mascotas</label>
+          <input required type="number" min="0" value={formData.reserva.mascotas} onChange={(e) => handleChange('reserva', 'mascotas', parseInt(e.target.value))} />
         </FormGroup>
         
         <FormGroup>
