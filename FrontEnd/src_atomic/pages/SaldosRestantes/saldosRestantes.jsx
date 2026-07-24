@@ -264,17 +264,24 @@ function SaldosRestantes() {
                     rowClassNameCondition={(fila) => fila.estado_saldo_raw === 'Aprobado' ? 'row-success' : ''}
                     acciones={[
                         {
-                            title: "Subir Foto / Detalles",
+                            title: "Confirmar",
+                            icono: <i className="bi bi-check-circle-fill" style={{ fontSize: '1.2rem' }}></i>,
+                            color: "#28a745",
+                            onClick: (fila) => handleAprobar(fila.id),
+                            condition: (fila) => fila.estado_saldo_raw !== 'Aprobado'
+                        },
+                        {
+                            title: "Ver Comprobante",
                             icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
                             color: "#0dcaf0",
                             onClick: (fila) => setSelectedReserva(fila)
                         },
                         {
-                            title: "Pago Manual",
-                            icono: <i className="bi bi-cash-coin" style={{ fontSize: '1.2rem' }}></i>,
-                            color: "#28a745",
-                            onClick: (fila) => handleAprobar(fila.id),
-                            condition: (fila) => fila.estado_saldo_raw !== 'Aprobado' && !fila.comprobante_saldo_url
+                            title: "Cancelar",
+                            icono: <i className="bi bi-x-circle-fill" style={{ fontSize: '1.2rem' }}></i>,
+                            color: "#dc3545",
+                            onClick: (fila) => handleRechazar(fila.id),
+                            condition: (fila) => fila.estado_saldo_raw !== 'Rechazado'
                         }
                     ]}
                 />
