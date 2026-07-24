@@ -207,6 +207,12 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
     const arr = new Date(formData.reserva.llegada);
     const dep = new Date(formData.reserva.salida);
 
+    if (isNaN(arr) || isNaN(dep)) {
+      Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor, selecciona fechas válidas de llegada y salida.' });
+      setLoading(false);
+      return;
+    }
+
     // Validar fechas: para planes ocasionales y día de sol, el mismo día es válido
     if (isOcasional) {
       if (arr > dep) {
