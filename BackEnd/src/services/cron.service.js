@@ -69,7 +69,7 @@ export const startCronJobs = () => {
                         console.log(`✅ Recordatorio enviado a ${reserva.cliente_email} para la reserva ${reserva.id}`);
                         
                     } catch (emailError) {
-                        console.error(\`❌ Error al enviar correo de recordatorio a \${reserva.cliente_email}:\`, emailError);
+                        console.error(`❌ Error al enviar correo de recordatorio a ${reserva.cliente_email}:`, emailError);
                     }
                 }
             }
