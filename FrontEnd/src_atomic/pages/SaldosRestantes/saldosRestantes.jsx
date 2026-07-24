@@ -9,6 +9,9 @@ function SaldosRestantes() {
     const [selectedReserva, setSelectedReserva] = useState(null);
     const [adminFile, setAdminFile] = useState(null);
     const [uploading, setUploading] = useState(false);
+    
+    const [showGlobalModal, setShowGlobalModal] = useState(false);
+    const [globalForm, setGlobalForm] = useState({ reservaId: '', metodo: 'Efectivo' });
 
     const token = localStorage.getItem("token");
 
@@ -124,12 +127,59 @@ function SaldosRestantes() {
         }
     };
 
+    const handleGlobalSubmit = async () => {
+        if (!globalForm.reservaId) {
+            return Swal.fire('Error', 'Selecciona una reserva', 'error');
+        }
+        
+        if (globalForm.metodo === 'Transferencia' && !adminFile) {
+            return Swal.fire('Error', 'Debes subir un comprobante para transferencia', 'error');
+        }
+
+        if (globalForm.metodo === 'Transferencia') {
+            const formData = new FormData();
+            formData.append('comprobante', adminFile);
+            setUploading(true);
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/upload/${globalForm.reservaId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    Swal.fire('¡Éxito!', 'Comprobante subido manualmente.', 'success');
+                    setShowGlobalModal(false);
+                    setAdminFile(null);
+                    fetchSaldos();
+                } else {
+                    Swal.fire('Error', 'No se pudo subir', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error de conexión', 'error');
+            } finally {
+                setUploading(false);
+            }
+        } else {
+            handleAprobar(globalForm.reservaId);
+            setShowGlobalModal(false);
+        }
+    };
+
     return (
         <div style={{ padding: '20px' }}>
-            <h2>Saldos Restantes (50%)</h2>
-            <p style={{ color: '#666', marginBottom: '20px' }}>
-                Aquí puedes validar los comprobantes de transferencia del 50% restante que los clientes suben desde su enlace.
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                    <h2>Saldos Restantes (50%)</h2>
+                    <p style={{ color: '#666', margin: 0 }}>
+                        Aquí puedes validar los comprobantes de transferencia del 50% restante que los clientes suben desde su enlace.
+                    </p>
+                </div>
+                <button 
+                    className="btn btn-success" 
+                    onClick={() => { setShowGlobalModal(true); setGlobalForm({ reservaId: '', metodo: 'Efectivo' }); setAdminFile(null); }}
+                >
+                    + Saldo Restante Manual
+                </button>
+            </div>
 
             {loading ? (
                 <p>Cargando...</p>
@@ -250,6 +300,65 @@ function SaldosRestantes() {
                             {selectedReserva.comprobante_saldo_url && (
                                 <button className="btn btn-success" onClick={() => handleAprobar(selectedReserva.id)}>Confirmar Pago</button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showGlobalModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', zIndex: 1050
+                }}>
+                    <div style={{
+                        background: 'white', padding: '20px', borderRadius: '10px',
+                        maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto'
+                    }}>
+                        <h4>Registro Manual de Saldo</h4>
+                        <div className="form-group mt-3">
+                            <label><strong>Seleccionar Cliente / Reserva</strong></label>
+                            <select 
+                                className="form-control" 
+                                value={globalForm.reservaId} 
+                                onChange={(e) => setGlobalForm({...globalForm, reservaId: e.target.value})}
+                            >
+                                <option value="">-- Selecciona una reserva pendiente --</option>
+                                {saldos.filter(s => s.estado_saldo !== 'Aprobado').map(s => (
+                                    <option key={s.id} value={s.id}>Reserva #{s.id} - {s.cliente} (Debe: ${Number(s['Pago restante']).toLocaleString()})</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group mt-3">
+                            <label><strong>Método de Pago</strong></label>
+                            <select 
+                                className="form-control"
+                                value={globalForm.metodo}
+                                onChange={(e) => setGlobalForm({...globalForm, metodo: e.target.value})}
+                            >
+                                <option value="Efectivo">Efectivo (Pago Directo)</option>
+                                <option value="Transferencia">Transferencia (Requiere Comprobante)</option>
+                            </select>
+                        </div>
+
+                        {globalForm.metodo === 'Transferencia' && (
+                            <div className="form-group mt-3">
+                                <label><strong>Subir Comprobante (Foto/PDF)</strong></label>
+                                <input 
+                                    type="file" 
+                                    className="form-control"
+                                    accept="image/*,application/pdf"
+                                    onChange={(e) => setAdminFile(e.target.files[0])}
+                                />
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                            <button className="btn btn-secondary" onClick={() => setShowGlobalModal(false)}>Cancelar</button>
+                            <button className="btn btn-success" onClick={handleGlobalSubmit} disabled={uploading}>
+                                {uploading ? 'Guardando...' : 'Registrar Pago'}
+                            </button>
                         </div>
                     </div>
                 </div>
