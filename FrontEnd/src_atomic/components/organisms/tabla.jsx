@@ -61,6 +61,13 @@ const Table = styled.table`
     &:hover {
       background-color: #fafafa;
     }
+
+    &.row-success {
+      background-color: #e6f6eb;
+      &:hover {
+        background-color: #d4eedb;
+      }
+    }
   }
 
   td.acciones {
@@ -136,7 +143,7 @@ const Table = styled.table`
   }
 `;
 
-function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick, selectable, onSelectionChange, selectedRows = [], hiddenColumns = [], columnMapping = {} }) {
+function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions, onColumnClick, selectable, onSelectionChange, selectedRows = [], hiddenColumns = [], columnMapping = {}, rowClassNameCondition }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -196,7 +203,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
           </thead>
           <tbody>
             {currentItems.map((fila, i) => (
-              <tr key={i}>
+              <tr key={i} className={rowClassNameCondition ? rowClassNameCondition(fila) : ''}>
                 {selectable && (
                   <td>
                     <input 

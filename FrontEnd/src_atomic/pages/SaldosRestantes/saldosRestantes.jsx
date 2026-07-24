@@ -227,6 +227,7 @@ function SaldosRestantes() {
                     data={mapSaldosData(saldos)}
                     hiddenColumns={['id', 'comprobante_saldo_url', 'estado_saldo_raw', 'id_cabana', 'id_cliente', 'fecha', 'comprobante_url', 'comprobante_url1', 'estado_saldo', 'ninos', 'mascotas', 'Servicios adicionales', 'Pago restante', 'comprobante_pagado_url']}
                     columnMapping={{}}
+                    rowClassNameCondition={(fila) => fila.estado_saldo_raw === 'Aprobado' ? 'row-success' : ''}
                     acciones={[
                         {
                             title: "Subir Foto / Detalles",
