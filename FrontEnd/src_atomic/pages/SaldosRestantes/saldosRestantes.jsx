@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 
 
 import Swal from 'sweetalert2';
+import styled from "styled-components";
+import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
+
+const Botones = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
 
 function SaldosRestantes() {
     const [saldos, setSaldos] = useState([]);
@@ -166,20 +182,19 @@ function SaldosRestantes() {
 
     return (
         <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <Botones>
                 <div>
                     <h2>Saldos Restantes (50%)</h2>
                     <p style={{ color: '#666', margin: 0 }}>
                         Aquí puedes validar los comprobantes de transferencia del 50% restante que los clientes suben desde su enlace.
                     </p>
                 </div>
-                <button 
-                    className="btn btn-success" 
+                <BotonAgregar
+                    modulo={'Saldo Restante Manual'}
+                    color={1}
                     onClick={() => { setShowGlobalModal(true); setGlobalForm({ reservaId: '', metodo: 'Efectivo' }); setAdminFile(null); }}
-                >
-                    + Saldo Restante Manual
-                </button>
-            </div>
+                />
+            </Botones>
 
             {loading ? (
                 <p>Cargando...</p>
