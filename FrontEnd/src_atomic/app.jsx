@@ -6,6 +6,7 @@ import { modulos } from './config/modulos';
 import Login from './pages/login/login';
 import Register from './pages/login/register';
 import ForgotPassword from './pages/login/forgotPassword';
+import PagarSaldo from './pages/SaldosRestantes/pagarSaldoPublico';
 
 const isTokenValid = () => {
   const token = localStorage.getItem('token');
@@ -55,6 +56,7 @@ function App() {
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/pagar-saldo/:id" element={<PagarSaldo />} />
 
         <Route>
           {modulos.map((modulo, i) => (
