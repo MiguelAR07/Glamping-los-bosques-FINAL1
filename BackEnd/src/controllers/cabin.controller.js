@@ -127,13 +127,22 @@ export const getCabinImages = async (req, res) => {
     }
   };
 
-  export const createCabin = async (req, res) => {
+const cleanPrice = (val) => {
+  if (val === null || val === undefined || val === '') return null;
+  let str = String(val).trim().replace(/[^\d.,]/g, '').replace(/[.,]/g, '');
+  let num = Number(str);
+  if (isNaN(num)) return null;
+  if (num > 0 && num < 1000) num = num * 1000;
+  return num;
+};
+
+export const createCabin = async (req, res) => {
     try {
       const { nombre, precio_noche, capacidad_personas, descripcion, userName, es_promocion, precio_promocional } = req.body;
       
-      const p_noche = precio_noche === "" ? null : precio_noche;
+      const p_noche = cleanPrice(precio_noche);
       const c_personas = capacidad_personas === "" ? null : capacidad_personas;
-      const p_promocional = precio_promocional === "" ? null : precio_promocional;
+      const p_promocional = cleanPrice(precio_promocional);
   
       if (p_noche !== null && Number(p_noche) < 0) throw new Error("El precio por noche no puede ser negativo");
       if (p_promocional !== null && Number(p_promocional) < 0) throw new Error("El precio promocional no puede ser negativo");
@@ -166,9 +175,9 @@ export const getCabinImages = async (req, res) => {
       const { id } = req.params;
       const { nombre, precio_noche, capacidad_personas, descripcion, userName, es_promocion, precio_promocional } = req.body;
       
-      const p_noche = precio_noche === "" ? null : precio_noche;
+      const p_noche = cleanPrice(precio_noche);
       const c_personas = capacidad_personas === "" ? null : capacidad_personas;
-      const p_promocional = precio_promocional === "" ? null : precio_promocional;
+      const p_promocional = cleanPrice(precio_promocional);
   
       if (p_noche !== null && Number(p_noche) < 0) throw new Error("El precio por noche no puede ser negativo");
       if (p_promocional !== null && Number(p_promocional) < 0) throw new Error("El precio promocional no puede ser negativo");

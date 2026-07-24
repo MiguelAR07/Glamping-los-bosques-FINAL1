@@ -105,11 +105,16 @@ export const updatePackage = async (req, res) => {
       userName
     } = req.body;
     
-    let p_promocional = null;
-    if (precio_promocional !== "" && precio_promocional !== null && precio_promocional !== undefined && precio_promocional !== "null") {
-      p_promocional = Number(precio_promocional);
-      if (isNaN(p_promocional)) p_promocional = null;
-    }
+    const cleanPrice = (val) => {
+      if (val === null || val === undefined || val === '' || val === 'null') return null;
+      let str = String(val).trim().replace(/[^\d.,]/g, '').replace(/[.,]/g, '');
+      let num = Number(str);
+      if (isNaN(num)) return null;
+      if (num > 0 && num < 1000) num = num * 1000;
+      return num;
+    };
+
+    let p_promocional = cleanPrice(precio_promocional);
 
     const d_estadia = dias_estadia === "" ? null : dias_estadia;
 
