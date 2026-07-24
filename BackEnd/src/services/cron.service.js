@@ -53,7 +53,7 @@ export const startCronJobs = () => {
                                     <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ffeeba;">
                                         <p style="margin: 0; color: #856404;">
                                             Por favor, recuerda que <strong>debes pagar este 50% restante antes de estar en nuestras instalaciones</strong>.<br><br>
-                                            👉 <a href="https://panel-glamping-final1.vercel.app/pagar-saldo/${reserva.id}" style="color: #155724; font-weight: bold; text-decoration: underline;">Sube el comprobante de tu saldo restante haciendo clic aquí.</a>
+                                            👉 <a href="https://panel.glampinglosbosques.com/pagar-saldo/${reserva.id}" style="color: #155724; font-weight: bold; text-decoration: underline;">Sube el comprobante de tu saldo restante haciendo clic aquí.</a>
                                         </p>
                                     </div>
                                     <p>¡Te esperamos pronto!</p>

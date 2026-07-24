@@ -168,7 +168,7 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
               <p style="margin: 0; color: #856404; text-align: left;">
                 <strong>⚠️ Importante:</strong> Tienes un saldo pendiente de <strong>$${pagoRestante.toLocaleString('es-CO')}</strong>.<br>
                 Por favor, recuerda pagar este 50% restante antes de tu llegada a nuestras instalaciones.<br><br>
-                👉 <a href="https://panel-glamping-final1.vercel.app/pagar-saldo/${reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${pagoRestante.toLocaleString('es-CO')}</a>
+                👉 <a href="https://panel.glampinglosbosques.com/pagar-saldo/${reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${pagoRestante.toLocaleString('es-CO')}</a>
               </p>
             </div>
             ` : ''}
