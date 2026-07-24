@@ -74,6 +74,8 @@ function PagarSaldo() {
 
     if (!reserva) return <div style={{ textAlign: 'center', marginTop: '50px' }}><h2>Reserva no encontrada o saldo ya pagado.</h2></div>;
 
+    const isAlreadyDone = reserva.alreadySubmitted || Boolean(reserva.comprobante_saldo_url) || Number(reserva.por_pagar) <= 0 || reserva.estado_saldo === 'En revisión' || reserva.estado_saldo === 'Aprobado';
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -91,65 +93,87 @@ function PagarSaldo() {
                 maxWidth: '600px',
                 width: '100%'
             }}>
-                <h1 style={{ color: '#059669', textAlign: 'center', marginBottom: '10px' }}>Completar Pago</h1>
+                <h1 style={{ color: '#059669', textAlign: 'center', marginBottom: '10px' }}>
+                    {isAlreadyDone ? 'Comprobante Recibido' : 'Completar Pago'}
+                </h1>
                 <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '30px' }}>
-                    Sube tu comprobante para finalizar el pago del 50% restante de tu reserva.
+                    {isAlreadyDone 
+                        ? 'Tu comprobante de pago restante ya se encuentra registrado y en proceso de verificación o saldado.' 
+                        : 'Sube tu comprobante para finalizar el pago del 50% restante de tu reserva.'}
                 </p>
 
                 <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#1e293b' }}>Resumen de Reserva</h3>
                     <p><strong>A nombre de:</strong> {reserva.cliente}</p>
                     <p><strong>Llegada:</strong> {new Date(reserva.llegada).toLocaleDateString()}</p>
-                    <p style={{ fontSize: '1.2rem', color: '#dc2626', fontWeight: 'bold', marginTop: '10px' }}>
-                        Saldo Pendiente: ${Number(reserva.por_pagar).toLocaleString('es-CO')}
+                    <p style={{ fontSize: '1.2rem', color: isAlreadyDone ? '#059669' : '#dc2626', fontWeight: 'bold', marginTop: '10px' }}>
+                        {isAlreadyDone ? 'Estado del Saldo: En revisión / Saldado' : `Saldo Pendiente: $${Number(reserva.por_pagar).toLocaleString('es-CO')}`}
                     </p>
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                    <h4 style={{ color: '#1e293b', marginBottom: '10px' }}>Métodos de Pago Disponibles:</h4>
-                    {metodosPago.map(m => (
-                        <div key={m.id} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '10px' }}>
-                            <strong>{m.banco}</strong> - {m.tipo_cuenta}: {m.numero_cuenta}
-                            <br/><small style={{ color: '#64748b' }}>Titular: {m.titular}</small>
+                {isAlreadyDone ? (
+                    <div style={{
+                        padding: '20px',
+                        background: '#ecfdf5',
+                        border: '1px solid #a7f3d0',
+                        borderRadius: '10px',
+                        textAlign: 'center',
+                        color: '#065f46'
+                    }}>
+                        <h3 style={{ margin: '0 0 8px 0' }}>✅ Comprobante ya enviado</h3>
+                        <p style={{ margin: 0, fontSize: '0.95rem' }}>
+                            Ya hemos recibido la información de tu comprobante. Nuestro equipo revisará el pago en breve. ¡Muchas gracias!
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ marginBottom: '20px' }}>
+                            <h4 style={{ color: '#1e293b', marginBottom: '10px' }}>Métodos de Pago Disponibles:</h4>
+                            {metodosPago.map(m => (
+                                <div key={m.id} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '10px' }}>
+                                    <strong>{m.banco}</strong> - {m.tipo_cuenta}: {m.numero_cuenta}
+                                    <br/><small style={{ color: '#64748b' }}>Titular: {m.titular}</small>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '10px', color: '#1e293b' }}>
-                        Adjuntar Comprobante de Transferencia:
-                    </label>
-                    <input 
-                        type="file" 
-                        accept="image/*,application/pdf"
-                        onChange={handleFileChange}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            border: '2px dashed #cbd5e1',
-                            borderRadius: '8px',
-                            cursor: 'pointer'
-                        }}
-                    />
-                </div>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '10px', color: '#1e293b' }}>
+                                Adjuntar Comprobante de Transferencia:
+                            </label>
+                            <input 
+                                type="file" 
+                                accept="image/*,application/pdf"
+                                onChange={handleFileChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    border: '2px dashed #cbd5e1',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        </div>
 
-                <button 
-                    onClick={handleUpload}
-                    disabled={uploading}
-                    style={{
-                        width: '100%',
-                        padding: '15px',
-                        background: uploading ? '#94a3b8' : '#059669',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        cursor: uploading ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {uploading ? 'Subiendo archivo...' : 'Enviar Comprobante'}
-                </button>
+                        <button 
+                            onClick={handleUpload}
+                            disabled={uploading}
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                background: uploading ? '#94a3b8' : '#059669',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '1.1rem',
+                                fontWeight: 'bold',
+                                cursor: uploading ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            {uploading ? 'Subiendo archivo...' : 'Enviar Comprobante'}
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );

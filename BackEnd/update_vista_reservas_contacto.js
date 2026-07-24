@@ -26,6 +26,7 @@ async function updateView() {
       CREATE OR REPLACE VIEW vista_reservas AS
       SELECT r.reserva_id AS id,
         tp.nombre || ' - ' || p.nombre AS paquete,
+        cb.nombre AS cabana,
         c.nombre AS cliente,
         c.contacto AS "Celular",
         c.numero_identificacion AS "Cédula",
@@ -34,11 +35,22 @@ async function updateView() {
         r.salida,
         r.estado,
         r.por_pagar AS "Pago restante",
-        r.factura_url AS comprobante_url
+        r.factura_url AS comprobante_url,
+        COALESCE(( SELECT string_agg(((((s.servicio)::text || ' ('::text) || sp.cantidad_personas) || ' pax)'::text), ', '::text) AS string_agg
+               FROM (servicios_por_paquete sp
+                 JOIN vista_servicios s ON ((sp.servicio_id = s.id)))
+              WHERE (sp.paquete_id = p.paquete_id)), 'Ninguno'::text) AS "Servicios adicionales",
+        r.adultos,
+        r.ninos,
+        r.mascotas,
+        r.comprobante_saldo_url,
+        r.estado_saldo,
+        r.reserva_id
       FROM reservas r
         JOIN clientes c ON c.cliente_id = r.cliente_id
         JOIN paquetes p ON p.paquete_id = r.paquete_id
-        JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id;
+        JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id
+        JOIN cabanas cb ON cb.cabana_id = p.cabana_id;
     `);
     
     await pool.query(`

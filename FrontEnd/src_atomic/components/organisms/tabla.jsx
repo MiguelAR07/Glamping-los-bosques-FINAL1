@@ -32,10 +32,9 @@ const Table = styled.table`
   th, td{
     padding: 12px 10px;
     text-align: left;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 280px;
+    white-space: normal;
+    word-break: break-word;
     font-size: 0.85rem;
   }
 
@@ -171,7 +170,11 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
     return <p style={{ marginTop: '20px', color: '#6b7280' }}>No hay datos para mostrar</p>;
   }
 
-  const columnas = Object.keys(data[0]).filter(col => !col.endsWith('_id') && !hiddenColumns.includes(col));
+  const columnas = Object.keys(data[0]).filter(col => 
+    !col.endsWith('_id') && 
+    !hiddenColumns.includes(col) && 
+    !col.toLowerCase().includes('recordatorio')
+  );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -228,6 +231,28 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                         formattedValue = (valor !== null && valor !== undefined) ? formatDateTime(valor) : "N / A";
                       } else if (columnasFecha.includes(col)) {
                         formattedValue = (valor !== null && valor !== undefined) ? formatDate(valor) : "N / A";
+                      } else if (col === 'Huéspedes' || col === 'Huespedes' || col === 'Adultos') {
+                        const adultMatch = typeof valor === 'string' ? valor.match(/(\d+)\s*(?:Ad|Adulto)/i) : null;
+                        const childMatch = typeof valor === 'string' ? valor.match(/(\d+)\s*(?:Ni|Niño)/i) : null;
+                        const petMatch = typeof valor === 'string' ? valor.match(/(\d+)\s*(?:Mas|Mascota)/i) : null;
+
+                        const a = fila.adultos !== undefined && fila.adultos !== null ? Number(fila.adultos) : (adultMatch ? Number(adultMatch[1]) : 0);
+                        const n = fila.ninos !== undefined && fila.ninos !== null ? Number(fila.ninos) : (childMatch ? Number(childMatch[1]) : 0);
+                        const m = fila.mascotas !== undefined && fila.mascotas !== null ? Number(fila.mascotas) : (petMatch ? Number(petMatch[1]) : 0);
+
+                        formattedValue = (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', whiteSpace: 'normal', minWidth: '140px', padding: '2px 0' }}>
+                            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '0.82rem' }}>
+                              👤 {a} {a === 1 ? 'Adulto' : 'Adultos'}
+                            </span>
+                            <span style={{ color: n > 0 ? '#475569' : '#94a3b8', fontSize: '0.78rem' }}>
+                              👶 {n} {n === 1 ? 'Niño' : 'Niños'}
+                            </span>
+                            <span style={{ color: m > 0 ? '#d97706' : '#94a3b8', fontSize: '0.78rem', fontWeight: m > 0 ? '600' : 'normal' }}>
+                              🐾 {m} {m === 1 ? 'Mascota' : 'Mascotas'}
+                            </span>
+                          </div>
+                        );
                       } else if (col === 'img_url') {
                         formattedValue = valor ? <img src={valor} alt="preview" style={{width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px'}} /> : 'Sin imagen';
                       } else if (col === 'comprobante') {

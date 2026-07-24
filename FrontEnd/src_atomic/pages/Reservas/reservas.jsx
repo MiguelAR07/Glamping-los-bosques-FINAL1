@@ -436,15 +436,24 @@ function Reservas({ modulo }) {
     if (!dataArray) return [];
     return dataArray.map(r => {
       return {
-        ...r,
+        id: r.id || r.reserva_id,
+        reserva_id: r.reserva_id || r.id,
+        cliente_id: r.cliente_id,
+        paquete_id: r.paquete_id,
+        llegada: r.llegada,
+        salida: r.salida,
+        comprobante_url: r.comprobante_url,
+        comprobante_saldo_url: r.comprobante_saldo_url,
+        estado_saldo: r.estado_saldo,
         'Cliente': r.cliente,
+        'Cabaña': r.cabana || r.Cabaña || 'N/A',
         'Paquete': r.paquete,
         'Fecha Entrada': formatDateOnly(r.llegada),
         'Hora Entrada': formatTimeOnly(r.llegada),
         'Fecha Salida': formatDateOnly(r.salida),
         'Hora Salida': formatTimeOnly(r.salida),
         'Servicios': r["Servicios adicionales"] && r["Servicios adicionales"].trim() !== "" ? r["Servicios adicionales"] : "Ninguno",
-        'Huéspedes': `${r.adultos || 2} Ad / ${r.ninos || 0} Ni / ${r.mascotas || 0} Mas`,
+        'Huéspedes': `${r.adultos || 0} Adultos, ${r.ninos || 0} Niños, ${r.mascotas || 0} Mascotas`,
         'Estado': r.estado,
         'Total Restante': r["Pago restante"]
       };
@@ -454,7 +463,8 @@ function Reservas({ modulo }) {
   const hiddenColumnsList = [
     'comprobante_url', 'id', 'cliente', 'paquete', 'llegada', 'salida', 'estado', 
     'Pago restante', 'Servicios adicionales', 'fecha', 'cliente_id', 'paquete_id', 'reserva_id',
-    'Celular', 'Cédula', 'adultos', 'ninos', 'mascotas'
+    'Celular', 'Cédula', 'adultos', 'ninos', 'mascotas', 'cabana', 'comprobante_saldo_url',
+    'estado_saldo', 'recordatorio_24h_enviado', 'recordatorio', 'recordatorio_enviado'
   ];
 
   const [selectedIncomeCabin, setSelectedIncomeCabin] = useState('General');

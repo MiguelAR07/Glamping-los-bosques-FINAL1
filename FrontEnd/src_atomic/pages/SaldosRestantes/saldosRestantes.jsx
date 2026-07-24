@@ -69,11 +69,12 @@ function SaldosRestantes() {
             id: item.id,
             "Reserva": `Reserva #${item.id}`,
             "Cliente": item.cliente,
+            "Cabaña": item.cabana || item.Cabaña || 'N/A',
             "Paquete": item.paquete,
             "Llegada": new Date(item.llegada).toLocaleDateString(),
             "Salida": new Date(item.salida).toLocaleDateString(),
             "Celular": item.celular || 'N/A',
-            "Adultos": item.adultos,
+            "Huéspedes": `${item.adultos || 0} Adultos, ${item.ninos || 0} Niños, ${item.mascotas || 0} Mascotas`,
             "Debe": `$${Number(item['Pago restante'] || 0).toLocaleString()}`,
             "Estado Saldo": item.estado_saldo === 'Aprobado' ? 'Confirmado' : item.estado_saldo === 'Rechazado' ? 'Cancelado' : item.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente',
             "comprobante": item.comprobante_saldo_url,
@@ -257,7 +258,7 @@ function SaldosRestantes() {
             ) : (
                 <TablaGeneral
                     data={mapSaldosData(saldos)}
-                    hiddenColumns={['id', 'estado_saldo_raw']}
+                    hiddenColumns={['id', 'estado_saldo_raw', 'recordatorio_24h_enviado', 'recordatorio', 'recordatorio_enviado', 'comprobante_saldo_url']}
                     columnMapping={{
                         "comprobante": "Comprobante"
                     }}

@@ -5,7 +5,7 @@ export const getBalanceDetails = async (req, res) => {
     try {
         const { id } = req.params;
         const resData = await pool.query(`
-            SELECT r.reserva_id, c.nombre as cliente, c.email, r.por_pagar, r.estado, p.nombre as paquete, cb.nombre as cabana, r.llegada, r.salida
+            SELECT r.reserva_id, c.nombre as cliente, c.email, r.por_pagar, r.estado, r.comprobante_saldo_url, r.estado_saldo, p.nombre as paquete, cb.nombre as cabana, r.llegada, r.salida
             FROM reservas r
             JOIN clientes c ON r.cliente_id = c.cliente_id
             JOIN paquetes p ON r.paquete_id = p.paquete_id
@@ -17,8 +17,14 @@ export const getBalanceDetails = async (req, res) => {
         
         const accounts = await pool.query("SELECT * FROM cuentas_bancarias WHERE estado = true");
         
+        const reserva = resData.rows[0];
+        const alreadySubmitted = Boolean(reserva.comprobante_saldo_url || Number(reserva.por_pagar) <= 0 || reserva.estado_saldo === 'En revisión' || reserva.estado_saldo === 'Aprobado');
+
         res.json({
-            reserva: resData.rows[0],
+            reserva: {
+                ...reserva,
+                alreadySubmitted
+            },
             cuentas: accounts.rows
         });
     } catch (error) {
@@ -30,6 +36,16 @@ export const getBalanceDetails = async (req, res) => {
 export const uploadBalanceReceipt = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Check if receipt already uploaded or paid
+        const checkRes = await pool.query("SELECT comprobante_saldo_url, por_pagar, estado_saldo FROM reservas WHERE reserva_id = $1", [id]);
+        if (checkRes.rows.length > 0) {
+            const r = checkRes.rows[0];
+            if (r.comprobante_saldo_url || Number(r.por_pagar) <= 0 || r.estado_saldo === 'En revisión' || r.estado_saldo === 'Aprobado') {
+                return res.status(400).json({ message: "Ya has subido tu comprobante para este saldo o la reserva ya fue saldada." });
+            }
+        }
+
         const fileUrl = req.file ? (req.file.path || req.file.secure_url || req.file.url) : null;
         
         if (!fileUrl) return res.status(400).json({ message: "No se proporcionó un comprobante" });
