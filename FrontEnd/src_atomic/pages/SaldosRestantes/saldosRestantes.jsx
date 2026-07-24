@@ -112,7 +112,11 @@ function SaldosRestantes() {
                         <div className="card shadow-sm" key={r.id}>
                             <div className="card-body">
                                 <h3>{r.cliente}</h3>
-                                <p><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()}</p>
+                                <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 10px 0' }}>
+                                    <strong>Reserva #{r.id}</strong> | Celular: {r.Celular || 'N/A'}
+                                </p>
+                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0' }}><strong>Paquete:</strong> {r.paquete}</p>
+                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0' }}><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()} - <strong>Salida:</strong> {new Date(r.salida).toLocaleDateString()}</p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <p style={{ margin: 0 }}><strong>Debe:</strong> ${Number(r['Pago restante']).toLocaleString()}</p>
                                     <span style={{
