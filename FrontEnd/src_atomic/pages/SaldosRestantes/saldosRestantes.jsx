@@ -166,12 +166,32 @@ function SaldosRestantes() {
                                         {r.estado_saldo === 'Aprobado' ? 'Confirmado' : r.estado_saldo === 'Rechazado' ? 'Cancelado' : r.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente'}
                                     </span>
                                 </div>
-                                <button 
-                                    className="btn btn-primary mt-2 w-100"
-                                    onClick={() => setSelectedReserva(r)}
-                                >
-                                    {r.comprobante_saldo_url ? 'Revisar Comprobante' : 'Gestionar Saldo'}
-                                </button>
+                                
+                                {r.estado_saldo !== 'Aprobado' && !r.comprobante_saldo_url && (
+                                    <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
+                                        <button 
+                                            className="btn btn-success btn-sm w-100"
+                                            onClick={() => handleAprobar(r.id)}
+                                        >
+                                            Pago Manual
+                                        </button>
+                                        <button 
+                                            className="btn btn-primary btn-sm w-100"
+                                            onClick={() => setSelectedReserva(r)}
+                                        >
+                                            Subir Foto
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                {(r.comprobante_saldo_url || r.estado_saldo === 'Aprobado') && (
+                                    <button 
+                                        className="btn btn-secondary btn-sm mt-2 w-100"
+                                        onClick={() => setSelectedReserva(r)}
+                                    >
+                                        Ver Detalles / Cambiar
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
