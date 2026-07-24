@@ -13,7 +13,7 @@ function SaldosRestantes() {
     const fetchSaldos = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_URL_BACKEND}/api/balance/pending`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/pending`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -44,7 +44,7 @@ function SaldosRestantes() {
 
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`${import.meta.env.VITE_URL_BACKEND}/api/balance/approve/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/approve/${id}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -74,7 +74,7 @@ function SaldosRestantes() {
 
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`${import.meta.env.VITE_URL_BACKEND}/api/balance/reject/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/reject/${id}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

@@ -14,7 +14,7 @@ function PagarSaldo() {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_URL_BACKEND}/api/balance/${id}`);
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/${id}`);
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -50,7 +50,7 @@ function PagarSaldo() {
 
         setUploading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_URL_BACKEND}/api/balance/upload/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/upload/${id}`, {
                 method: 'POST',
                 body: formData
             });
