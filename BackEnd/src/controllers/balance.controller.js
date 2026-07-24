@@ -60,8 +60,7 @@ export const getPendingBalances = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT * FROM vista_reservas 
-            WHERE comprobante_saldo_url IS NOT NULL 
-              AND estado_saldo = 'En revisión'
+            WHERE "Pago restante" > 0 OR estado_saldo IS NOT NULL
             ORDER BY fecha DESC
         `);
         res.json(result.rows);

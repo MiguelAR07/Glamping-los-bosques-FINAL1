@@ -113,12 +113,21 @@ function SaldosRestantes() {
                             <div className="card-body">
                                 <h3>{r.cliente}</h3>
                                 <p><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()}</p>
-                                <p><strong>Debe:</strong> ${Number(r['Pago restante']).toLocaleString()}</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <p style={{ margin: 0 }}><strong>Debe:</strong> ${Number(r['Pago restante']).toLocaleString()}</p>
+                                    <span style={{
+                                        padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
+                                        backgroundColor: r.estado_saldo === 'Aprobado' ? '#d1fae5' : r.estado_saldo === 'Rechazado' ? '#fee2e2' : r.estado_saldo === 'En revisión' ? '#fef08a' : '#f3f4f6',
+                                        color: r.estado_saldo === 'Aprobado' ? '#065f46' : r.estado_saldo === 'Rechazado' ? '#991b1b' : r.estado_saldo === 'En revisión' ? '#854d0e' : '#374151'
+                                    }}>
+                                        {r.estado_saldo === 'Aprobado' ? 'Confirmado' : r.estado_saldo === 'Rechazado' ? 'Cancelado' : r.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente'}
+                                    </span>
+                                </div>
                                 <button 
                                     className="btn btn-primary mt-2 w-100"
                                     onClick={() => setSelectedReserva(r)}
                                 >
-                                    Revisar Comprobante
+                                    {r.comprobante_saldo_url ? 'Revisar Comprobante' : 'Gestionar Saldo'}
                                 </button>
                             </div>
                         </div>
@@ -136,16 +145,23 @@ function SaldosRestantes() {
                         background: 'white', padding: '20px', borderRadius: '10px',
                         maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto'
                     }}>
-                        <h4>Comprobante de {selectedReserva.cliente}</h4>
-                        <img 
-                            src={selectedReserva.comprobante_saldo_url} 
-                            alt="Comprobante de Saldo" 
-                            style={{ width: '100%', height: 'auto', margin: '20px 0', borderRadius: '5px' }} 
-                        />
+                        <h4>Gestión de Saldo: {selectedReserva.cliente}</h4>
+                        {selectedReserva.comprobante_saldo_url ? (
+                            <img 
+                                src={selectedReserva.comprobante_saldo_url} 
+                                alt="Comprobante de Saldo" 
+                                style={{ width: '100%', height: 'auto', margin: '20px 0', borderRadius: '5px' }} 
+                            />
+                        ) : (
+                            <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', margin: '20px 0' }}>
+                                <p style={{ margin: 0, color: '#64748b' }}>El cliente aún no ha subido comprobante de pago.</p>
+                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '5px' }}>Puedes confirmar el pago manualmente si recibiste el dinero por otro medio.</p>
+                            </div>
+                        )}
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button className="btn btn-secondary" onClick={() => setSelectedReserva(null)}>Cerrar</button>
-                            <button className="btn btn-danger" onClick={() => handleRechazar(selectedReserva.id)}>Rechazar</button>
-                            <button className="btn btn-success" onClick={() => handleAprobar(selectedReserva.id)}>Aprobar</button>
+                            <button className="btn btn-warning" onClick={() => handleRechazar(selectedReserva.id)}>Pendiente (Cancelar)</button>
+                            <button className="btn btn-success" onClick={() => handleAprobar(selectedReserva.id)}>Confirmar</button>
                         </div>
                     </div>
                 </div>
