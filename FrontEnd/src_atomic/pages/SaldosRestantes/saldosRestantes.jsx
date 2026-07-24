@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import styled from "styled-components";
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
+import TablaGeneral from "../../components/organisms/tabla";
 
 const Botones = styled.div`
   display: flex;
@@ -28,6 +29,25 @@ function SaldosRestantes() {
     
     const [showGlobalModal, setShowGlobalModal] = useState(false);
     const [globalForm, setGlobalForm] = useState({ reservaId: '', metodo: 'Efectivo' });
+
+    // Funciones para TablaGeneral
+    const mapSaldosData = (data) => {
+        return data.map(item => ({
+            id: item.id,
+            "Reserva": `Reserva #${item.id}`,
+            "Cliente": item.cliente,
+            "Paquete": item.paquete,
+            "Llegada": new Date(item.llegada).toLocaleDateString(),
+            "Salida": new Date(item.salida).toLocaleDateString(),
+            "Celular": item.celular || 'N/A',
+            "Adultos": item.adultos,
+            "Debe": `$${Number(item['Pago restante'] || 0).toLocaleString()}`,
+            "Estado Saldo": item.estado_saldo === 'Aprobado' ? 'Confirmado' : item.estado_saldo === 'Rechazado' ? 'Cancelado' : item.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente',
+            "comprobante_saldo_url": item.comprobante_saldo_url,
+            "estado_saldo_raw": item.estado_saldo,
+            ...item
+        }));
+    };
 
     const token = localStorage.getItem("token");
 
@@ -200,67 +220,27 @@ function SaldosRestantes() {
                 <p>Cargando...</p>
             ) : saldos.length === 0 ? (
                 <div className="card shadow-sm p-4 text-center text-muted">
-                    <p className="m-0">
-                        No hay comprobantes pendientes por revisar.
-                    </p>
-                </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                    {saldos.map(r => (
-                        <div className="card shadow-sm" key={r.id}>
-                            <div className="card-body">
-                                <h3>{r.cliente}</h3>
-                                <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 10px 0' }}>
-                                    <strong>Reserva #{r.id}</strong> | Celular: {r.Celular || 'N/A'}
-                                </p>
-                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0' }}><strong>Paquete:</strong> {r.paquete}</p>
-                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0', color: '#475569' }}>
-                                    Adultos: {r.adultos} | Niños: {r.ninos > 0 ? r.ninos : 'No'} | Mascotas: {r.mascotas > 0 ? r.mascotas : 'No'}
-                                </p>
-                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0', color: '#475569' }}>
-                                    <strong>Servicios:</strong> {r['Servicios adicionales'] && r['Servicios adicionales'] !== 'Ninguno' ? r['Servicios adicionales'] : 'No'}
-                                </p>
-                                <p style={{ fontSize: '0.9rem', margin: '0 0 10px 0' }}><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()} - <strong>Salida:</strong> {new Date(r.salida).toLocaleDateString()}</p>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <p style={{ margin: 0 }}><strong>Debe:</strong> ${Number(r['Pago restante']).toLocaleString()}</p>
-                                    <span style={{
-                                        padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                        backgroundColor: r.estado_saldo === 'Aprobado' ? '#d1fae5' : r.estado_saldo === 'Rechazado' ? '#fee2e2' : r.estado_saldo === 'En revisión' ? '#fef08a' : '#f3f4f6',
-                                        color: r.estado_saldo === 'Aprobado' ? '#065f46' : r.estado_saldo === 'Rechazado' ? '#991b1b' : r.estado_saldo === 'En revisión' ? '#854d0e' : '#374151'
-                                    }}>
-                                        {r.estado_saldo === 'Aprobado' ? 'Confirmado' : r.estado_saldo === 'Rechazado' ? 'Cancelado' : r.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente'}
-                                    </span>
-                                </div>
-                                
-                                {r.estado_saldo !== 'Aprobado' && !r.comprobante_saldo_url && (
-                                    <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
-                                        <button 
-                                            className="btn btn-success btn-sm w-100"
-                                            onClick={() => handleAprobar(r.id)}
-                                        >
-                                            Pago Manual
-                                        </button>
-                                        <button 
-                                            className="btn btn-primary btn-sm w-100"
-                                            onClick={() => setSelectedReserva(r)}
-                                        >
-                                            Subir Foto
-                                        </button>
-                                    </div>
-                                )}
-                                
-                                {(r.comprobante_saldo_url || r.estado_saldo === 'Aprobado') && (
-                                    <button 
-                                        className="btn btn-secondary btn-sm mt-2 w-100"
-                                        onClick={() => setSelectedReserva(r)}
-                                    >
-                                        Ver Detalles / Cambiar
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <TablaGeneral
+                    data={mapSaldosData(saldos)}
+                    hiddenColumns={['id', 'comprobante_saldo_url', 'estado_saldo_raw', 'id_cabana', 'id_cliente', 'fecha', 'comprobante_url', 'comprobante_url1', 'estado_saldo', 'ninos', 'mascotas', 'Servicios adicionales', 'Pago restante', 'comprobante_pagado_url']}
+                    columnMapping={{}}
+                    acciones={[
+                        {
+                            title: "Subir Foto / Detalles",
+                            icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
+                            color: "#0dcaf0",
+                            onClick: (fila) => setSelectedReserva(fila)
+                        },
+                        {
+                            title: "Pago Manual",
+                            icono: <i className="bi bi-cash-coin" style={{ fontSize: '1.2rem' }}></i>,
+                            color: "#28a745",
+                            onClick: (fila) => handleAprobar(fila.id),
+                            condition: (fila) => fila.estado_saldo_raw !== 'Aprobado' && !fila.comprobante_saldo_url
+                        }
+                    ]}
+                />
             )}
 
             {selectedReserva && (
