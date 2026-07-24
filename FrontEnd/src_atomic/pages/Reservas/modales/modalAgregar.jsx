@@ -262,9 +262,15 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
 
       let data;
       try {
-        data = await response.json();
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch (jsonError) {
+          console.error("RAW RESPONSE ERROR:", response.status, text);
+          throw new Error(`Servidor devolvió formato inválido. Código: ${response.status}. (Ver consola)`);
+        }
       } catch (e) {
-        throw new Error('Error al leer la respuesta del servidor.');
+        throw new Error(e.message || 'Error al leer la respuesta del servidor.');
       }
 
       if (response.ok) {
