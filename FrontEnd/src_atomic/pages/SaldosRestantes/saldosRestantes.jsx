@@ -116,7 +116,13 @@ function SaldosRestantes() {
                                     <strong>Reserva #{r.id}</strong> | Celular: {r.Celular || 'N/A'}
                                 </p>
                                 <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0' }}><strong>Paquete:</strong> {r.paquete}</p>
-                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0' }}><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()} - <strong>Salida:</strong> {new Date(r.salida).toLocaleDateString()}</p>
+                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0', color: '#475569' }}>
+                                    Adultos: {r.adultos} | Niños: {r.ninos > 0 ? r.ninos : 'No'} | Mascotas: {r.mascotas > 0 ? r.mascotas : 'No'}
+                                </p>
+                                <p style={{ fontSize: '0.9rem', margin: '0 0 5px 0', color: '#475569' }}>
+                                    <strong>Servicios:</strong> {r['Servicios adicionales'] && r['Servicios adicionales'] !== 'Ninguno' ? r['Servicios adicionales'] : 'No'}
+                                </p>
+                                <p style={{ fontSize: '0.9rem', margin: '0 0 10px 0' }}><strong>Llegada:</strong> {new Date(r.llegada).toLocaleDateString()} - <strong>Salida:</strong> {new Date(r.salida).toLocaleDateString()}</p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <p style={{ margin: 0 }}><strong>Debe:</strong> ${Number(r['Pago restante']).toLocaleString()}</p>
                                     <span style={{
