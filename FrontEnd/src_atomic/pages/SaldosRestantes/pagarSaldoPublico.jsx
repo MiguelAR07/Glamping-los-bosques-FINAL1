@@ -101,7 +101,7 @@ function PagarSaldo() {
                     <p><strong>A nombre de:</strong> {reserva.cliente}</p>
                     <p><strong>Llegada:</strong> {new Date(reserva.llegada).toLocaleDateString()}</p>
                     <p style={{ fontSize: '1.2rem', color: '#dc2626', fontWeight: 'bold', marginTop: '10px' }}>
-                        Saldo Pendiente: ${Number(reserva['Pago restante']).toLocaleString('es-CO')}
+                        Saldo Pendiente: ${Number(reserva.por_pagar).toLocaleString('es-CO')}
                     </p>
                 </div>
 
