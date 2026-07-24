@@ -560,7 +560,7 @@ export const createReservation = async (req, res) => {
         });
     } catch (error) {
         await pool.query("ROLLBACK");
-        res.status(500).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
