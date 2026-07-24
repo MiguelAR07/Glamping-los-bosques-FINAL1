@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import styled from "styled-components";
 import BotonAgregar from "../../components/atoms/buttons/botonAgregar";
 import TablaGeneral from "../../components/organisms/tabla";
+import { formatColombianPeso } from "../../utils/formattersUtil";
 import ModalPlantilla from "../../components/organisms/Modales/modalPlantilla";
 
 const Form = styled.form`
@@ -75,7 +76,7 @@ function SaldosRestantes() {
             "Salida": new Date(item.salida).toLocaleDateString(),
             "Celular": item.celular || 'N/A',
             "Huéspedes": `${item.adultos || 0} Adultos, ${item.ninos || 0} Niños, ${item.mascotas || 0} Mascotas`,
-            "Debe": `$${Number(item['Pago restante'] || 0).toLocaleString()}`,
+            "Debe": `$${formatColombianPeso(item['Pago restante'])}`,
             "Estado Saldo": item.estado_saldo === 'Aprobado' ? 'Confirmado' : item.estado_saldo === 'Rechazado' ? 'Cancelado' : item.estado_saldo === 'En revisión' ? 'Revisión' : 'Pendiente',
             "comprobante": item.comprobante_saldo_url,
             "estado_saldo_raw": item.estado_saldo
@@ -351,7 +352,7 @@ function SaldosRestantes() {
                             >
                                 <option value="">-- Selecciona una reserva pendiente --</option>
                                 {saldos.filter(s => s.estado_saldo !== 'Aprobado').map(s => (
-                                    <option key={s.id} value={s.id}>Reserva #{s.id} - {s.cliente} (Debe: ${Number(s['Pago restante']).toLocaleString()})</option>
+                                    <option key={s.id} value={s.id}>Reserva #{s.id} - {s.cliente} (Debe: ${formatColombianPeso(s['Pago restante'])})</option>
                                 ))}
                             </select>
                         </div>

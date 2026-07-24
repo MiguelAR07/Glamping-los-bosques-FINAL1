@@ -2,6 +2,7 @@ import { useLocation, Link, Navigate } from "react-router-dom";
 import { CheckCircle2, UploadCloud, Calendar, MapPin, Users, Building2, Send } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useRef, useEffect } from "react";
+import { formatColombianPeso } from "../../utils/formattersUtil";
 
 /**
  * Página de Confirmación de Reserva
@@ -190,9 +191,9 @@ export function BookingConfirmation() {
               <h3 className="font-semibold text-stone-900 mb-3 text-sm uppercase tracking-wide">Total a Pagar Hoy</h3>
               <div className="flex justify-between items-end">
                 <span className="text-stone-500 text-sm">Anticipo (50%)</span>
-                <span className="text-3xl font-black text-emerald-700">${deposit.toLocaleString('es-CO')}</span>
+                <span className="text-3xl font-black text-emerald-700">${formatColombianPeso(deposit)}</span>
               </div>
-              <p className="text-xs text-stone-400 mt-2 text-right">Saldo restante: ${(total - deposit).toLocaleString('es-CO')}</p>
+              <p className="text-xs text-stone-400 mt-2 text-right">Saldo restante: ${formatColombianPeso(total - deposit)}</p>
             </div>
           </div>
 

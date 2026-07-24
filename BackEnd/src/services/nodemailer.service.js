@@ -3,6 +3,8 @@ import { getEmails } from '../models/notification.model.js';
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
+const formatCOP = (val) => Math.round(Number(val) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
 export const transporter = {
   sendMail: async (options) => {
     let toEmail = options.to;
@@ -147,16 +149,16 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
             <div style="margin-top: 24px; background: white; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: #4b5563; font-weight: 600;">TOTAL A PAGAR</span>
-                <span style="color: #059669; font-size: 24px; font-weight: 800;">$${Number(total).toLocaleString('es-CO')}</span>
+                <span style="color: #059669; font-size: 24px; font-weight: 800;">$${formatCOP(total)}</span>
               </div>
               <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <span style="color: #6b7280;">Abono pagado:</span>
-                  <span style="color: #374151;">$${Number(amountPaid).toLocaleString('es-CO')}</span>
+                  <span style="color: #374151;">$${formatCOP(amountPaid)}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                   <span style="color: #6b7280;">Saldo pendiente en Glamping:</span>
-                  <span style="color: #dc2626; font-weight: 600;">$${Number(pagoRestante).toLocaleString('es-CO')}</span>
+                  <span style="color: #dc2626; font-weight: 600;">$${formatCOP(pagoRestante)}</span>
                 </div>
               </div>
             </div>
@@ -166,9 +168,9 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
             ${pagoRestante > 0 ? `
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba;">
               <p style="margin: 0; color: #856404; text-align: left;">
-                <strong>⚠️ Importante:</strong> Tienes un saldo pendiente de <strong>$${pagoRestante.toLocaleString('es-CO')}</strong>.<br>
+                <strong>⚠️ Importante:</strong> Tienes un saldo pendiente de <strong>$${formatCOP(pagoRestante)}</strong>.<br>
                 Por favor, recuerda pagar este 50% restante antes de tu llegada a nuestras instalaciones.<br><br>
-                👉 <a href="https://panel.glampinglosbosques.com/pagar-saldo/${reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${pagoRestante.toLocaleString('es-CO')}</a>
+                👉 <a href="https://panel.glampinglosbosques.com/pagar-saldo/${reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${formatCOP(pagoRestante)}</a>
               </p>
             </div>
             ` : ''}

@@ -524,9 +524,9 @@ export const createReservation = async (req, res) => {
                                 <li>🏕️ <strong>Plan:</strong> ${planName}</li>
                                 <li>📅 <strong>Llegada:</strong> ${llegadaFormateada}</li>
                                 <li>📅 <strong>Salida:</strong> ${salidaFormateada}</li>
-                                <li>💰 <strong>Total de estadía:</strong> $${subtotal.toLocaleString('es-CO')}</li>
-                                <li>💰 <strong>Anticipo (50%):</strong> $${deposito.toLocaleString('es-CO')}</li>
-                                <li>💰 <strong>Saldo por pagar:</strong> $${porPagar.toLocaleString('es-CO')}</li>
+                                <li>💰 <strong>Total de estadía:</strong> $${(Number(subtotal) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
+                                <li>💰 <strong>Anticipo (50%):</strong> $${(Number(deposito) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
+                                <li>💰 <strong>Saldo por pagar:</strong> $${(Number(porPagar) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
                                 </ul>
                             </div>
                             

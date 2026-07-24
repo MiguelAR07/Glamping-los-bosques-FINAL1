@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { formatColombianPeso } from '../../utils/formattersUtil';
 
 function PagarSaldo() {
     const { id } = useParams();
@@ -107,7 +108,7 @@ function PagarSaldo() {
                     <p><strong>A nombre de:</strong> {reserva.cliente}</p>
                     <p><strong>Llegada:</strong> {new Date(reserva.llegada).toLocaleDateString()}</p>
                     <p style={{ fontSize: '1.2rem', color: isAlreadyDone ? '#059669' : '#dc2626', fontWeight: 'bold', marginTop: '10px' }}>
-                        {isAlreadyDone ? 'Estado del Saldo: En revisión / Saldado' : `Saldo Pendiente: $${Number(reserva.por_pagar).toLocaleString('es-CO')}`}
+                        {isAlreadyDone ? 'Estado del Saldo: En revisión / Saldado' : `Saldo Pendiente: $${formatColombianPeso(reserva.por_pagar)}`}
                     </p>
                 </div>
 

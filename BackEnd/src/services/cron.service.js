@@ -48,7 +48,7 @@ export const startCronJobs = () => {
                                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
                                     <h2 style="color: #059669; text-align: center;">Recordatorio de Pago</h2>
                                     <p>Hola <strong>${reserva.cliente_nombre}</strong>,</p>
-                                    <p>Te recordamos que tu estadía en Glamping Los Bosques está muy cerca. Tienes un saldo pendiente por pagar de <strong>$${Number(reserva.por_pagar).toLocaleString('es-CO')}</strong>.</p>
+                                    <p>Te recordamos que tu estadía en Glamping Los Bosques está muy cerca. Tienes un saldo pendiente por pagar de <strong>$${(Number(reserva.por_pagar) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>.</p>
                                     
                                     <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ffeeba;">
                                         <p style="margin: 0; color: #856404;">
