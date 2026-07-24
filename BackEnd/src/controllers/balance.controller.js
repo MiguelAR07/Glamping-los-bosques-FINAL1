@@ -15,7 +15,7 @@ export const getBalanceDetails = async (req, res) => {
         
         if (resData.rows.length === 0) return res.status(404).json({ message: "Reserva no encontrada" });
         
-        const accounts = await pool.query("SELECT * FROM cuentas_bancarias WHERE activa = true");
+        const accounts = await pool.query("SELECT * FROM cuentas_bancarias WHERE estado = true");
         
         res.json({
             reserva: resData.rows[0],
