@@ -116,6 +116,7 @@ export const activateReservation = async (req, res) => {
             const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
             
             const invoiceData = {
+              reservaId: id,
               facturaId: factura_id,
               clienteNombre: details.cliente,
               documento: details['Cédula'] || 'No registrado',
@@ -659,6 +660,7 @@ export const confirmReservationPayment = async (req, res) => {
                 const cabana = realData.cabana_nombre;
 
                 const invoiceData = {
+                    reservaId: id,
                     facturaId: factura_id,
                     clienteNombre: details.cliente,
                     documento: details['Cédula'] || 'No registrado',

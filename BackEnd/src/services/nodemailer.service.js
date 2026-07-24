@@ -98,7 +98,7 @@ export const sendVerificationCodeEmail = async (email, code) => {
 export const sendReservationConfirmedEmail = async (email, invoiceData) => {
   try {
     const { 
-      facturaId, clienteNombre, documento, cabana, plan, 
+      reservaId, facturaId, clienteNombre, documento, cabana, plan, 
       llegada, salida, huespedes, total, pagoRestante, amountPaid,
       adultos, ninos, mascotas
     } = invoiceData;
@@ -106,12 +106,12 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
     const response = await transporter.sendMail({
       from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
       to: email,
-      subject: `✅ ¡Tu reserva está confirmada! Factura #${facturaId}`,
+      subject: `✅ ¡Tu reserva está confirmada! Reserva #${reservaId}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
           <div style="background-color: #059669; padding: 32px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Factura #${facturaId}</h1>
-            <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 16px;">Detalles de la estadía y facturación</p>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Reserva #${reservaId}</h1>
+            <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 16px;">Detalles de la estadía y reserva</p>
           </div>
           
           <div style="padding: 32px; background-color: #fafaf9;">
@@ -168,7 +168,7 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
               <p style="margin: 0; color: #856404; text-align: left;">
                 <strong>⚠️ Importante:</strong> Tienes un saldo pendiente de <strong>$${pagoRestante.toLocaleString('es-CO')}</strong>.<br>
                 Por favor, recuerda pagar este 50% restante antes de tu llegada a nuestras instalaciones.<br><br>
-                👉 <a href="https://glampinglosbosques.com/pagar-saldo/${invoiceData.facturaId || invoiceData.reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${pagoRestante.toLocaleString('es-CO')}</a>
+                👉 <a href="https://panel-glamping-final1.vercel.app/pagar-saldo/${reservaId}" style="color: #155724; font-weight: bold; text-decoration: underline;">PAGAR RESTANTE $${pagoRestante.toLocaleString('es-CO')}</a>
               </p>
             </div>
             ` : ''}
