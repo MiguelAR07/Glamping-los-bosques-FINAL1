@@ -7,6 +7,8 @@ function SaldosRestantes() {
     const [saldos, setSaldos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedReserva, setSelectedReserva] = useState(null);
+    const [adminFile, setAdminFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     const token = localStorage.getItem("token");
 
@@ -78,16 +80,47 @@ function SaldosRestantes() {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (response.ok) {
-                    Swal.fire('Rechazado', 'El comprobante ha sido rechazado.', 'success');
-                    setSelectedReserva(null);
+                    Swal.fire('Cancelado', 'El pago ha sido marcado como cancelado/pendiente.', 'success');
                     fetchSaldos();
-                } else {
-                    Swal.fire('Error', 'No se pudo rechazar', 'error');
+                    setSelectedReserva(null);
                 }
             } catch (error) {
-                Swal.fire('Error', 'Error de red', 'error');
+                console.error("Error rejecting:", error);
             }
+        }
+    };
+
+    const handleAdminUpload = async (id) => {
+        if (!adminFile) {
+            Swal.fire('Atención', 'Debes seleccionar un archivo.', 'warning');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('comprobante', adminFile);
+
+        setUploading(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/balance/upload/${id}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                Swal.fire('¡Éxito!', 'Comprobante subido manualmente.', 'success');
+                setAdminFile(null);
+                setSelectedReserva(null);
+                fetchSaldos();
+            } else {
+                Swal.fire('Error', 'No se pudo subir el comprobante.', 'error');
+            }
+        } catch (error) {
+            console.error("Error uploading:", error);
+            Swal.fire('Error', 'Problema de conexión.', 'error');
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -163,15 +196,40 @@ function SaldosRestantes() {
                                 style={{ width: '100%', height: 'auto', margin: '20px 0', borderRadius: '5px' }} 
                             />
                         ) : (
-                            <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', margin: '20px 0' }}>
-                                <p style={{ margin: 0, color: '#64748b' }}>El cliente aún no ha subido comprobante de pago.</p>
-                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '5px' }}>Puedes confirmar el pago manualmente si recibiste el dinero por otro medio.</p>
+                            <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', margin: '20px 0' }}>
+                                <p style={{ margin: 0, color: '#64748b', marginBottom: '15px' }}>El cliente aún no ha subido comprobante de pago.</p>
+                                
+                                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '15px', marginBottom: '15px' }}>
+                                    <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '10px', fontWeight: 'bold' }}>Opción 1: Subir comprobante por el cliente</p>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*,application/pdf"
+                                        onChange={(e) => setAdminFile(e.target.files[0])}
+                                        style={{ width: '100%', padding: '5px', marginBottom: '10px', border: '1px solid #cbd5e1', borderRadius: '5px' }}
+                                    />
+                                    <button 
+                                        className="btn btn-primary btn-sm w-100" 
+                                        disabled={!adminFile || uploading}
+                                        onClick={() => handleAdminUpload(selectedReserva.id)}
+                                    >
+                                        {uploading ? 'Subiendo...' : 'Montar Comprobante'}
+                                    </button>
+                                </div>
+                                
+                                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
+                                    <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '10px', fontWeight: 'bold' }}>Opción 2: Confirmar pago manual (Efectivo)</p>
+                                    <button className="btn btn-success btn-sm w-100" onClick={() => handleAprobar(selectedReserva.id)}>
+                                        Marcar como pagado (Efectivo / Otro medio)
+                                    </button>
+                                </div>
                             </div>
                         )}
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
                             <button className="btn btn-secondary" onClick={() => setSelectedReserva(null)}>Cerrar</button>
                             <button className="btn btn-warning" onClick={() => handleRechazar(selectedReserva.id)}>Pendiente (Cancelar)</button>
-                            <button className="btn btn-success" onClick={() => handleAprobar(selectedReserva.id)}>Confirmar</button>
+                            {selectedReserva.comprobante_saldo_url && (
+                                <button className="btn btn-success" onClick={() => handleAprobar(selectedReserva.id)}>Confirmar Pago</button>
+                            )}
                         </div>
                     </div>
                 </div>
