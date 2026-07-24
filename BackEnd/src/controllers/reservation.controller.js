@@ -448,19 +448,19 @@ export const createReservation = async (req, res) => {
             reserva.salida,     // $2
             nuevo_cliente_id,    // $3
             nuevo_paquete_id,    // $4
-            reserva.por_pagar,   // $5
+            reserva.por_pagar === "" || reserva.por_pagar === undefined ? 0 : reserva.por_pagar,   // $5
             facturaUrl,          // $6
-            reserva.adultos !== undefined ? reserva.adultos : 2, // $7
-            reserva.ninos || 0,   // $8
-            reserva.mascotas || 0 // $9
+            reserva.adultos === "" || reserva.adultos === undefined ? 2 : reserva.adultos, // $7
+            reserva.ninos === "" || reserva.ninos === undefined ? 0 : reserva.ninos,   // $8
+            reserva.mascotas === "" || reserva.mascotas === undefined ? 0 : reserva.mascotas // $9
         ])
 
         if (reservationResult.rowCount === 0) throw new Error("El paquete seleccionado no existe o no está activo.");
         const nueva_reserva_id = reservationResult.rows[0].reserva_id;
 
         const invoiceResult = await pool.query(invoice.createInvoice, [
-            factura.subtotal,        // $1
-            factura.descuento || 0,  // $2
+            factura.subtotal === "" || factura.subtotal === undefined ? 0 : factura.subtotal,        // $1
+            factura.descuento === "" || factura.descuento === undefined ? 0 : factura.descuento,  // $2
             nueva_reserva_id         // $3
         ]);
 
