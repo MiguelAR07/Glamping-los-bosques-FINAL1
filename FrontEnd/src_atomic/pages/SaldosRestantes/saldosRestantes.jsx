@@ -271,12 +271,6 @@ function SaldosRestantes() {
                             condition: (fila) => fila.estado_saldo_raw !== 'Aprobado'
                         },
                         {
-                            title: "Ver Comprobante",
-                            icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
-                            color: "#0dcaf0",
-                            onClick: (fila) => setSelectedReserva(fila)
-                        },
-                        {
                             title: "Cancelar",
                             icono: <i className="bi bi-x-circle-fill" style={{ fontSize: '1.2rem' }}></i>,
                             color: "#dc3545",
