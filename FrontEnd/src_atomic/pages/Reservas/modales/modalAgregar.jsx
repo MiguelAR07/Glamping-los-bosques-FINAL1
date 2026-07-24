@@ -254,7 +254,12 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         body: submitData
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error('Error al leer la respuesta del servidor.');
+      }
 
       if (response.ok) {
         Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva creada exitosamente y correo enviado al cliente.' });
@@ -262,11 +267,11 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         window.dispatchEvent(new Event('forceNotificationCheck'));
         setModalAbierto(false);
       } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data.error || data.message || 'Error desconocido'}` });
+        Swal.fire({ icon: 'error', title: 'Error', text: `Error al crear la reserva: ${data?.error || data?.message || 'Error desconocido'}` });
       }
     } catch (error) {
       console.error(error);
-      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Ocurrió un error al procesar la solicitud (revisa la consola para más detalles).' });
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: error.message || 'Ocurrió un error al procesar la solicitud (revisa la consola para más detalles).' });
     } finally {
       setLoading(false);
     }
@@ -337,24 +342,19 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
 
         <FormGroup>
           <label>Adultos / Personas</label>
-          <input required type="number" min="1" value={formData.reserva.adultos} onChange={(e) => handleChange('reserva', 'adultos', parseInt(e.target.value))} />
+          <input required type="number" min="1" value={formData.reserva.adultos} onChange={(e) => handleChange('reserva', 'adultos', parseInt(e.target.value) || 0)} />
         </FormGroup>
 
         <FormGroup>
           <label>Niños (-3 años)</label>
-          <input required type="number" min="0" value={formData.reserva.ninos} onChange={(e) => handleChange('reserva', 'ninos', parseInt(e.target.value))} />
+          <input required type="number" min="0" value={formData.reserva.ninos} onChange={(e) => handleChange('reserva', 'ninos', parseInt(e.target.value) || 0)} />
         </FormGroup>
 
         <FormGroup>
           <label>Mascotas</label>
-          <input required type="number" min="0" value={formData.reserva.mascotas} onChange={(e) => handleChange('reserva', 'mascotas', parseInt(e.target.value))} />
+          <input required type="number" min="0" value={formData.reserva.mascotas} onChange={(e) => handleChange('reserva', 'mascotas', parseInt(e.target.value) || 0)} />
         </FormGroup>
         
-        <FormGroup>
-          <label>Fecha de Salida</label>
-          <input required type="date" min={formData.reserva.llegada} value={formData.reserva.salida} onChange={(e) => handleChange('reserva', 'salida', e.target.value)} />
-        </FormGroup>
-
         <FormGroup>
           <label>Hora de Entrada</label>
           <input required type="time" value={horasReserva.entrada} onChange={(e) => setHorasReserva(p => ({ ...p, entrada: e.target.value }))} />
