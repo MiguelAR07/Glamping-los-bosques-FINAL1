@@ -2,6 +2,50 @@
 // WHATSAPP_TOKEN
 // WHATSAPP_PHONE_ID
 
+export const sendBalanceApprovedWhatsApp = async (telefono, clienteNombre) => {
+  try {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_ID;
+    const cleanPhone = String(telefono || '').replace(/\D/g, '');
+
+    if (!token || !phoneId) {
+      console.warn("⚠️ Meta WhatsApp API no está configurada. Simulación WSP SALDO APROBADO a " + cleanPhone + ": Hola " + clienteNombre + ", el pago de tu saldo ha sido validado.");
+      return;
+    }
+
+    const url = `https://graph.facebook.com/v19.0/${phoneId}/messages`;
+    
+    const body = {
+      messaging_product: "whatsapp",
+      to: cleanPhone,
+      type: "text",
+      text: {
+        body: `¡Hola ${clienteNombre}! 🎉 Hemos validado exitosamente el pago de tu saldo pendiente (50% restante). ¡Tu reserva en Glamping Los Bosques está completamente pagada! Te esperamos pronto.`
+      }
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(`✅ WhatsApp de saldo aprobado enviado a ${cleanPhone} (Message ID: ${data.messages?.[0]?.id})`);
+    } else {
+      console.error(`❌ Error de la API de Meta WhatsApp:`, data);
+    }
+  } catch (error) {
+    console.error('❌ Error ejecutando envío de WhatsApp de saldo aprobado:', error);
+  }
+};
+
 export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) => {
   try {
     const token = process.env.WHATSAPP_TOKEN;

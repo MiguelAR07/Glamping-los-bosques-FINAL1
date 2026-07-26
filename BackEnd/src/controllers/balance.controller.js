@@ -1,5 +1,6 @@
 import pool from '../config/db.js';
 import { sendAdminNotificationEmail } from '../services/nodemailer.service.js';
+import { sendBalanceApprovedWhatsApp } from '../services/whatsapp.service.js';
 
 export const getBalanceDetails = async (req, res) => {
     try {
@@ -91,10 +92,17 @@ export const approveBalance = async (req, res) => {
         const { id } = req.params;
         await pool.query("BEGIN");
         
-        const resData = await pool.query("SELECT por_pagar FROM reservas WHERE reserva_id = $1", [id]);
+        const resData = await pool.query(`
+            SELECT r.por_pagar, c.nombre, c.contacto 
+            FROM reservas r 
+            JOIN clientes c ON r.cliente_id = c.cliente_id 
+            WHERE r.reserva_id = $1
+        `, [id]);
         if (resData.rows.length === 0) throw new Error("Reserva no encontrada");
         
         const amountPaid = resData.rows[0].por_pagar;
+        const clienteNombre = resData.rows[0].nombre;
+        const clienteContacto = resData.rows[0].contacto;
         
         await pool.query(
             "UPDATE reservas SET por_pagar = 0, estado_saldo = 'Aprobado' WHERE reserva_id = $1",
@@ -116,6 +124,10 @@ export const approveBalance = async (req, res) => {
         }
         
         await pool.query("COMMIT");
+        
+        // Enviar WhatsApp en segundo plano
+        sendBalanceApprovedWhatsApp(clienteContacto, clienteNombre).catch(console.error);
+        
         res.json({ message: "Pago de saldo aprobado" });
     } catch (error) {
         await pool.query("ROLLBACK");
