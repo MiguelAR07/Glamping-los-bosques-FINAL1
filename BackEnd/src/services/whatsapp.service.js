@@ -1,6 +1,7 @@
 // Se deben configurar estas variables de entorno en el panel de alojamiento (Render, etc.):
 // WHATSAPP_TOKEN
 // WHATSAPP_PHONE_ID
+// WHATSAPP_ADMIN_PHONE
 
 export const sendBalanceApprovedWhatsApp = async (telefono, clienteNombre) => {
   try {
@@ -18,9 +19,18 @@ export const sendBalanceApprovedWhatsApp = async (telefono, clienteNombre) => {
     const body = {
       messaging_product: "whatsapp",
       to: cleanPhone,
-      type: "text",
-      text: {
-        body: `¡Hola ${clienteNombre}! 🎉 Hemos validado exitosamente el pago de tu saldo pendiente (50% restante). ¡Tu reserva en Glamping Los Bosques está completamente pagada! Te esperamos pronto.`
+      type: "template",
+      template: {
+        name: "saldo_aprobado",
+        language: { code: "es" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clienteNombre || "Cliente" }
+            ]
+          }
+        ]
       }
     };
 
@@ -50,9 +60,6 @@ export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) 
   try {
     const token = process.env.WHATSAPP_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
-
-    // Asegurarnos de que el teléfono tenga el formato correcto (solo números)
-    // Usualmente Meta requiere el código de país sin el símbolo '+'. Ej: 573001234567
     const cleanPhone = String(telefono || '').replace(/\D/g, '');
 
     if (!token || !phoneId) {
@@ -62,14 +69,21 @@ export const sendReservationConfirmedWhatsApp = async (telefono, clienteNombre) 
 
     const url = `https://graph.facebook.com/v19.0/${phoneId}/messages`;
     
-    // Usaremos un mensaje de texto libre por ahora. 
-    // Nota: Para enviar mensajes a clientes fuera de la ventana de 24 horas, debes usar un "template" aprobado por Meta.
     const body = {
       messaging_product: "whatsapp",
       to: cleanPhone,
-      type: "text",
-      text: {
-        body: `¡Hola ${clienteNombre}! 🎉 Tu comprobante de pago ha sido validado exitosamente. Tu reserva en Glamping Los Bosques está 100% confirmada. ¡Te esperamos!`
+      type: "template",
+      template: {
+        name: "reserva_confirmada",
+        language: { code: "es" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clienteNombre || "Cliente" }
+            ]
+          }
+        ]
       }
     };
 
@@ -99,7 +113,7 @@ export const sendAdminNotificationWhatsApp = async (clienteNombre, llegadaFormat
   try {
     const token = process.env.WHATSAPP_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
-    const adminPhone = process.env.WHATSAPP_ADMIN_PHONE; // Deben configurar esto
+    const adminPhone = process.env.WHATSAPP_ADMIN_PHONE;
 
     const cleanPhone = String(adminPhone || '').replace(/\D/g, '');
 
@@ -113,9 +127,18 @@ export const sendAdminNotificationWhatsApp = async (clienteNombre, llegadaFormat
     const body = {
       messaging_product: "whatsapp",
       to: cleanPhone,
-      type: "text",
-      text: {
-        body: `🔔 *NUEVA RESERVA CONFIRMADA*\n\nSe acaba de confirmar exitosamente el pago y la reserva de *${clienteNombre}*.\n\n📅 Llegada: ${llegadaFormateada}\n📅 Salida: ${salidaFormateada}\n\nPor favor, verifica el panel de control para más detalles.`
+      type: "template",
+      template: {
+        name: "nueva_reserva_admin",
+        language: { code: "es" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clienteNombre || "Cliente" }
+            ]
+          }
+        ]
       }
     };
 
@@ -158,9 +181,19 @@ export const sendReservationRejectedWhatsApp = async (telefono, clienteNombre, m
     const body = {
       messaging_product: "whatsapp",
       to: cleanPhone,
-      type: "text",
-      text: {
-        body: `Hola ${clienteNombre}. Hemos revisado tu comprobante de pago pero hemos tenido un problema. Tu reserva ha sido rechazada por el siguiente motivo: ${motivo}. Por favor, contáctanos lo más pronto posible para solucionarlo.`
+      type: "template",
+      template: {
+        name: "reserva_rechazada",
+        language: { code: "es" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clienteNombre || "Cliente" },
+              { type: "text", text: motivo || "No especificado" }
+            ]
+          }
+        ]
       }
     };
 
@@ -203,9 +236,20 @@ export const sendRescheduleWhatsApp = async (telefono, clienteNombre, llegada, s
     const body = {
       messaging_product: "whatsapp",
       to: cleanPhone,
-      type: "text",
-      text: {
-        body: `¡Hola ${clienteNombre}! 📅 Te confirmamos que tu reserva en Glamping Los Bosques ha sido reprogramada con éxito. Tus nuevas fechas son:\n\nLlegada: ${llegada}\nSalida: ${salida}\n\n¡Te esperamos con los brazos abiertos!`
+      type: "template",
+      template: {
+        name: "reserva_reprogramada",
+        language: { code: "es" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: clienteNombre || "Cliente" },
+              { type: "text", text: llegada || "" },
+              { type: "text", text: salida || "" }
+            ]
+          }
+        ]
       }
     };
 
