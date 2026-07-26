@@ -454,6 +454,7 @@ function Reservas({ modulo }) {
         'Hora Salida': formatTimeOnly(r.salida),
         'Servicios': r["Servicios adicionales"] && r["Servicios adicionales"].trim() !== "" ? r["Servicios adicionales"] : "Ninguno",
         'Huéspedes': `${r.adultos || 0} Adultos, ${r.ninos || 0} Niños, ${r.mascotas || 0} Mascotas`,
+        estado: r.estado,
         'Estado': r.estado,
         'Total Restante': r["Pago restante"]
       };
