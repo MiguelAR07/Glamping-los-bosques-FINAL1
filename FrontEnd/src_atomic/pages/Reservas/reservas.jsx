@@ -604,7 +604,7 @@ function Reservas({ modulo }) {
                 icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#ffc107",
                 onClick: verComprobante,
-                condition: (fila) => fila.comprobante_url != null
+                condition: (fila) => fila.comprobante_url && fila.comprobante_url.trim() !== ""
               },
               {
                 title: "Reprogramar Reserva",
@@ -662,7 +662,7 @@ function Reservas({ modulo }) {
                     icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
                     color: "#ffc107",
                     onClick: verComprobante,
-                    condition: (fila) => fila.comprobante_url != null
+                    condition: (fila) => fila.comprobante_url && fila.comprobante_url.trim() !== ""
                   }
                 ]}
               />

@@ -464,6 +464,21 @@ export const createReservation = async (req, res) => {
             nueva_reserva_id         // $3
         ]);
 
+        const f_sub = Number(factura.subtotal) || 0;
+        const f_desc = Number(factura.descuento) || 0;
+        const r_por_pagar = Number(reserva.por_pagar) || 0;
+        const amountPaid = f_sub * (1 - f_desc / 100.0) - r_por_pagar;
+
+        if (amountPaid > 0 && invoiceResult.rows.length > 0) {
+            const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
+            const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
+            
+            await pool.query(
+                "INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Agregado Manual', $3)",
+                [invoiceResult.rows[0].factura_id, metodo_id, amountPaid]
+            );
+        }
+
         const planName = paquete?.nombre || 'Reserva Glamping';
         const tituloNotificacion = "¡Nueva Reserva Manual!";
         const asuntoNotificacion = `Reserva manual de ${cliente.nombre}`;

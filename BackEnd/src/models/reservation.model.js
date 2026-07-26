@@ -20,7 +20,7 @@ export const reservation = {
         CURRENT_TIMESTAMP,
         $1, -- llegada
         $2, -- salida
-        'Por validar',
+        'Confirmada',
         $5, -- por_pagar
         $6, -- factura_url, comprobante de pago
         $7, -- adultos
