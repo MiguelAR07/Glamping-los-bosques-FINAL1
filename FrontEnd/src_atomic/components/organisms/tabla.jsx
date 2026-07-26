@@ -32,16 +32,21 @@ const Table = styled.table`
   th, td{
     padding: 12px 10px;
     text-align: left;
+    font-size: 0.85rem;
+  }
+
+  td {
     max-width: 280px;
     white-space: normal;
     word-break: break-word;
-    font-size: 0.85rem;
   }
 
   th {
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    white-space: nowrap;
+    word-break: keep-all;
   }
 
   thead{
