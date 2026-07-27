@@ -509,6 +509,10 @@ export const createReservation = async (req, res) => {
                 const llegadaFormateada = new Date(reserva.llegada).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
                 const salidaFormateada = new Date(reserva.salida).toLocaleString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
 
+                const vistaResInfo = await pool.query('SELECT "Servicios adicionales" FROM vista_reservas WHERE id = $1', [nueva_reserva_id]);
+                const servAds = vistaResInfo.rows[0] ? vistaResInfo.rows[0]['Servicios adicionales'] : '';
+
+
                 // Correo al administrador
                 await transporter.sendMail({
                     from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
@@ -525,6 +529,7 @@ export const createReservation = async (req, res) => {
                                <li><strong>Personas adicionales (mayores a 3 años):</strong> ${Math.max(0, (reserva.adultos || 2) - 2)}</li>
                                <li><strong>Niños menores a 3 años:</strong> ${reserva.ninos || 0}</li>
                                <li><strong>Mascotas:</strong> ${reserva.mascotas || 0}</li>
+                               <li><strong>Servicios adicionales:</strong> ${servAds || 'Ninguno'}</li>
                                <li><strong>Llegada:</strong> ${llegadaFormateada}</li>
                                <li><strong>Salida:</strong> ${salidaFormateada}</li>
                            </ul>
@@ -556,6 +561,7 @@ export const createReservation = async (req, res) => {
                                 <li>👥 <strong>Personas adicionales (mayores a 3 años):</strong> ${Math.max(0, (reserva.adultos || 2) - 2)}</li>
                                 <li>👶 <strong>Niños menores a 3 años:</strong> ${reserva.ninos || 0}</li>
                                 <li>🐾 <strong>Mascotas:</strong> ${reserva.mascotas || 0}</li>
+                                <li>👥 <strong>Servicios adicionales:</strong> ${servAds || 'Ninguno'}</li>
                                 <li>💰 <strong>Total de estadía:</strong> $${(Number(subtotal) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
                                 <li>💰 <strong>Anticipo (50%):</strong> $${(Number(deposito) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
                                 <li>💰 <strong>Saldo por pagar:</strong> $${(Number(porPagar) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
