@@ -353,7 +353,10 @@ export default function ModalFactura({ factura, setModalAbierto }) {
                   <p style={{ margin: 0, fontWeight: 'bold' }}>⚠️ Importante: Saldo Pendiente</p>
                   <p style={{ margin: '4px 0 0 0' }}>
                     Recuerda pagar el 50% restante (<strong>{formatMoney(Number(details['Pago restante']))}</strong>) antes de estar en nuestras instalaciones. 
-                    Puedes hacerlo a través del <strong>enlace que fue enviado a tu correo en la factura de confirmación</strong>.
+                    Puedes hacerlo a través del siguiente enlace: <br/>
+                    <a href={`https://panel.glampinglosbosques.com/pagar-saldo/${factura.id || details.id}`} target="_blank" rel="noreferrer" style={{ color: '#155724', fontWeight: 'bold', textDecoration: 'underline', marginTop: '8px', display: 'inline-block' }}>
+                      PAGAR RESTANTE {formatMoney(Number(details['Pago restante']))}
+                    </a>
                   </p>
                 </div>
               )}
