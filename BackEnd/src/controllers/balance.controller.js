@@ -56,38 +56,35 @@ export const uploadBalanceReceipt = async (req, res) => {
             "UPDATE reservas SET comprobante_saldo_url = $1, estado_saldo = 'En revisión' WHERE reserva_id = $2",
             [fileUrl, id]
         );
-        
-        const resData = await pool.query(`
-            SELECT c.nombre, c.contacto, c.email, r.llegada, r.salida, r.por_pagar, f.factura_id,
-                   cb.nombre as cabana_nombre, tp.nombre as tipo_plan, p.nombre as paquete_nombre,
-                   f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid,
-                   r.adultos, r.ninos, r.mascotas, vr."Servicios adicionales", vr."Cédula"
-            FROM reservas r 
-            JOIN clientes c ON r.cliente_id = c.cliente_id 
-            LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
-            JOIN paquetes p ON r.paquete_id = p.paquete_id
-            JOIN cabanas cb ON p.cabana_id = cb.cabana_id
-            JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id
-            LEFT JOIN vista_reservas vr ON r.reserva_id = vr.id
-            WHERE r.reserva_id = $1
+        const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
+        const extraRes = await pool.query(`
+            SELECT f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid
+            FROM reservas r LEFT JOIN facturas f ON r.reserva_id = f.reserva_id WHERE r.reserva_id = $1
         `, [id]);
         
-        if (resData.rows.length > 0) {
-            const data = resData.rows[0];
+        if (vistaRes.rows.length > 0 && extraRes.rows.length > 0) {
+            const data = vistaRes.rows[0];
+            const extra = extraRes.rows[0];
             const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
+            
+            const paqueteCompleto = data.paquete || '';
+            const planParts = paqueteCompleto.split(' - ');
+            const plan = planParts.length > 1 ? planParts[0] : (paqueteCompleto || 'Plan');
+            const cabana = planParts.length > 1 ? planParts[1] : 'Cabaña';
+
             const invoiceData = {
                 reservaId: id,
                 facturaId: data.factura_id,
-                clienteNombre: data.nombre,
+                clienteNombre: data.cliente,
                 documento: data["Cédula"] || 'No registrado',
-                cabana: data.cabana_nombre,
-                plan: `${data.tipo_plan} - ${data.paquete_nombre}`,
+                cabana: cabana,
+                plan: plan,
                 llegada: formatDate(data.llegada),
                 salida: formatDate(data.salida),
                 huespedes: data["Servicios adicionales"] || 'A confirmar',
-                total: (Number(data.subtotal) || 0) - (Number(data.descuento) || 0),
-                pagoRestante: Number(data.por_pagar),
-                amountPaid: Number(data.amountpaid) || 0,
+                total: (Number(extra.subtotal) || 0) - (Number(extra.descuento) || 0),
+                pagoRestante: Number(data["Pago restante"]),
+                amountPaid: Number(extra.amountpaid) || 0,
                 adultos: data.adultos,
                 ninos: data.ninos,
                 mascotas: data.mascotas
@@ -121,27 +118,21 @@ export const approveBalance = async (req, res) => {
         const { id } = req.params;
         await pool.query("BEGIN");
         
-        const resData = await pool.query(`
-            SELECT r.por_pagar, c.nombre, c.contacto, c.email, r.llegada, r.salida, f.factura_id,
-                   cb.nombre as cabana_nombre, tp.nombre as tipo_plan, p.nombre as paquete_nombre,
-                   f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid,
-                   r.adultos, r.ninos, r.mascotas, vr."Servicios adicionales", vr."Cédula"
-            FROM reservas r 
-            JOIN clientes c ON r.cliente_id = c.cliente_id 
-            LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
-            JOIN paquetes p ON r.paquete_id = p.paquete_id
-            JOIN cabanas cb ON p.cabana_id = cb.cabana_id
-            JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id
-            LEFT JOIN vista_reservas vr ON r.reserva_id = vr.id
-            WHERE r.reserva_id = $1
-        `, [id]);
-        if (resData.rows.length === 0) throw new Error("Reserva no encontrada");
+        const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
+        if (vistaRes.rows.length === 0) throw new Error("Reserva no encontrada");
         
-        const data = resData.rows[0];
-        const amountPaid = data.por_pagar;
-        const clienteNombre = data.nombre;
-        const clienteContacto = data.contacto;
-        const clienteEmail = data.email;
+        const data = vistaRes.rows[0];
+        
+        const extraRes = await pool.query(`
+            SELECT f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid, r.por_pagar, c.contacto, c.email
+            FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id LEFT JOIN facturas f ON r.reserva_id = f.reserva_id WHERE r.reserva_id = $1
+        `, [id]);
+        
+        const extra = extraRes.rows[0];
+        const amountPaid = extra.por_pagar;
+        const clienteNombre = data.cliente;
+        const clienteContacto = extra.contacto;
+        const clienteEmail = extra.email;
         
         await pool.query(
             "UPDATE reservas SET por_pagar = 0, estado_saldo = 'Aprobado' WHERE reserva_id = $1",
@@ -168,18 +159,24 @@ export const approveBalance = async (req, res) => {
         // Enviar Email de factura final al cliente con saldo en 0
         if (clienteEmail) {
             const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
-            const newAmountPaid = (Number(data.amountpaid) || 0) + Number(amountPaid);
+            const newAmountPaid = (Number(extra.amountpaid) || 0) + Number(amountPaid);
+            
+            const paqueteCompleto = data.paquete || '';
+            const planParts = paqueteCompleto.split(' - ');
+            const plan = planParts.length > 1 ? planParts[0] : (paqueteCompleto || 'Plan');
+            const cabana = planParts.length > 1 ? planParts[1] : 'Cabaña';
+
             const invoiceData = {
                 reservaId: id,
                 facturaId: data.factura_id,
-                clienteNombre: data.nombre,
+                clienteNombre: data.cliente,
                 documento: data["Cédula"] || 'No registrado',
-                cabana: data.cabana_nombre,
-                plan: `${data.tipo_plan} - ${data.paquete_nombre}`,
+                cabana: cabana,
+                plan: plan,
                 llegada: formatDate(data.llegada),
                 salida: formatDate(data.salida),
                 huespedes: data["Servicios adicionales"] || 'A confirmar',
-                total: (Number(data.subtotal) || 0) - (Number(data.descuento) || 0),
+                total: (Number(extra.subtotal) || 0) - (Number(extra.descuento) || 0),
                 pagoRestante: 0, // El saldo ya fue aprobado
                 amountPaid: newAmountPaid,
                 adultos: data.adultos,
