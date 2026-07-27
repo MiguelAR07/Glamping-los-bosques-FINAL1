@@ -377,11 +377,12 @@ export const getReservationStats = async (req, res) => {
 
 export const createReservation = async (req, res) => {
     try {
-        let { cliente, reserva, factura, paquete } = req.body;
+        let { cliente, reserva, factura, paquete, servicios } = req.body;
         if (typeof cliente === "string") cliente = JSON.parse(cliente);
         if (typeof reserva === "string") reserva = JSON.parse(reserva);
         if (typeof factura === "string") factura = JSON.parse(factura);
         if (typeof paquete === "string") paquete = JSON.parse(paquete);
+        if (typeof servicios === "string") servicios = JSON.parse(servicios);
         
         await pool.query("BEGIN");
 
@@ -408,6 +409,17 @@ export const createReservation = async (req, res) => {
 
             if (packageResult.rowCount === 0) throw new Error("No se pudo crear el paquete.");
             nuevo_paquete_id = packageResult.rows[0].paquete_id;
+
+            // --- Guardar Servicios Adicionales ---
+            if (servicios && Array.isArray(servicios) && servicios.length > 0) {
+                for (let s of servicios) {
+                    await pool.query(
+                        "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                        [nuevo_paquete_id, s.servicio_id, s.cantidad_personas || 1]
+                    );
+                }
+            }
+            // -------------------------------------
         } else if (reserva && reserva.paquete_id) {
             nuevo_paquete_id = reserva.paquete_id;
             const pkgInfo = await pool.query("SELECT cabana_id, tipo AS nombre FROM vista_paquetes WHERE id = $1", [nuevo_paquete_id]);
