@@ -243,7 +243,11 @@ export const sendBalanceAdminNotificationEmail = async (invoiceData) => {
               <li>🛖 <strong>Cabaña:</strong> ${cabana}</li>
               <li>🏕️ <strong>Plan:</strong> ${plan}</li>
               <li>📅 <strong>Fechas:</strong> ${llegada} - ${salida}</li>
-              <li>👥 <strong>Huéspedes extras:</strong> ${huespedes}</li>
+              <li>👥 <strong>Adultos (Base):</strong> ${Math.min(2, adultos)}</li>
+              <li>👥 <strong>Personas adicionales (mayores a 3 años):</strong> ${Math.max(0, adultos - 2)}</li>
+              <li>👶 <strong>Niños menores a 3 años:</strong> ${ninos}</li>
+              <li>🐾 <strong>Mascotas:</strong> ${mascotas}</li>
+              <li>👥 <strong>Servicios extras:</strong> ${huespedes}</li>
             </ul>
           </div>
           <p style="text-align: center;">Por favor, entra al panel de control para revisar el comprobante y aprobar el saldo.</p>

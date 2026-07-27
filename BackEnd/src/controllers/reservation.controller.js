@@ -544,7 +544,7 @@ export const createReservation = async (req, res) => {
                         html: `
                             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
                             <h1 style="color: #059669; text-align: center;">¡Gracias por tu reserva, ${cliente.nombre}!</h1>
-                            <p>Hemos registrado manualmente tu reserva con éxito. Por favor, asegúrate de subir tu comprobante de pago para que un administrador pueda confirmar tu estadía.</p>
+                            <p>Hemos registrado tu reserva con éxito. Por favor, asegúrate de subir tu comprobante de pago para que un administrador pueda confirmar tu estadía.</p>
                             
                             <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
                                 <h3 style="margin-top: 0; color: #166534;">Tus Detalles de Reserva:</h3>
@@ -552,6 +552,10 @@ export const createReservation = async (req, res) => {
                                 <li>🏕️ <strong>Plan:</strong> ${planName}</li>
                                 <li>📅 <strong>Llegada:</strong> ${llegadaFormateada}</li>
                                 <li>📅 <strong>Salida:</strong> ${salidaFormateada}</li>
+                                <li>👥 <strong>Adultos (Base):</strong> ${Math.min(2, reserva.adultos || 2)}</li>
+                                <li>👥 <strong>Personas adicionales (mayores a 3 años):</strong> ${Math.max(0, (reserva.adultos || 2) - 2)}</li>
+                                <li>👶 <strong>Niños menores a 3 años:</strong> ${reserva.ninos || 0}</li>
+                                <li>🐾 <strong>Mascotas:</strong> ${reserva.mascotas || 0}</li>
                                 <li>💰 <strong>Total de estadía:</strong> $${(Number(subtotal) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
                                 <li>💰 <strong>Anticipo (50%):</strong> $${(Number(deposito) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
                                 <li>💰 <strong>Saldo por pagar:</strong> $${(Number(porPagar) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</li>
