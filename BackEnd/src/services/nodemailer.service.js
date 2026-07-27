@@ -215,6 +215,34 @@ export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida,
   }
 };
 
+export const sendBalanceAdminNotificationEmail = async (clienteNombre, reservaId, facturaId, pagoRestante) => {
+  try {
+    const formatCOP = (num) => new Intl.NumberFormat('es-CO').format(Number(num));
+    
+    await transporter.sendMail({
+      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
+      subject: `🔔 Comprobante de Saldo Subido (Reserva #${reservaId})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h1 style="color: #0284c7; text-align: center;">Comprobante de Saldo Recibido</h1>
+          <p>El cliente <strong>${clienteNombre}</strong> ha subido un nuevo comprobante para pagar el saldo restante de su reserva.</p>
+          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #bae6fd;">
+            <ul style="list-style: none; padding-left: 0;">
+              <li>📋 <strong>Reserva #:</strong> ${reservaId}</li>
+              <li>🧾 <strong>Factura #:</strong> ${facturaId || reservaId}</li>
+              <li>💰 <strong>Saldo Restante Abonado:</strong> $${formatCOP(pagoRestante)}</li>
+            </ul>
+          </div>
+          <p style="text-align: center;">Por favor, entra al panel de control para revisar el comprobante y aprobar el saldo.</p>
+        </div>
+      `
+    });
+  } catch (error) {
+    console.error('❌ Error enviando notificación de saldo al admin:', error);
+  }
+};
+
 export const sendPasswordResetEmail = async (email, code) => {
   try {
     const response = await transporter.sendMail({

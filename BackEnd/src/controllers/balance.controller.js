@@ -1,5 +1,5 @@
 import pool from '../config/db.js';
-import { sendAdminNotificationEmail } from '../services/nodemailer.service.js';
+import { sendAdminNotificationEmail, sendBalanceAdminNotificationEmail } from '../services/nodemailer.service.js';
 import { sendBalanceApprovedWhatsApp } from '../services/whatsapp.service.js';
 
 export const getBalanceDetails = async (req, res) => {
@@ -58,13 +58,16 @@ export const uploadBalanceReceipt = async (req, res) => {
         );
         
         const resData = await pool.query(`
-            SELECT c.nombre, c.contacto, r.llegada, r.salida, r.por_pagar 
-            FROM reservas r JOIN clientes c ON r.cliente_id = c.cliente_id WHERE r.reserva_id = $1
+            SELECT c.nombre, c.contacto, r.llegada, r.salida, r.por_pagar, f.factura_id 
+            FROM reservas r 
+            JOIN clientes c ON r.cliente_id = c.cliente_id 
+            LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
+            WHERE r.reserva_id = $1
         `, [id]);
         
         if (resData.rows.length > 0) {
             const data = resData.rows[0];
-            sendAdminNotificationEmail(data.nombre, data.llegada, data.salida, 0, 0, 0).catch(console.error);
+            sendBalanceAdminNotificationEmail(data.nombre, id, data.factura_id, data.por_pagar).catch(console.error);
         }
         
         res.json({ message: "Comprobante subido exitosamente", url: fileUrl });
