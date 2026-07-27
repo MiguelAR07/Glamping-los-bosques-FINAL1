@@ -117,6 +117,7 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
   React.useEffect(() => {
     if (reserva && (reserva.reserva_id || reserva.id)) {
       const reservaId = reserva.reserva_id || reserva.id;
+      console.log("🔍 Modal Validar - reservaId:", reservaId, "reserva completa:", reserva);
 
       // Obtener los detalles completos de la reserva desde el API
       const fetchDetalles = async () => {
@@ -124,14 +125,20 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
         try {
           const token = localStorage.getItem("token");
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: { 
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
           });
           if (res.ok) {
             const allReservations = await res.json();
             const found = allReservations.find(r => (r.id || r.reserva_id) === Number(reservaId));
+            console.log("✅ Reserva encontrada en API:", found);
             if (found) {
               setDetallesReserva(found);
             }
+          } else {
+            console.error("❌ Error HTTP al obtener reservas:", res.status);
           }
         } catch (error) {
           console.error("Error al obtener detalles de reserva:", error);
@@ -144,12 +151,19 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
         setLoadingServicios(true);
         try {
           const token = localStorage.getItem("token");
+          console.log("🔍 Fetching servicios para reserva:", reservaId);
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/services/${reservaId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: { 
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
           });
           if (res.ok) {
             const data = await res.json();
+            console.log("✅ Servicios recibidos:", data);
             setServicios(data);
+          } else {
+            console.error("❌ Error HTTP al obtener servicios:", res.status);
           }
         } catch (error) {
           console.error("Error al obtener servicios:", error);
@@ -172,6 +186,9 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
   const mascotas = datos.mascotas != null ? Number(datos.mascotas) : 0;
   const clienteNombre = datos.cliente || reserva.cliente || reserva.Cliente || '';
   const paqueteNombre = datos.paquete || reserva.paquete || reserva.Paquete || '';
+
+  // Fallback para servicios: usar "Servicios adicionales" del API si el fetch de servicios no devuelve nada
+  const serviciosAdicionales = datos["Servicios adicionales"] || reserva["Servicios adicionales"] || reserva.Servicios;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -241,6 +258,10 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
                   {s.nombre} (Para {s.cantidad_personas} personas) - ${s.precio}
                 </li>
               ))}
+            </ul>
+          ) : serviciosAdicionales && serviciosAdicionales !== 'Ninguno' ? (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+              <li style={{ marginBottom: '5px' }}>{serviciosAdicionales}</li>
             </ul>
           ) : (
             <span style={{ fontStyle: 'italic', color: '#666' }}>No solicitó servicios adicionales.</span>
