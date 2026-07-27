@@ -456,6 +456,7 @@ function Reservas({ modulo }) {
         'Huéspedes': `${r.adultos || 0} Adultos, ${r.ninos || 0} Niños, ${r.mascotas || 0} Mascotas`,
         estado: r.estado,
         'Estado': r.estado,
+        'Factura #': r.factura_id || 'N/A',
         'Total Restante': r["Pago restante"]
       };
     });
