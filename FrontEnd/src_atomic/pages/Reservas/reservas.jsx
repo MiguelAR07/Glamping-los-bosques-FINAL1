@@ -446,14 +446,19 @@ function Reservas({ modulo }) {
         comprobante_saldo_url: r.comprobante_saldo_url,
         estado_saldo: r.estado_saldo,
         'Cliente': r.cliente,
+        cliente: r.cliente,
         'Cabaña': r.cabana || r.Cabaña || 'N/A',
         'Paquete': r.paquete,
+        paquete: r.paquete,
         'Fecha Entrada': formatDateOnly(r.llegada),
         'Hora Entrada': formatTimeOnly(r.llegada),
         'Fecha Salida': formatDateOnly(r.salida),
         'Hora Salida': formatTimeOnly(r.salida),
         'Servicios': r["Servicios adicionales"] && r["Servicios adicionales"].trim() !== "" ? r["Servicios adicionales"] : "Ninguno",
         'Huéspedes': `${r.adultos || 0} Adultos, ${r.ninos || 0} Niños, ${r.mascotas || 0} Mascotas`,
+        adultos: r.adultos || 0,
+        ninos: r.ninos || 0,
+        mascotas: r.mascotas || 0,
         estado: r.estado,
         'Estado': r.estado,
         'Factura #': r.factura_id || 'N/A',
@@ -597,7 +602,13 @@ function Reservas({ modulo }) {
                 title: "Validar Reserva (Confirmar o Rechazar)",
                 icono: <i className="bi bi-shield-check" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#0dcaf0",
-                onClick: (fila) => setReservaAValidar(fila),
+                onClick: (fila) => {
+                  // Buscar la reserva original en los datos crudos de la API para tener todos los campos
+                  const reservaOriginal = (displayData || []).find(r => 
+                    (r.id || r.reserva_id) === (fila.id || fila.reserva_id)
+                  );
+                  setReservaAValidar(reservaOriginal || fila);
+                },
                 condition: (fila) => fila.estado === 'Por validar'
               },
               {

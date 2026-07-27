@@ -111,14 +111,40 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
   const [loading, setLoading] = useState(false);
   const [servicios, setServicios] = useState([]);
   const [loadingServicios, setLoadingServicios] = useState(false);
+  const [detallesReserva, setDetallesReserva] = useState(null);
+  const [loadingDetalles, setLoadingDetalles] = useState(false);
 
   React.useEffect(() => {
     if (reserva && (reserva.reserva_id || reserva.id)) {
+      const reservaId = reserva.reserva_id || reserva.id;
+
+      // Obtener los detalles completos de la reserva desde el API
+      const fetchDetalles = async () => {
+        setLoadingDetalles(true);
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const allReservations = await res.json();
+            const found = allReservations.find(r => (r.id || r.reserva_id) === Number(reservaId));
+            if (found) {
+              setDetallesReserva(found);
+            }
+          }
+        } catch (error) {
+          console.error("Error al obtener detalles de reserva:", error);
+        } finally {
+          setLoadingDetalles(false);
+        }
+      };
+
       const fetchServicios = async () => {
         setLoadingServicios(true);
         try {
           const token = localStorage.getItem("token");
-          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/services/${reserva.reserva_id || reserva.id}`, {
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/services/${reservaId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) {
@@ -131,11 +157,21 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
           setLoadingServicios(false);
         }
       };
+
+      fetchDetalles();
       fetchServicios();
     }
   }, [reserva]);
 
   if (!reserva) return null;
+
+  // Usar datos del API si están disponibles, si no usar los del objeto pasado
+  const datos = detallesReserva || reserva;
+  const adultos = datos.adultos != null ? Number(datos.adultos) : 2;
+  const ninos = datos.ninos != null ? Number(datos.ninos) : 0;
+  const mascotas = datos.mascotas != null ? Number(datos.mascotas) : 0;
+  const clienteNombre = datos.cliente || reserva.cliente || reserva.Cliente || '';
+  const paqueteNombre = datos.paquete || reserva.paquete || reserva.Paquete || '';
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -160,12 +196,12 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
         
         <InfoRow>
           <strong>Cliente:</strong>
-          <span>{reserva.cliente}</span>
+          <span>{clienteNombre}</span>
         </InfoRow>
 
         <InfoRow>
           <strong>Paquete / Estancia:</strong>
-          <span>{reserva.paquete}</span>
+          <span>{paqueteNombre}</span>
         </InfoRow>
         
         {reserva.tipo_paquete && (
@@ -177,17 +213,21 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
 
         <InfoRow>
           <strong>Estado Actual:</strong>
-          <span>{reserva.estado}</span>
+          <span>{reserva.estado || reserva.Estado}</span>
         </InfoRow>
 
         <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <strong style={{ color: '#43523A', display: 'block', marginBottom: '10px' }}>Huéspedes y Mascotas:</strong>
-          <ul style={{ margin: 0, paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '5px' }}>Adultos (Base): <strong>{Math.min(2, reserva.adultos || 2)}</strong></li>
-            <li style={{ marginBottom: '5px' }}>Personas adicionales (mayores a 3 años): <strong>{Math.max(0, (reserva.adultos || 2) - 2)}</strong></li>
-            <li style={{ marginBottom: '5px' }}>Niños menores a 3 años: <strong>{reserva.ninos || 0}</strong></li>
-            <li style={{ marginBottom: '5px' }}>Mascotas: <strong>{reserva.mascotas || 0}</strong></li>
-          </ul>
+          {loadingDetalles ? (
+            <span style={{ fontStyle: 'italic', color: '#666' }}>Cargando datos...</span>
+          ) : (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+              <li style={{ marginBottom: '5px' }}>Adultos (Base): <strong>{Math.min(2, adultos)}</strong></li>
+              <li style={{ marginBottom: '5px' }}>Personas adicionales (mayores a 3 años): <strong>{Math.max(0, adultos - 2)}</strong></li>
+              <li style={{ marginBottom: '5px' }}>Niños menores a 3 años: <strong>{ninos}</strong></li>
+              <li style={{ marginBottom: '5px' }}>Mascotas: <strong>{mascotas}</strong></li>
+            </ul>
+          )}
         </div>
 
         <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
