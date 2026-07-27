@@ -80,7 +80,7 @@ export const sendSystemOnlineEmail = async (urlPublica) => {
 export const sendVerificationCodeEmail = async (email, code) => {
   try {
     const response = await transporter.sendMail({
-      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Código de verificación de registro',
       html: `
@@ -106,7 +106,7 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
     } = invoiceData;
 
     const response = await transporter.sendMail({
-      from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
+      from: `"Glamping Los Bosques" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `✅ ¡Tu reserva está confirmada! Reserva #${reservaId}`,
       html: `
@@ -190,7 +190,7 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
 export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida, adultos = 2, ninos = 0, mascotas = 0) => {
   try {
     await transporter.sendMail({
-      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
       subject: '🔔 Nueva Reserva Confirmada',
       html: `
@@ -220,7 +220,7 @@ export const sendBalanceAdminNotificationEmail = async (clienteNombre, reservaId
     const formatCOP = (num) => new Intl.NumberFormat('es-CO').format(Number(num));
     
     await transporter.sendMail({
-      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
       subject: `🔔 Comprobante de Saldo Subido (Reserva #${reservaId})`,
       html: `
@@ -246,7 +246,7 @@ export const sendBalanceAdminNotificationEmail = async (clienteNombre, reservaId
 export const sendPasswordResetEmail = async (email, code) => {
   try {
     const response = await transporter.sendMail({
-      from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
+      from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: '🔑 Recuperación de Contraseña',
       html: `
@@ -271,7 +271,7 @@ export const sendPasswordResetEmail = async (email, code) => {
 export const sendReservationRejectedEmail = async (email, clienteNombre, motivo) => {
   try {
     const response = await transporter.sendMail({
-      from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
+      from: `"Glamping Los Bosques" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: '❌ Tu reserva ha sido rechazada',
       text: `Hola ${clienteNombre}, Lamentamos informarte que hemos tenido un problema al validar tu reserva. Motivo del rechazo: ${motivo}. Por favor comunícate con nosotros inmediatamente.`,
