@@ -26,7 +26,8 @@ export const getBalanceDetails = async (req, res) => {
                 ...reserva,
                 alreadySubmitted
             },
-            cuentas: accounts.rows
+            cuentas: accounts.rows,
+            metodosPago: accounts.rows
         });
     } catch (error) {
         console.error(error);

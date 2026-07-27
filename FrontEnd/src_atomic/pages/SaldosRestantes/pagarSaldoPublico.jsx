@@ -20,7 +20,7 @@ function PagarSaldo() {
                 
                 if (response.ok) {
                     setReserva(data.reserva);
-                    setMetodosPago(data.metodosPago || []);
+                    setMetodosPago(data.metodosPago || data.cuentas || []);
                 } else {
                     Swal.fire('Error', data.message || 'No se pudo cargar la información.', 'error');
                 }
