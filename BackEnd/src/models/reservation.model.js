@@ -79,12 +79,15 @@ export const reservation = {
       UPDATE reservas
       SET estado = 'Confirmado'
       WHERE reserva_id = $1
-      RETURNING reserva_id, cliente_id, llegada, salida
+      RETURNING reserva_id, cliente_id, llegada, salida, adultos, ninos, mascotas
     )
     SELECT 
       ur.reserva_id,
       ur.llegada,
       ur.salida,
+      ur.adultos,
+      ur.ninos,
+      ur.mascotas,
       c.nombre AS cliente_nombre,
       c.email AS cliente_email,
       c.contacto AS cliente_contacto
