@@ -1,5 +1,5 @@
 import pool from '../config/db.js';
-import { sendAdminNotificationEmail, sendBalanceAdminNotificationEmail } from '../services/nodemailer.service.js';
+import { sendAdminNotificationEmail, sendBalanceAdminNotificationEmail, sendReservationConfirmedEmail } from '../services/nodemailer.service.js';
 import { sendBalanceApprovedWhatsApp } from '../services/whatsapp.service.js';
 
 export const getBalanceDetails = async (req, res) => {
@@ -58,16 +58,41 @@ export const uploadBalanceReceipt = async (req, res) => {
         );
         
         const resData = await pool.query(`
-            SELECT c.nombre, c.contacto, r.llegada, r.salida, r.por_pagar, f.factura_id 
+            SELECT c.nombre, c.contacto, c.email, r.llegada, r.salida, r.por_pagar, f.factura_id,
+                   cb.nombre as cabana_nombre, tp.nombre as tipo_plan, p.nombre as paquete_nombre,
+                   f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid,
+                   r.adultos, r.ninos, r.mascotas, vr."Servicios adicionales", vr."Cédula"
             FROM reservas r 
             JOIN clientes c ON r.cliente_id = c.cliente_id 
             LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
+            JOIN paquetes p ON r.paquete_id = p.paquete_id
+            JOIN cabanas cb ON p.cabana_id = cb.cabana_id
+            JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id
+            LEFT JOIN vista_reservas vr ON r.reserva_id = vr.id
             WHERE r.reserva_id = $1
         `, [id]);
         
         if (resData.rows.length > 0) {
             const data = resData.rows[0];
-            sendBalanceAdminNotificationEmail(data.nombre, id, data.factura_id, data.por_pagar).catch(console.error);
+            const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
+            const invoiceData = {
+                reservaId: id,
+                facturaId: data.factura_id,
+                clienteNombre: data.nombre,
+                documento: data["Cédula"] || 'No registrado',
+                cabana: data.cabana_nombre,
+                plan: `${data.tipo_plan} - ${data.paquete_nombre}`,
+                llegada: formatDate(data.llegada),
+                salida: formatDate(data.salida),
+                huespedes: data["Servicios adicionales"] || 'A confirmar',
+                total: (Number(data.subtotal) || 0) - (Number(data.descuento) || 0),
+                pagoRestante: Number(data.por_pagar),
+                amountPaid: Number(data.amountpaid) || 0,
+                adultos: data.adultos,
+                ninos: data.ninos,
+                mascotas: data.mascotas
+            };
+            sendBalanceAdminNotificationEmail(invoiceData).catch(console.error);
         }
         
         res.json({ message: "Comprobante subido exitosamente", url: fileUrl });
@@ -97,33 +122,41 @@ export const approveBalance = async (req, res) => {
         await pool.query("BEGIN");
         
         const resData = await pool.query(`
-            SELECT r.por_pagar, c.nombre, c.contacto 
+            SELECT r.por_pagar, c.nombre, c.contacto, c.email, r.llegada, r.salida, f.factura_id,
+                   cb.nombre as cabana_nombre, tp.nombre as tipo_plan, p.nombre as paquete_nombre,
+                   f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid,
+                   r.adultos, r.ninos, r.mascotas, vr."Servicios adicionales", vr."Cédula"
             FROM reservas r 
             JOIN clientes c ON r.cliente_id = c.cliente_id 
+            LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
+            JOIN paquetes p ON r.paquete_id = p.paquete_id
+            JOIN cabanas cb ON p.cabana_id = cb.cabana_id
+            JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id
+            LEFT JOIN vista_reservas vr ON r.reserva_id = vr.id
             WHERE r.reserva_id = $1
         `, [id]);
         if (resData.rows.length === 0) throw new Error("Reserva no encontrada");
         
-        const amountPaid = resData.rows[0].por_pagar;
-        const clienteNombre = resData.rows[0].nombre;
-        const clienteContacto = resData.rows[0].contacto;
+        const data = resData.rows[0];
+        const amountPaid = data.por_pagar;
+        const clienteNombre = data.nombre;
+        const clienteContacto = data.contacto;
+        const clienteEmail = data.email;
         
         await pool.query(
             "UPDATE reservas SET por_pagar = 0, estado_saldo = 'Aprobado' WHERE reserva_id = $1",
             [id]
         );
         
-        const factRes = await pool.query("SELECT factura_id FROM facturas WHERE reserva_id = $1", [id]);
-        if (factRes.rows.length > 0) {
-            const factura_id = factRes.rows[0].factura_id;
-            await pool.query("UPDATE facturas SET total_restante = 0 WHERE factura_id = $1", [factura_id]);
+        if (data.factura_id) {
+            await pool.query("UPDATE facturas SET total_restante = 0 WHERE factura_id = $1", [data.factura_id]);
             
             const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
             const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
             
             await pool.query(
                 "INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Completado', $3)",
-                [factura_id, metodo_id, amountPaid]
+                [data.factura_id, metodo_id, amountPaid]
             );
         }
         
@@ -131,6 +164,30 @@ export const approveBalance = async (req, res) => {
         
         // Enviar WhatsApp en segundo plano
         sendBalanceApprovedWhatsApp(clienteContacto, clienteNombre).catch(console.error);
+
+        // Enviar Email de factura final al cliente con saldo en 0
+        if (clienteEmail) {
+            const formatDate = (d) => new Date(d).toLocaleDateString('es-CO');
+            const newAmountPaid = (Number(data.amountpaid) || 0) + Number(amountPaid);
+            const invoiceData = {
+                reservaId: id,
+                facturaId: data.factura_id,
+                clienteNombre: data.nombre,
+                documento: data["Cédula"] || 'No registrado',
+                cabana: data.cabana_nombre,
+                plan: `${data.tipo_plan} - ${data.paquete_nombre}`,
+                llegada: formatDate(data.llegada),
+                salida: formatDate(data.salida),
+                huespedes: data["Servicios adicionales"] || 'A confirmar',
+                total: (Number(data.subtotal) || 0) - (Number(data.descuento) || 0),
+                pagoRestante: 0, // El saldo ya fue aprobado
+                amountPaid: newAmountPaid,
+                adultos: data.adultos,
+                ninos: data.ninos,
+                mascotas: data.mascotas
+            };
+            sendReservationConfirmedEmail(clienteEmail, invoiceData).catch(console.error);
+        }
         
         res.json({ message: "Pago de saldo aprobado" });
     } catch (error) {

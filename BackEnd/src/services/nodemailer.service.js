@@ -215,8 +215,14 @@ export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida,
   }
 };
 
-export const sendBalanceAdminNotificationEmail = async (clienteNombre, reservaId, facturaId, pagoRestante) => {
+export const sendBalanceAdminNotificationEmail = async (invoiceData) => {
   try {
+    const { 
+      reservaId, facturaId, clienteNombre, documento, cabana, plan, 
+      llegada, salida, huespedes, total, pagoRestante, amountPaid,
+      adultos, ninos, mascotas
+    } = invoiceData;
+
     const formatCOP = (num) => new Intl.NumberFormat('es-CO').format(Number(num));
     
     await transporter.sendMail({
@@ -232,6 +238,10 @@ export const sendBalanceAdminNotificationEmail = async (clienteNombre, reservaId
               <li>📋 <strong>Reserva #:</strong> ${reservaId}</li>
               <li>🧾 <strong>Factura #:</strong> ${facturaId || reservaId}</li>
               <li>💰 <strong>Saldo Restante Abonado:</strong> $${formatCOP(pagoRestante)}</li>
+              <li>🛖 <strong>Cabaña:</strong> ${cabana}</li>
+              <li>🏕️ <strong>Plan:</strong> ${plan}</li>
+              <li>📅 <strong>Fechas:</strong> ${llegada} - ${salida}</li>
+              <li>👥 <strong>Huéspedes extras:</strong> ${huespedes}</li>
             </ul>
           </div>
           <p style="text-align: center;">Por favor, entra al panel de control para revisar el comprobante y aprobar el saldo.</p>
