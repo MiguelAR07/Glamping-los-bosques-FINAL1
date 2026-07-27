@@ -414,8 +414,8 @@ export const createReservation = async (req, res) => {
             if (servicios && Array.isArray(servicios) && servicios.length > 0) {
                 for (let s of servicios) {
                     await pool.query(
-                        "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
-                        [nuevo_paquete_id, s.servicio_id, s.cantidad_personas || 1]
+                        "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, 1)",
+                        [nuevo_paquete_id, s.servicio_id]
                     );
                 }
             }
