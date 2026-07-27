@@ -308,7 +308,10 @@ export default function ModalFactura({ factura, setModalAbierto }) {
                 <div className="content">
                   <p className="title">Huéspedes y Mascotas</p>
                   <p className="desc">
-                    Adultos y niños mayores a 3 años: <strong>{details && details.adultos !== undefined ? details.adultos : 2}</strong>
+                    Adultos (Base): <strong>{Math.min(2, details && details.adultos !== undefined ? details.adultos : 2)}</strong>
+                  </p>
+                  <p className="desc">
+                    Personas adicionales (mayores a 3 años): <strong>{Math.max(0, (details && details.adultos !== undefined ? details.adultos : 2) - 2)}</strong>
                   </p>
                   <p className="desc">
                     Niños menores a 3 años: <strong>{details && details.ninos ? details.ninos : 0}</strong>

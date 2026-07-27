@@ -133,7 +133,8 @@ export const sendReservationConfirmedEmail = async (email, invoiceData) => {
             <div style="margin-bottom: 20px;">
               <p style="margin: 0; color: #444; font-weight: bold; font-size: 16px;">Huéspedes y Mascotas</p>
               <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #666; font-size: 14px;">
-                <li>Adultos y niños mayores a 3 años: <strong>${adultos !== undefined ? adultos : 2}</strong></li>
+                <li>Adultos (Base): <strong>${Math.min(2, adultos !== undefined ? adultos : 2)}</strong></li>
+                <li>Personas adicionales (mayores a 3 años): <strong>${Math.max(0, (adultos !== undefined ? adultos : 2) - 2)}</strong></li>
                 <li>Niños menores a 3 años: <strong>${ninos || 0}</strong></li>
                 <li>Mascotas: <strong>${mascotas || 0}</strong></li>
               </ul>
@@ -201,7 +202,8 @@ export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida,
             <ul style="list-style: none; padding-left: 0;">
               <li>📅 <strong>Llegada:</strong> ${llegada}</li>
               <li>📅 <strong>Salida:</strong> ${salida}</li>
-              <li>👥 <strong>Adultos y niños mayores a 3 años:</strong> ${adultos}</li>
+              <li>👥 <strong>Adultos (Base):</strong> ${Math.min(2, adultos)}</li>
+              <li>👥 <strong>Personas adicionales (mayores a 3 años):</strong> ${Math.max(0, adultos - 2)}</li>
               <li>👶 <strong>Niños menores a 3 años:</strong> ${ninos}</li>
               <li>🐾 <strong>Mascotas:</strong> ${mascotas}</li>
             </ul>

@@ -183,7 +183,8 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
         <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <strong style={{ color: '#43523A', display: 'block', marginBottom: '10px' }}>Huéspedes y Mascotas:</strong>
           <ul style={{ margin: 0, paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '5px' }}>Adultos y Niños mayores a 3 años: <strong>{reserva.adultos || 2}</strong></li>
+            <li style={{ marginBottom: '5px' }}>Adultos (Base): <strong>{Math.min(2, reserva.adultos || 2)}</strong></li>
+            <li style={{ marginBottom: '5px' }}>Personas adicionales (mayores a 3 años): <strong>{Math.max(0, (reserva.adultos || 2) - 2)}</strong></li>
             <li style={{ marginBottom: '5px' }}>Niños menores a 3 años: <strong>{reserva.ninos || 0}</strong></li>
             <li style={{ marginBottom: '5px' }}>Mascotas: <strong>{reserva.mascotas || 0}</strong></li>
           </ul>
