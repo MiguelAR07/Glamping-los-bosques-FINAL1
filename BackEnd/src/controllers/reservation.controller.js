@@ -1033,14 +1033,30 @@ export const updateReservation = async (req, res) => {
             await pool.query(`
                 UPDATE facturas SET
                     subtotal = COALESCE($1, subtotal),
-                    descuento = COALESCE($2, descuento),
-                    total = CASE 
-                        WHEN $1 IS NOT NULL AND $2 IS NOT NULL THEN $1 * (1 - $2 / 100.0)
-                        WHEN $1 IS NOT NULL THEN $1 * (1 - COALESCE(descuento, 0) / 100.0)
-                        ELSE total 
-                    END
+                    descuento = COALESCE($2, descuento)
                 WHERE reserva_id = $3
             `, [sub, desc, id]);
+        }
+
+        // Sincronizar pago registrado si cambio por_pagar
+        if (por_pagar !== undefined && por_pagar !== null && por_pagar !== '') {
+            const invRes = await pool.query("SELECT f.factura_id, f.subtotal, f.descuento FROM facturas f WHERE f.reserva_id = $1", [id]);
+            if (invRes.rows.length > 0) {
+                const fId = invRes.rows[0].factura_id;
+                const sub = Number(invRes.rows[0].subtotal) || 0;
+                const desc = Number(invRes.rows[0].descuento) || 0;
+                const rem = Number(por_pagar) || 0;
+                const calcPaid = Math.max(0, (sub * (1 - desc / 100.0)) - rem);
+
+                const checkPago = await pool.query("SELECT pago_id FROM pagos WHERE factura_id = $1", [fId]);
+                if (checkPago.rows.length > 0) {
+                    await pool.query("UPDATE pagos SET total_pagado = $1 WHERE factura_id = $2", [calcPaid, fId]);
+                } else if (calcPaid > 0) {
+                    const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
+                    const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
+                    await pool.query("INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Agregado Manual', $3)", [fId, metodo_id, calcPaid]);
+                }
+            }
         }
 
         // 5. Guardar/actualizar servicios otorgados
