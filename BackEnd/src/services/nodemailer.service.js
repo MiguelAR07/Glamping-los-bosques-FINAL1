@@ -5,43 +5,62 @@ const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const formatCOP = (val) => Math.round(Number(val) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
+import nodemailer from 'nodemailer';
+
+const gmailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com',
+    pass: process.env.EMAIL_PASS || 'hdveddtngdjemepf'
+  }
+});
+
 export const transporter = {
   sendMail: async (options) => {
-    let toEmail = options.to;
-    let toName = 'Cliente';
-    
-    // Extraer correo de formatos como '"Nombre" <correo>' si es necesario
-    if (typeof options.to === 'string' && options.to.includes('<')) {
-        const match = options.to.match(/(.*)<(.*)>/);
-        if (match) {
-            toName = match[1].replace(/"/g, '').trim() || toName;
-            toEmail = match[2].trim();
+    if (BREVO_API_KEY && BREVO_API_KEY !== 'tu_brevo_api_key_aqui') {
+      try {
+        let toEmail = options.to;
+        let toName = 'Cliente';
+        
+        if (typeof options.to === 'string' && options.to.includes('<')) {
+            const match = options.to.match(/(.*)<(.*)>/);
+            if (match) {
+                toName = match[1].replace(/"/g, '').trim() || toName;
+                toEmail = match[2].trim();
+            }
         }
+
+        const payload = {
+          sender: { name: 'Sistema Glamping', email: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com' },
+          to: [{ email: toEmail, name: toName }],
+          subject: options.subject,
+          htmlContent: options.html || `<p>${options.text || ''}</p>`
+        };
+
+        const res = await fetch(BREVO_API_URL, {
+          method: 'POST',
+          headers: {
+            'api-key': BREVO_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (err) {
+        console.error("Fallo Brevo, cambiando a Gmail SMTP:", err.message);
+      }
     }
 
-    const payload = {
-      sender: { name: 'Sistema Glamping', email: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com' },
-      to: [{ email: toEmail, name: toName }],
+    return await gmailTransporter.sendMail({
+      from: options.from || `"Glamping Los Bosques" <${process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com'}>`,
+      to: options.to,
       subject: options.subject,
-      htmlContent: options.html || `<p>${options.text || ''}</p>`
-    };
-
-    const res = await fetch(BREVO_API_URL, {
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      html: options.html,
+      text: options.text
     });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Error enviando por Brevo:", errText);
-      throw new Error("Error enviando por Brevo");
-    }
-    
-    return await res.json();
   }
 };
 
