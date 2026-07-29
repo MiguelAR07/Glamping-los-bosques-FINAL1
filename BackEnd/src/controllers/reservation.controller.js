@@ -7,6 +7,17 @@ import { packages } from "../models/package.model.js";
 import pool from "../config/db.js";
 import { transporter, sendReservationConfirmedEmail } from "../services/nodemailer.service.js";
 
+const parseMoney = (val) => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return val;
+    const str = String(val).trim();
+    const parts = str.split('.');
+    if (parts.length > 1 && parts.every((p, idx) => idx === 0 || p.length === 3)) {
+        return Number(str.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
+    }
+    return Number(str.replace(/[^0-9]/g, '')) || 0;
+};
+
 export const getreservations = async (req, res) => {
   try {
     const result = await pool.query(
@@ -489,31 +500,31 @@ export const createReservation = async (req, res) => {
             if(cabInfo.rows.length > 0) nombre_cabana = cabInfo.rows[0].nombre;
         }
 
+        const f_sub = parseMoney(factura.subtotal);
+        const f_desc = parseMoney(factura.descuento);
+        const r_por_pagar = parseMoney(reserva.por_pagar);
+        const amountPaid = Math.max(0, (f_sub * (1 - f_desc / 100.0)) - r_por_pagar);
+
         const reservationResult = await pool.query(reservation.createReservation, [
             reserva.llegada,    // $1
             reserva.salida,     // $2
-            nuevo_cliente_id,    // $3
-            nuevo_paquete_id,    // $4
-            reserva.por_pagar === "" || reserva.por_pagar === undefined ? 0 : reserva.por_pagar,   // $5
-            facturaUrl,          // $6
+            nuevo_cliente_id,   // $3
+            nuevo_paquete_id,   // $4
+            r_por_pagar,        // $5
+            facturaUrl,         // $6
             reserva.adultos === "" || reserva.adultos === undefined ? 2 : reserva.adultos, // $7
             reserva.ninos === "" || reserva.ninos === undefined ? 0 : reserva.ninos,   // $8
             reserva.mascotas === "" || reserva.mascotas === undefined ? 0 : reserva.mascotas // $9
-        ])
+        ]);
 
         if (reservationResult.rowCount === 0) throw new Error("El paquete seleccionado no existe o no está activo.");
         const nueva_reserva_id = reservationResult.rows[0].reserva_id;
 
         const invoiceResult = await pool.query(invoice.createInvoice, [
-            factura.subtotal === "" || factura.subtotal === undefined ? 0 : factura.subtotal,        // $1
-            factura.descuento === "" || factura.descuento === undefined ? 0 : factura.descuento,  // $2
-            nueva_reserva_id         // $3
+            f_sub,        // $1
+            f_desc,       // $2
+            nueva_reserva_id // $3
         ]);
-
-        const f_sub = Number(factura.subtotal) || 0;
-        const f_desc = Number(factura.descuento) || 0;
-        const r_por_pagar = Number(reserva.por_pagar) || 0;
-        const amountPaid = f_sub * (1 - f_desc / 100.0) - r_por_pagar;
 
         if (amountPaid > 0 && invoiceResult.rows.length > 0) {
             const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
@@ -1019,7 +1030,7 @@ export const updateReservation = async (req, res) => {
             llegada ? new Date(llegada).toISOString() : null,
             salida ? new Date(salida).toISOString() : null,
             estado || null,
-            por_pagar !== undefined && por_pagar !== null && por_pagar !== '' ? Number(por_pagar) : null,
+            por_pagar !== undefined && por_pagar !== null && por_pagar !== '' ? parseMoney(por_pagar) : null,
             id
         ]);
 
@@ -1043,8 +1054,8 @@ export const updateReservation = async (req, res) => {
 
         // 4. Actualizar la tabla facturas si se enviaron finanzas
         if (subtotal !== undefined || descuento !== undefined) {
-            const sub = subtotal !== undefined && subtotal !== null && subtotal !== '' ? Number(subtotal) : null;
-            const desc = descuento !== undefined && descuento !== null && descuento !== '' ? Number(descuento) : null;
+            const sub = subtotal !== undefined && subtotal !== null && subtotal !== '' ? parseMoney(subtotal) : null;
+            const desc = descuento !== undefined && descuento !== null && descuento !== '' ? parseMoney(descuento) : null;
             await pool.query(`
                 UPDATE facturas SET
                     subtotal = COALESCE($1, subtotal),
