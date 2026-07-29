@@ -413,10 +413,22 @@ export const createReservation = async (req, res) => {
             // --- Guardar Servicios Adicionales ---
             if (servicios && Array.isArray(servicios) && servicios.length > 0) {
                 for (let s of servicios) {
-                    await pool.query(
-                        "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, 1)",
-                        [nuevo_paquete_id, s.servicio_id]
-                    );
+                    const servicioId = typeof s === 'object' ? Number(s.servicio_id || s.id) : Number(s);
+                    if (servicioId && !isNaN(servicioId)) {
+                        const checkServicio = await pool.query("SELECT 1 FROM servicios WHERE servicio_id = $1", [servicioId]);
+                        if (checkServicio.rows.length > 0) {
+                            const checkExist = await pool.query(
+                                "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
+                                [nuevo_paquete_id, servicioId]
+                            );
+                            if (checkExist.rows.length === 0) {
+                                await pool.query(
+                                    "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                    [nuevo_paquete_id, servicioId, s.cantidad_personas || s.personas || 1]
+                                );
+                            }
+                        }
+                    }
                 }
             }
             // -------------------------------------
@@ -431,17 +443,20 @@ export const createReservation = async (req, res) => {
             // Guardar Servicios Adicionales otorgados por el admin
             if (servicios && Array.isArray(servicios) && servicios.length > 0) {
                 for (let s of servicios) {
-                    const servicioId = typeof s === 'object' ? (s.servicio_id || s.id) : s;
-                    if (servicioId) {
-                        const checkExist = await pool.query(
-                            "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
-                            [nuevo_paquete_id, servicioId]
-                        );
-                        if (checkExist.rows.length === 0) {
-                            await pool.query(
-                                "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
-                                [nuevo_paquete_id, servicioId, s.cantidad_personas || s.personas || 1]
+                    const servicioId = typeof s === 'object' ? Number(s.servicio_id || s.id) : Number(s);
+                    if (servicioId && !isNaN(servicioId)) {
+                        const checkServicio = await pool.query("SELECT 1 FROM servicios WHERE servicio_id = $1", [servicioId]);
+                        if (checkServicio.rows.length > 0) {
+                            const checkExist = await pool.query(
+                                "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
+                                [nuevo_paquete_id, servicioId]
                             );
+                            if (checkExist.rows.length === 0) {
+                                await pool.query(
+                                    "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                    [nuevo_paquete_id, servicioId, s.cantidad_personas || s.personas || 1]
+                                );
+                            }
                         }
                     }
                 }
@@ -1066,17 +1081,20 @@ export const updateReservation = async (req, res) => {
             if (pkgQuery.rows.length > 0 && pkgQuery.rows[0].paquete_id) {
                 const paqueteId = pkgQuery.rows[0].paquete_id;
                 for (let s of servicios) {
-                    const servicioId = typeof s === 'object' ? (s.servicio_id || s.id) : s;
-                    if (servicioId) {
-                        const checkExist = await pool.query(
-                            "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
-                            [paqueteId, servicioId]
-                        );
-                        if (checkExist.rows.length === 0) {
-                            await pool.query(
-                                "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
-                                [paqueteId, servicioId, s.cantidad_personas || s.personas || 1]
+                    const servicioId = typeof s === 'object' ? Number(s.servicio_id || s.id) : Number(s);
+                    if (servicioId && !isNaN(servicioId)) {
+                        const checkServicio = await pool.query("SELECT 1 FROM servicios WHERE servicio_id = $1", [servicioId]);
+                        if (checkServicio.rows.length > 0) {
+                            const checkExist = await pool.query(
+                                "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
+                                [paqueteId, servicioId]
                             );
+                            if (checkExist.rows.length === 0) {
+                                await pool.query(
+                                    "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                    [paqueteId, servicioId, s.cantidad_personas || s.personas || 1]
+                                );
+                            }
                         }
                     }
                 }
