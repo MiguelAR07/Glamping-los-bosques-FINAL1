@@ -53,16 +53,21 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
 
   // RECHARTS NEEDS AT LEAST 2 POINTS TO DRAW AN AREA.
   // We prepend a fake point starting at 0 if there's only 1 point.
-  const chartData = data.length === 1 
-    ? [{ [xKey]: 'Inicio', [yKey]: 0 }, ...data] 
-    : data;
+  const sanitizedData = (data || []).map(item => ({
+    ...item,
+    [yKey]: Number(item[yKey]) || 0
+  }));
+
+  const chartData = sanitizedData.length === 1 
+    ? [{ [xKey]: 'Inicio', [yKey]: 0 }, ...sanitizedData] 
+    : sanitizedData;
 
   return (
     <ContGraph>
       <h3>{title}</h3>
       <div style={{ flex: 1, width: '100%', minHeight: 0, minWidth: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
@@ -79,8 +84,8 @@ function LinearGraph({ data, xKey = 'fecha', yKey = 'total', title = "Ingresos a
               tick={{ fontSize: 11, fill: '#666' }} 
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${value}`}
-              width={50}
+              tickFormatter={(value) => value >= 1000 ? `$${(value/1000).toFixed(0)}k` : `$${value}`}
+              width={65}
             />
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
             <Tooltip 

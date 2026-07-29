@@ -40,11 +40,16 @@ function BarGraph({ data, xKey = 'cabana', yKey = 'total', title = "Ingresos por
     );
   }
 
+  const sanitizedData = (data || []).map(item => ({
+    ...item,
+    [yKey]: Number(item[yKey]) || 0
+  }));
+
   return (
     <ContGraph>
       <h3>{title}</h3>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+        <BarChart data={sanitizedData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
           <XAxis 
             dataKey={xKey} 
@@ -56,7 +61,7 @@ function BarGraph({ data, xKey = 'cabana', yKey = 'total', title = "Ingresos por
             tick={{ fontSize: 12, fill: '#666' }} 
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => value >= 1000 ? `$${(value/1000).toFixed(0)}k` : `$${value}`}
           />
           <Tooltip 
             formatter={(value) => [`${formatCurrency(value)}`, 'Ingresos']}
