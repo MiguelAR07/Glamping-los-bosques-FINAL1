@@ -222,20 +222,39 @@ FROM clientes c;
 -------------------------- Views de reservas -----------------------------
 CREATE OR REPLACE VIEW vista_reservas AS
 SELECT 
-	r.reserva_id AS ID,
-	tp.nombre || ' - ' || p.nombre AS Paquete,
-	c.nombre AS Cliente,
-    c.contacto AS "Celular",
-    c.numero_identificacion AS "Cédula",
+	r.reserva_id AS id,
+	r.reserva_id,
+	r.paquete_id,
+	r.cliente_id,
+	p.cabana_id,
+	p.tipo_id,
+	f.factura_id,
+	tp.nombre || ' - ' || p.nombre AS paquete,
+	cb.nombre AS cabana,
+	c.nombre AS cliente,
+	c.contacto AS "Celular",
+	c.numero_identificacion AS "Cédula",
 	r.fecha_registro AS fecha,
 	r.llegada,
 	r.salida,
 	r.estado,
-	r.por_pagar AS "Pago restante"
-FROM Reservas r
-JOIN Clientes c ON c.cliente_id = r.cliente_id
-JOIN Paquetes p ON p.paquete_id = r.paquete_id
-JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id;
+	r.por_pagar AS "Pago restante",
+	r.factura_url AS comprobante_url,
+	COALESCE(( SELECT string_agg(((((s.servicio)::text || ' ('::text) || sp.cantidad_personas) || ' pax)'::text), ', '::text) AS string_agg
+	       FROM (servicios_por_paquete sp
+	         JOIN vista_servicios s ON ((sp.servicio_id = s.id)))
+	      WHERE (sp.paquete_id = p.paquete_id)), 'Ninguno'::text) AS "Servicios adicionales",
+	r.adultos,
+	r.ninos,
+	r.mascotas,
+	r.comprobante_saldo_url,
+	r.estado_saldo
+FROM reservas r
+	JOIN clientes c ON c.cliente_id = r.cliente_id
+	JOIN paquetes p ON p.paquete_id = r.paquete_id
+	JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id
+	JOIN cabanas cb ON cb.cabana_id = p.cabana_id
+	LEFT JOIN facturas f ON f.reserva_id = r.reserva_id;
 
 CREATE OR REPLACE VIEW vista_reservas_revenue AS
 SELECT
