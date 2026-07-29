@@ -470,17 +470,17 @@ function Reservas({ modulo }) {
         adultos: r.adultos || 0,
         ninos: r.ninos || 0,
         mascotas: r.mascotas || 0,
-        estado: r.estado,
         'Estado': r.estado,
         'Factura #': r.factura_id || 'N/A',
-        'Total Restante': r["Pago restante"]
+        'Total Abonado': r["Total abonado"] !== undefined && r["Total abonado"] !== null ? `$ ${Number(r["Total abonado"]).toLocaleString('es-CO')}` : '$ 0',
+        'Total Restante': r["Pago restante"] !== undefined && r["Pago restante"] !== null ? `$ ${Number(r["Pago restante"]).toLocaleString('es-CO')}` : '$ 0'
       };
     });
   };
 
   const hiddenColumnsList = [
     'comprobante_url', 'id', 'cliente', 'paquete', 'llegada', 'salida', 'estado', 
-    'Pago restante', 'Servicios adicionales', 'fecha', 'cliente_id', 'paquete_id', 'reserva_id',
+    'Pago restante', 'Total abonado', 'Servicios adicionales', 'fecha', 'cliente_id', 'paquete_id', 'reserva_id',
     'Celular', 'Cédula', 'adultos', 'ninos', 'mascotas', 'cabana', 'comprobante_saldo_url',
     'estado_saldo', 'recordatorio_24h_enviado', 'recordatorio', 'recordatorio_enviado'
   ];
