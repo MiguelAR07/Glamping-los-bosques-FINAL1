@@ -158,8 +158,8 @@ export const reservationStats = {
     FROM pagos pg
     JOIN facturas f ON pg.factura_id = f.factura_id
     JOIN reservas r ON f.reserva_id = r.reserva_id
-    WHERE r.estado <> 'Cancelada'
-      AND pg.estado IN ('Completado', 'Agregado Manual')
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
       AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
     GROUP BY TO_CHAR(pg.fecha_pago, 'YYYY-MM')
     ORDER BY fecha ASC;
@@ -172,7 +172,7 @@ export const reservationStats = {
   totalPending: `
     SELECT COUNT(*) AS total
     FROM reservas
-    WHERE estado = 'Por validar'
+    WHERE estado IN ('Por validar', 'Pendiente')
   `,
   totalCanceled: `
     SELECT COUNT(*) AS total
@@ -182,7 +182,10 @@ export const reservationStats = {
   revenueMonth: `
     SELECT COALESCE(SUM(pg.total_pagado), 0) AS total
     FROM pagos pg
-    WHERE pg.estado IN ('Completado', 'Agregado Manual')
+    JOIN facturas f ON pg.factura_id = f.factura_id
+    JOIN reservas r ON f.reserva_id = r.reserva_id
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
       AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   revenueByCabin: `
@@ -192,10 +195,10 @@ export const reservationStats = {
       COALESCE(SUM(pg.total_pagado), 0) AS total
     FROM cabanas c
     LEFT JOIN paquetes p ON c.cabana_id = p.cabana_id
-    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado <> 'Cancelada'
+    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado NOT IN ('Cancelado', 'Cancelada')
     LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
     LEFT JOIN pagos pg ON f.factura_id = pg.factura_id 
-      AND pg.estado IN ('Completado', 'Agregado Manual') 
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado') 
       AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
     GROUP BY c.cabana_id, c.nombre
     ORDER BY c.nombre ASC

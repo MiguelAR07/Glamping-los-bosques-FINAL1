@@ -49,6 +49,128 @@ const FullWidthGroup = styled(FormGroup)`
   grid-column: 1 / -1;
 `;
 
+const PaqueteResumen = styled.div`
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #f0f7ec 0%, #e8f5e1 100%);
+  border: 1px solid #c5d8b8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .icono {
+    background: #43523A;
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4em;
+    flex-shrink: 0;
+  }
+
+  .info {
+    flex: 1;
+    h4 {
+      margin: 0 0 4px 0;
+      color: #2c3825;
+      font-size: 1em;
+    }
+    p {
+      margin: 0;
+      color: #5a6b4f;
+      font-size: 0.85em;
+    }
+  }
+`;
+
+const ServiciosGrid = styled.div`
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  animation: fadeIn 0.3s ease;
+
+  .servicio-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      border-color: #43523A;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(67, 82, 58, 0.08);
+    }
+
+    &.seleccionado {
+      border-color: #43523A;
+      background: #f4f8f3;
+      box-shadow: 0 4px 12px rgba(67, 82, 58, 0.12);
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #43523A;
+      cursor: pointer;
+    }
+
+    .info-servicio {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+
+      .nombre {
+        font-weight: 700;
+        color: #2c3825;
+        font-size: 0.88em;
+      }
+
+      .precio {
+        color: #43523A;
+        font-size: 0.8em;
+        font-weight: 600;
+      }
+
+      .badge-paquete {
+        font-size: 0.7em;
+        color: #1e7e34;
+        background: #d4edda;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        width: fit-content;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .no-servicios {
+    grid-column: 1 / -1;
+    color: #999;
+    font-style: italic;
+    font-size: 0.9em;
+    padding: 10px 0;
+  }
+`;
+
 const BotonGuardar = styled.button`
   grid-column: 1 / -1;
   padding: 12px;
@@ -77,6 +199,11 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   const [paquetes, setPaquetes] = useState([]);
   const [cabanas, setCabanas] = useState([]);
   const [selectedCabana, setSelectedCabana] = useState('');
+  const [selectedPaquete, setSelectedPaquete] = useState(null);
+  const [todosLosServicios, setTodosLosServicios] = useState([]);
+  const [serviciosPaqueteIds, setServiciosPaqueteIds] = useState(new Set());
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
+  const [loadingServicios, setLoadingServicios] = useState(false);
   const [isOcasional, setIsOcasional] = useState(false);
   const [isFinSemana, setIsFinSemana] = useState(false);
   const [horasReserva, setHorasReserva] = useState({ entrada: '15:00', salida: '13:00' });
@@ -120,11 +247,63 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       })
       .catch(err => console.error("Error cargando cabañas", err));
+
+    // Cargar todos los servicios disponibles en el sistema
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/services`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setTodosLosServicios(data.filter(s => s.estado?.toLowerCase() === 'activo' || !s.estado));
+        }
+      })
+      .catch(err => console.error("Error cargando lista de servicios", err));
   }, []);
+
+  // Cargar servicios del paquete seleccionado y pre-seleccionarlos
+  useEffect(() => {
+    if (!selectedPaquete) {
+      setServiciosPaqueteIds(new Set());
+      return;
+    }
+    const paqueteId = selectedPaquete.paquete_id || selectedPaquete.id;
+    if (!paqueteId) return;
+
+    setLoadingServicios(true);
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/packages/${paqueteId}/services`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const pkgServiceIds = new Set(data.map(s => Number(s.servicio_id || s.id)));
+          setServiciosPaqueteIds(pkgServiceIds);
+          // Pre-seleccionar los servicios del paquete que aún no estén seleccionados
+          setServiciosSeleccionados(prev => {
+            const combined = new Set([...prev, ...pkgServiceIds]);
+            return Array.from(combined);
+          });
+        }
+      })
+      .catch(err => console.error("Error cargando servicios del paquete", err))
+      .finally(() => setLoadingServicios(false));
+  }, [selectedPaquete]);
+
+  const toggleServicio = (servicioId) => {
+    setServiciosSeleccionados(prev => {
+      if (prev.includes(servicioId)) {
+        return prev.filter(id => id !== servicioId);
+      } else {
+        return [...prev, servicioId];
+      }
+    });
+  };
+
+  const paquetesFiltrados = paquetes
+    .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
+    .filter((p, index, self) => index === self.findIndex((t) => t.tipo === p.tipo && (t.cabana_id === p.cabana_id)));
 
   const handleChange = (section, field, value) => {
     if (section === 'reserva' && field === 'paquete_id') {
       const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
+      setSelectedPaquete(selectedPkg || null);
       if (selectedPkg && selectedPkg.tipo) {
         const tipoLower = selectedPkg.tipo.toLowerCase();
         setIsFinSemana(tipoLower.includes('fin de semana') || tipoLower.includes('fin semana'));
@@ -140,6 +319,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
           setHorasReserva({ entrada: '15:00', salida: '13:00' });
         }
       } else {
+        setSelectedPaquete(null);
         setIsOcasional(false);
         setIsFinSemana(false);
         setHorasReserva({ entrada: '15:00', salida: '13:00' });
@@ -248,6 +428,9 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       
       submitData.append("factura", JSON.stringify(formData.factura));
       
+      const serviciosPayload = serviciosSeleccionados.map(id => ({ servicio_id: id }));
+      submitData.append("servicios", JSON.stringify(serviciosPayload));
+
       if (comprobanteFile) {
         submitData.append("comprobante", comprobanteFile);
       }
@@ -315,7 +498,9 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
           <label>Cabaña</label>
           <select required value={selectedCabana} onChange={(e) => {
             setSelectedCabana(e.target.value);
-            // Opcional: limpiar el paquete si cambian de cabaña
+            setSelectedPaquete(null);
+            setServiciosPaqueteIds(new Set());
+            setServiciosSeleccionados([]);
             handleChange('reserva', 'paquete_id', '');
           }}>
             <option value="">Seleccione una cabaña</option>
@@ -328,19 +513,67 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         </FormGroup>
 
         <FormGroup>
-          <label>Paquete Asignado</label>
+          <label>Paquete / Plan</label>
           <select required value={formData.reserva.paquete_id} onChange={(e) => handleChange('reserva', 'paquete_id', e.target.value)} disabled={!selectedCabana}>
-            <option value="">Seleccione un paquete</option>
-            {paquetes
-              .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
-              .filter((p, index, self) => index === self.findIndex((t) => t.tipo === p.tipo && (t.cabana_id === p.cabana_id)))
-              .map(p => (
+            <option value="">{!selectedCabana ? '⬆ Primero seleccione una cabaña' : paquetesFiltrados.length === 0 ? 'No hay paquetes para esta cabaña' : 'Seleccione un paquete'}</option>
+            {paquetesFiltrados.map(p => (
                 <option key={p.paquete_id || p.id} value={p.paquete_id || p.id}>
-                  {p.cabana_nombre || 'Cabaña'} - {p.tipo || 'Paquete'} ({p.dias || 1} días)
+                  {p.tipo || 'Paquete'} — {p.dias || 1} {(p.dias || 1) === 1 ? 'día' : 'días'}
                 </option>
             ))}
           </select>
         </FormGroup>
+
+        {selectedPaquete && (
+          <PaqueteResumen>
+            <div className="icono">📦</div>
+            <div className="info">
+              <h4>{selectedPaquete.tipo || 'Paquete'}</h4>
+              <p>
+                {cabanas.find(c => (c.cabana_id || c.id) == selectedCabana)?.nombre || 'Cabaña'} · {selectedPaquete.dias || 1} {(selectedPaquete.dias || 1) === 1 ? 'día' : 'días'} de estadía
+                {selectedPaquete.descripcion && selectedPaquete.descripcion !== 'Sin descripcion' ? ` · ${selectedPaquete.descripcion}` : ''}
+              </p>
+            </div>
+          </PaqueteResumen>
+        )}
+
+        <h3>Servicios Otorgados a la Reserva</h3>
+        <ServiciosGrid>
+          {loadingServicios ? (
+            <p className="no-servicios">Cargando servicios del paquete...</p>
+          ) : todosLosServicios.length > 0 ? (
+            todosLosServicios.map((s) => {
+              const servicioId = Number(s.id || s.servicio_id);
+              const isSelected = serviciosSeleccionados.includes(servicioId);
+              const isFromPackage = serviciosPaqueteIds.has(servicioId);
+
+              return (
+                <div
+                  key={servicioId}
+                  className={`servicio-card ${isSelected ? 'seleccionado' : ''}`}
+                  onClick={() => toggleServicio(servicioId)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}} 
+                  />
+                  <div className="info-servicio">
+                    <span className="nombre">{s.servicio || s.nombre || 'Servicio'}</span>
+                    {s.precio && Number(s.precio) > 0 && (
+                      <span className="precio">${Number(s.precio).toLocaleString('es-CO')}</span>
+                    )}
+                    {isFromPackage && (
+                      <span className="badge-paquete">✓ En Paquete</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="no-servicios">No hay servicios registrados en el sistema.</p>
+          )}
+        </ServiciosGrid>
 
         <FormGroup>
           <label>Fecha de Llegada</label>

@@ -249,17 +249,22 @@ GROUP BY TO_CHAR(f.fecha_factura, 'YYYY-MM-DD');
 -------------------------- Views de facturas -----------------------------
 CREATE OR REPLACE VIEW vista_facturas AS
 SELECT 
-	f.factura_id AS ID,
-	f.reserva_id AS Reserva,
-	c.nombre AS Cliente,
+	f.factura_id AS id,
+	f.reserva_id AS reserva,
+	c.nombre AS cliente,
+	COALESCE(cb.nombre, 'Sin cabaña') AS cabana,
+	COALESCE(tp.nombre, 'Sin paquete') AS paquete,
 	f.fecha_factura AS fecha,
 	f.subtotal,
+	COALESCE(f.descuento, 0) AS descuento,
 	f.total
 FROM facturas f
-LEFT JOIN pagos p ON f.factura_id = p.factura_id
 JOIN reservas r ON r.reserva_id = f.reserva_id
 JOIN clientes c ON c.cliente_id = r.cliente_id
-WHERE r.estado <> 'Cancelada';
+LEFT JOIN paquetes p ON p.paquete_id = r.paquete_id
+LEFT JOIN cabanas cb ON cb.cabana_id = p.cabana_id
+LEFT JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id
+WHERE r.estado NOT IN ('Cancelada', 'Cancelado');
 
 -------------------------- Views de pagos -----------------------------
 CREATE OR REPLACE VIEW vista_pagos AS

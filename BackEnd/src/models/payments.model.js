@@ -99,15 +99,17 @@ export const paymentStats = {
   `,
   getRevenue: `
     SELECT 
-      saldo_neto_mes::FLOAT AS "Ingresos"
-    FROM vista_pagos_stats
+      COALESCE(SUM(total_pagado), 0)::FLOAT AS "Ingresos"
+    FROM pagos
+    WHERE estado NOT IN ('Cancelado', 'Rechazado')
+      AND fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getRevenueGraph: `
     SELECT 
       TO_CHAR(fecha_pago, 'YYYY-MM-DD') AS fecha,
       SUM(total_pagado)::FLOAT AS total
     FROM pagos
-    WHERE estado IN ('Completado', 'Agregado Manual')
+    WHERE estado NOT IN ('Cancelado', 'Rechazado')
     GROUP BY TO_CHAR(fecha_pago, 'YYYY-MM-DD')
     ORDER BY fecha ASC
     LIMIT 30;
@@ -119,9 +121,9 @@ export const paymentStats = {
     FROM pagos pa
     JOIN facturas f ON pa.factura_id = f.factura_id
     JOIN reservas r ON f.reserva_id = r.reserva_id
-    JOIN paquetes p ON r.paquete_id = p.paquete_id
-    JOIN cabanas cb ON p.cabana_id = cb.cabana_id
-    WHERE pa.estado IN ('Completado', 'Agregado Manual')
+    LEFT JOIN paquetes p ON r.paquete_id = p.paquete_id
+    LEFT JOIN cabanas cb ON p.cabana_id = cb.cabana_id
+    WHERE pa.estado NOT IN ('Cancelado', 'Rechazado')
     GROUP BY cb.nombre
     ORDER BY total DESC;
   `,

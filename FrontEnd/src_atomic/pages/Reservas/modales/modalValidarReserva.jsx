@@ -220,6 +220,11 @@ function ModalValidarReserva({ reserva, onClose, onConfirm, onReject }) {
           <strong>Paquete / Estancia:</strong>
           <span>{paqueteNombre}</span>
         </InfoRow>
+
+        <InfoRow>
+          <strong>Cabaña:</strong>
+          <span>{datos.cabana || datos.Cabaña || reserva.cabana || reserva.Cabaña || 'N/A'}</span>
+        </InfoRow>
         
         {reserva.tipo_paquete && (
           <InfoRow>

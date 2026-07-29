@@ -427,6 +427,25 @@ export const createReservation = async (req, res) => {
                cabana_id_check = pkgInfo.rows[0].cabana_id;
                if (!paquete) paquete = { nombre: pkgInfo.rows[0].nombre };
             }
+
+            // Guardar Servicios Adicionales otorgados por el admin
+            if (servicios && Array.isArray(servicios) && servicios.length > 0) {
+                for (let s of servicios) {
+                    const servicioId = typeof s === 'object' ? (s.servicio_id || s.id) : s;
+                    if (servicioId) {
+                        const checkExist = await pool.query(
+                            "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
+                            [nuevo_paquete_id, servicioId]
+                        );
+                        if (checkExist.rows.length === 0) {
+                            await pool.query(
+                                "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                [nuevo_paquete_id, servicioId, s.cantidad_personas || s.personas || 1]
+                            );
+                        }
+                    }
+                }
+            }
         }
 
         // --- ESCUDO ANTI-CHOQUES ---
