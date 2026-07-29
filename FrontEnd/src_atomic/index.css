@@ -17,3 +17,8 @@ html {
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Alertas y modales de error/advertencia (SweetAlert2) siempre por encima de cualquier formulario o modal */
+.swal2-container {
+  z-index: 999999 !important;
+}
