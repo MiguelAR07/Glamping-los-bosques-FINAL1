@@ -1043,6 +1043,30 @@ export const updateReservation = async (req, res) => {
             `, [sub, desc, id]);
         }
 
+        // 5. Guardar/actualizar servicios otorgados
+        const { servicios } = req.body;
+        if (servicios && Array.isArray(servicios)) {
+            const pkgQuery = await pool.query("SELECT paquete_id FROM reservas WHERE reserva_id = $1", [id]);
+            if (pkgQuery.rows.length > 0 && pkgQuery.rows[0].paquete_id) {
+                const paqueteId = pkgQuery.rows[0].paquete_id;
+                for (let s of servicios) {
+                    const servicioId = typeof s === 'object' ? (s.servicio_id || s.id) : s;
+                    if (servicioId) {
+                        const checkExist = await pool.query(
+                            "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
+                            [paqueteId, servicioId]
+                        );
+                        if (checkExist.rows.length === 0) {
+                            await pool.query(
+                                "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                [paqueteId, servicioId, s.cantidad_personas || s.personas || 1]
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         await pool.query("COMMIT");
 
         res.status(200).json({ success: true, message: "Reserva actualizada correctamente." });
