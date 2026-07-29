@@ -16,7 +16,8 @@ import {
     getReservationServices,
     cancelReservationForceMajeure,
     hardDeleteAllCanceledReservations,
-    hardDeleteMultipleCanceledReservations
+    hardDeleteMultipleCanceledReservations,
+    updateReservation
 } from '../controllers/reservation.controller.js';
 
 import { validateRules } from "../middleware/validate.middleware.js";
@@ -29,6 +30,8 @@ import upload from "../services/multer.service.js";
 const router = Router();
 
 router.post('/', upload.single('comprobante'), createReservation);
+router.put('/update/:id', updateReservation);
+router.put('/:id', updateReservation);
 router.put('/:id/payment', upload.single('comprobante'), uploadPaymentReceipt);
 router.put('/confirm/:id', confirmReservationPayment);
 router.put('/reject/:id', rejectReservationPayment);

@@ -956,3 +956,99 @@ export const cancelReservationForceMajeure = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+export const updateReservation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            adultos, 
+            ninos, 
+            mascotas, 
+            llegada, 
+            salida, 
+            estado, 
+            por_pagar,
+            cliente_nombre,
+            cliente_contacto,
+            cliente_email,
+            cliente_cedula,
+            subtotal,
+            descuento
+        } = req.body;
+
+        await pool.query("BEGIN");
+
+        // 1. Obtener la reserva actual
+        const resQuery = await pool.query("SELECT cliente_id FROM reservas WHERE reserva_id = $1", [id]);
+        if (resQuery.rows.length === 0) {
+            await pool.query("ROLLBACK");
+            return res.status(404).json({ message: "Reserva no encontrada." });
+        }
+        const { cliente_id } = resQuery.rows[0];
+
+        // 2. Actualizar la tabla reservas
+        await pool.query(`
+            UPDATE reservas SET
+                adultos = COALESCE($1, adultos),
+                ninos = COALESCE($2, ninos),
+                mascotas = COALESCE($3, mascotas),
+                llegada = COALESCE($4, llegada),
+                salida = COALESCE($5, salida),
+                estado = COALESCE($6, estado),
+                por_pagar = COALESCE($7, por_pagar)
+            WHERE reserva_id = $8
+        `, [
+            adultos !== undefined && adultos !== null && adultos !== '' ? Number(adultos) : null,
+            ninos !== undefined && ninos !== null && ninos !== '' ? Number(ninos) : null,
+            mascotas !== undefined && mascotas !== null && mascotas !== '' ? Number(mascotas) : null,
+            llegada ? new Date(llegada).toISOString() : null,
+            salida ? new Date(salida).toISOString() : null,
+            estado || null,
+            por_pagar !== undefined && por_pagar !== null && por_pagar !== '' ? Number(por_pagar) : null,
+            id
+        ]);
+
+        // 3. Actualizar la tabla clientes si se enviaron datos de cliente
+        if (cliente_id && (cliente_nombre || cliente_contacto || cliente_email || cliente_cedula)) {
+            await pool.query(`
+                UPDATE clientes SET
+                    nombre = COALESCE(NULLIF($1, ''), nombre),
+                    contacto = COALESCE(NULLIF($2, ''), contacto),
+                    email = COALESCE(NULLIF($3, ''), email),
+                    numero_identificacion = COALESCE(NULLIF($4, ''), numero_identificacion)
+                WHERE cliente_id = $5
+            `, [
+                cliente_nombre || null, 
+                cliente_contacto || null, 
+                cliente_email || null, 
+                cliente_cedula || null, 
+                cliente_id
+            ]);
+        }
+
+        // 4. Actualizar la tabla facturas si se enviaron finanzas
+        if (subtotal !== undefined || descuento !== undefined) {
+            const sub = subtotal !== undefined && subtotal !== null && subtotal !== '' ? Number(subtotal) : null;
+            const desc = descuento !== undefined && descuento !== null && descuento !== '' ? Number(descuento) : null;
+            await pool.query(`
+                UPDATE facturas SET
+                    subtotal = COALESCE($1, subtotal),
+                    descuento = COALESCE($2, descuento),
+                    total = CASE 
+                        WHEN $1 IS NOT NULL AND $2 IS NOT NULL THEN $1 * (1 - $2 / 100.0)
+                        WHEN $1 IS NOT NULL THEN $1 * (1 - COALESCE(descuento, 0) / 100.0)
+                        ELSE total 
+                    END
+                WHERE reserva_id = $3
+            `, [sub, desc, id]);
+        }
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ success: true, message: "Reserva actualizada correctamente." });
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        console.error("Error actualizando reserva:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

@@ -22,6 +22,7 @@ import ModalPaquete from "./modales/modalPaquete";
 import ModalValidarReserva from "./modales/modalValidarReserva";
 import ModalReprogramar from "./modales/modalReprogramar";
 import ModalAgregar from "./modales/modalAgregar";
+import ModalEditar from "./modales/modalEditar";
 
 const CardsCont = styled.div`
   margin: 20px 0 40px 0;
@@ -90,7 +91,17 @@ function Reservas({ modulo }) {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [reservaAValidar, setReservaAValidar] = useState(null);
   const [reservaAReprogramar, setReservaAReprogramar] = useState(null);
+  const [reservaAEditar, setReservaAEditar] = useState(null);
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
+
+  const editarReserva = (reserva) => {
+    const reservaOriginal = (displayData || []).find(r => 
+      (r.id || r.reserva_id) === (reserva.id || reserva.reserva_id)
+    );
+    setReservaAEditar(reservaOriginal || reserva);
+    setModalEditarAbierto(true);
+  };
 
   const [reservas, setReservas] = useState(null);
   const { displayData, setFilterMode, fetchFilters } = useFilters(
@@ -584,6 +595,7 @@ function Reservas({ modulo }) {
           <TablaGeneral
             data={mapReservasData(displayData.filter(r => !r.estado || !r.estado.toLowerCase().includes('cancelad')))}
             onColumnClick={onColumnClickHandlers}
+            onEdit={editarReserva}
             onActive={activarReserva}
             onDelete={eliminarReserva}
             selectable={true}
@@ -717,6 +729,14 @@ function Reservas({ modulo }) {
       {modalAgregarAbierto && (
         <ModalAgregar
           setModalAbierto={setModalAgregarAbierto}
+          fetchData={handleFetchData}
+        />
+      )}
+
+      {modalEditarAbierto && reservaAEditar && (
+        <ModalEditar
+          reservaAEditar={reservaAEditar}
+          setModalAbierto={setModalEditarAbierto}
           fetchData={handleFetchData}
         />
       )}
