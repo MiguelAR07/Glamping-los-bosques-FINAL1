@@ -605,12 +605,6 @@ function Reservas({ modulo }) {
             columnMapping={{}}
             acciones={[
               {
-                title: "Ver Cliente",
-                icono: <i className="bi bi-person-lines-fill" style={{ fontSize: '1.2rem' }}></i>,
-                color: "#1a4700",
-                onClick: handleClientClick
-              },
-              {
                 title: "Validar Reserva (Confirmar o Rechazar)",
                 icono: <i className="bi bi-shield-check" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#0dcaf0",

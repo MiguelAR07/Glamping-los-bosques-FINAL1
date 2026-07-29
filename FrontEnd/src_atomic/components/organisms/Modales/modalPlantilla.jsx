@@ -99,8 +99,14 @@ const CloseModal = styled.button`
 `;
 
 function ModalPlantilla({ modulo, titulo, volver, onClose, children, onConfirm, width, height }) {
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose && onClose();
+    }
+  };
+
   return (
-    <Modal onClick={onClose}>
+    <Modal onClick={handleBackdropClick}>
       <ModalCont $width={width} $height={height} onClick={(e) => e.stopPropagation()}>
         <h3>{titulo ? titulo : `Agregar ${modulo}`}</h3>
 

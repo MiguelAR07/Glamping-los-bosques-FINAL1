@@ -135,8 +135,14 @@ function ModalReprogramar({ reserva, onClose, onSuccess }) {
     }
   };
 
+  const handleBackdropClick = (e) => {
+    if (!loading && e.target === e.currentTarget) {
+      onClose && onClose();
+    }
+  };
+
   return (
-    <ModalOverlay onClick={!loading ? onClose : null}>
+    <ModalOverlay onClick={handleBackdropClick}>
       <ModalContent onClick={e => e.stopPropagation()}>
         <h2>Reprogramar Reserva</h2>
         <p>Cliente: <strong>{reserva.cliente}</strong></p>
