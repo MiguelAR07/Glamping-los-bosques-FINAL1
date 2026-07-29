@@ -99,31 +99,32 @@ export const paymentStats = {
   `,
   getRevenue: `
     SELECT 
-      COALESCE(SUM(total_pagado), 0)::FLOAT AS "Ingresos"
-    FROM pagos
-    WHERE estado NOT IN ('Cancelado', 'Rechazado')
-      AND fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
+      COALESCE(SUM(f.total), 0)::FLOAT AS "Ingresos"
+    FROM reservas r
+    JOIN facturas f ON r.reserva_id = f.reserva_id
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+      AND f.fecha_factura >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getRevenueGraph: `
     SELECT 
-      TO_CHAR(fecha_pago, 'YYYY-MM-DD') AS fecha,
-      SUM(total_pagado)::FLOAT AS total
-    FROM pagos
-    WHERE estado NOT IN ('Cancelado', 'Rechazado')
-    GROUP BY TO_CHAR(fecha_pago, 'YYYY-MM-DD')
+      TO_CHAR(f.fecha_factura, 'YYYY-MM-DD') AS fecha,
+      SUM(f.total)::FLOAT AS total
+    FROM reservas r
+    JOIN facturas f ON r.reserva_id = f.reserva_id
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+    GROUP BY TO_CHAR(f.fecha_factura, 'YYYY-MM-DD')
     ORDER BY fecha ASC
     LIMIT 30;
   `,
   getRevenueByCabin: `
     SELECT 
       cb.nombre AS cabana,
-      SUM(pa.total_pagado)::FLOAT AS total
-    FROM pagos pa
-    JOIN facturas f ON pa.factura_id = f.factura_id
-    JOIN reservas r ON f.reserva_id = r.reserva_id
+      SUM(f.total)::FLOAT AS total
+    FROM reservas r
+    JOIN facturas f ON r.reserva_id = f.reserva_id
     LEFT JOIN paquetes p ON r.paquete_id = p.paquete_id
     LEFT JOIN cabanas cb ON p.cabana_id = cb.cabana_id
-    WHERE pa.estado NOT IN ('Cancelado', 'Rechazado')
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
     GROUP BY cb.nombre
     ORDER BY total DESC;
   `,

@@ -153,15 +153,13 @@ export const updateReservationByPayment = {
 export const reservationStats = {
   getRevenueGraph: `
     SELECT 
-      TO_CHAR(pg.fecha_pago, 'YYYY-MM') AS fecha,
-      SUM(pg.total_pagado) AS total
-    FROM pagos pg
-    JOIN facturas f ON pg.factura_id = f.factura_id
-    JOIN reservas r ON f.reserva_id = r.reserva_id
+      TO_CHAR(f.fecha_factura, 'YYYY-MM') AS fecha,
+      SUM(f.total) AS total
+    FROM reservas r
+    JOIN facturas f ON r.reserva_id = f.reserva_id
     WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
-      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
-    GROUP BY TO_CHAR(pg.fecha_pago, 'YYYY-MM')
+      AND f.fecha_factura >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
+    GROUP BY TO_CHAR(f.fecha_factura, 'YYYY-MM')
     ORDER BY fecha ASC;
   `,
   totalConfirmed: `
@@ -180,26 +178,22 @@ export const reservationStats = {
     WHERE estado IN ('Cancelado', 'Cancelada')
   `,
   revenueMonth: `
-    SELECT COALESCE(SUM(pg.total_pagado), 0) AS total
-    FROM pagos pg
-    JOIN facturas f ON pg.factura_id = f.factura_id
-    JOIN reservas r ON f.reserva_id = r.reserva_id
+    SELECT COALESCE(SUM(f.total), 0) AS total
+    FROM reservas r
+    JOIN facturas f ON r.reserva_id = f.reserva_id
     WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
-      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
+      AND f.fecha_factura >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   revenueByCabin: `
     SELECT 
       c.cabana_id,
       c.nombre AS cabana_nombre,
-      COALESCE(SUM(pg.total_pagado), 0) AS total
+      COALESCE(SUM(f.total), 0) AS total
     FROM cabanas c
     LEFT JOIN paquetes p ON c.cabana_id = p.cabana_id
     LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado NOT IN ('Cancelado', 'Cancelada')
-    LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
-    LEFT JOIN pagos pg ON f.factura_id = pg.factura_id 
-      AND pg.estado NOT IN ('Cancelado', 'Rechazado') 
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
+    LEFT JOIN facturas f ON r.reserva_id = f.reserva_id 
+      AND f.fecha_factura >= DATE_TRUNC('month', CURRENT_DATE)
     GROUP BY c.cabana_id, c.nombre
     ORDER BY c.nombre ASC
   `
