@@ -472,9 +472,9 @@ function Reservas({ modulo }) {
         mascotas: r.mascotas || 0,
         'Estado': r.estado,
         'Factura #': r.factura_id || 'N/A',
-        'Precio Total': r.subtotal !== undefined && r.subtotal !== null ? `$ ${Number(r.subtotal).toLocaleString('es-CO')}` : '$ 0',
-        'Total Abonado': r["Total abonado"] !== undefined && r["Total abonado"] !== null ? `$ ${Number(r["Total abonado"]).toLocaleString('es-CO')}` : '$ 0',
-        'Total Restante': r["Pago restante"] !== undefined && r["Pago restante"] !== null ? `$ ${Number(r["Pago restante"]).toLocaleString('es-CO')}` : '$ 0'
+        'Precio Total': r.subtotal !== undefined && r.subtotal !== null ? Number(r.subtotal) : 0,
+        'Total Abonado': r["Total abonado"] !== undefined && r["Total abonado"] !== null ? Number(r["Total abonado"]) : 0,
+        'Total Restante': r["Pago restante"] !== undefined && r["Pago restante"] !== null ? Number(r["Pago restante"]) : 0
       };
     });
   };

@@ -225,7 +225,7 @@ function TablaGeneral({ data, acciones, onEdit, onDelete, onActive, hideActions,
                   <td key={j}>
                     {(() => {
                       const valor = fila[col];
-                      const columnasMoneda = ["sueldo", "precio noche", "Pago restante", "monto", "total", "subtotal", "precio", "ingresos_generados", "Debe", "Total Restante"];
+                      const columnasMoneda = ["sueldo", "precio noche", "Pago restante", "monto", "total", "subtotal", "precio", "ingresos_generados", "Debe", "Total Restante", "Total Abonado", "Precio Total"];
                       const columnasFecha = ["actualizacion", "fecha", "fecha_mantenimiento", "fecha_registro"];
                       const columnasFechaHora = ["fecha_registro", "llegada", "salida"];
 

@@ -7,10 +7,15 @@ export const formatColombianPeso = (amount) => {
 };
 
 export const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount) || amount === "") {
+  if (amount === null || amount === undefined || amount === "") {
     return "$ 0";
   }
-  return `$ ${formatColombianPeso(amount)}`;
+  const clean = typeof amount === 'string' ? amount.replace(/[^0-9.-]/g, '') : amount;
+  const num = Number(clean);
+  if (isNaN(num)) {
+    return "$ 0";
+  }
+  return `$ ${formatColombianPeso(num)}`;
 };
 
 /**
