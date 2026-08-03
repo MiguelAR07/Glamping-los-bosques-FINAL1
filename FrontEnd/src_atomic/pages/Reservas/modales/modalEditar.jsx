@@ -218,34 +218,14 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     }
   }, [reservaAEditar]);
 
-  const handleCabinChange = (newCabinId) => {
-    const idNum = Number(newCabinId);
-    const selectedCabin = cabanas.find(c => Number(c.cabana_id || c.id) === idNum);
-
-    if (selectedCabin) {
-      const newCabinPrice = Number(selectedCabin.precio_noche || selectedCabin.precio || 0);
-      const abonadoActual = Math.max(0, formData.total_abonado || 0);
-      const nuevoPorPagar = Math.max(0, newCabinPrice - abonadoActual);
-
-      setFormData(prev => ({
-        ...prev,
-        cabana_id: idNum,
-        subtotal: newCabinPrice,
-        por_pagar: nuevoPorPagar
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, cabana_id: idNum }));
-    }
-  };
-
-  const formatInputMoney = (val) => {
+  const formatMoneyDisplay = (val) => {
     if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
-    const num = Number(val);
-    if (isNaN(num) || num === 0) return '';
+    const num = parseMoneyStrict(val);
+    if (num === 0) return '';
     return new Intl.NumberFormat('es-CO').format(num);
   };
 
-  const parseMoney = (val) => {
+  const parseMoneyStrict = (val) => {
     if (val === null || val === undefined || val === '') return 0;
     if (typeof val === 'number') {
       let n = isNaN(val) ? 0 : val;
@@ -269,67 +249,53 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     return num;
   };
 
-  const handleSubtotalChange = (val) => {
-    if (val === '' || val === null || val === undefined) {
-      setFormData(prev => ({
-        ...prev,
-        subtotal: '',
-        por_pagar: ''
-      }));
-      return;
+  const initSubtotal = Number(reservaAEditar.subtotal || 0) || 0;
+  const initAbonado = Number(reservaAEditar['Total abonado'] !== undefined ? reservaAEditar['Total abonado'] : (reservaAEditar.total_abonado || (initSubtotal - Number(reservaAEditar['Pago restante'] || reservaAEditar.por_pagar || 0)))) || 0;
+  const initPorPagar = Number(reservaAEditar['Pago restante'] !== undefined ? reservaAEditar['Pago restante'] : (reservaAEditar.por_pagar || 0)) || 0;
+
+  const [inputSubtotal, setInputSubtotal] = useState(initSubtotal ? formatMoneyDisplay(initSubtotal) : '');
+  const [inputTotalAbonado, setInputTotalAbonado] = useState(initAbonado ? formatMoneyDisplay(initAbonado) : '');
+  const [inputPorPagar, setInputPorPagar] = useState(initPorPagar ? formatMoneyDisplay(initPorPagar) : '');
+
+  const handleCabinChange = (newCabinId) => {
+    const idNum = Number(newCabinId);
+    const selectedCabin = cabanas.find(c => Number(c.cabana_id || c.id) === idNum);
+
+    if (selectedCabin) {
+      const newCabinPrice = Number(selectedCabin.precio_noche || selectedCabin.precio || 0);
+      const abonadoActual = parseMoneyStrict(inputTotalAbonado);
+      const nuevoPorPagar = Math.max(0, newCabinPrice - abonadoActual);
+
+      setFormData(prev => ({ ...prev, cabana_id: idNum }));
+      setInputSubtotal(newCabinPrice > 0 ? formatMoneyDisplay(newCabinPrice) : '');
+      setInputPorPagar(nuevoPorPagar > 0 ? formatMoneyDisplay(nuevoPorPagar) : '');
+    } else {
+      setFormData(prev => ({ ...prev, cabana_id: idNum }));
     }
-    const numSub = parseMoney(val);
-    setFormData(prev => {
-      const abonado = Number(prev.total_abonado) || 0;
-      const nuevoPorPagar = Math.max(0, numSub - abonado);
-      return {
-        ...prev,
-        subtotal: numSub,
-        por_pagar: nuevoPorPagar
-      };
-    });
   };
 
-  const handleTotalAbonadoChange = (val) => {
-    if (val === '' || val === null || val === undefined) {
-      setFormData(prev => ({
-        ...prev,
-        total_abonado: '',
-        por_pagar: Number(prev.subtotal) || 0
-      }));
-      return;
-    }
-    const numAbono = parseMoney(val);
-    setFormData(prev => {
-      const sub = Number(prev.subtotal) || 0;
-      const nuevoPorPagar = Math.max(0, sub - numAbono);
-      return {
-        ...prev,
-        total_abonado: numAbono,
-        por_pagar: nuevoPorPagar
-      };
-    });
+  const handleSubtotalBlur = () => {
+    const numSub = parseMoneyStrict(inputSubtotal);
+    const numAbono = parseMoneyStrict(inputTotalAbonado);
+    const nuevoPorPagar = Math.max(0, numSub - numAbono);
+    setInputSubtotal(numSub > 0 ? formatMoneyDisplay(numSub) : '');
+    setInputPorPagar(nuevoPorPagar > 0 ? formatMoneyDisplay(nuevoPorPagar) : '');
   };
 
-  const handlePorPagarChange = (val) => {
-    if (val === '' || val === null || val === undefined) {
-      setFormData(prev => ({
-        ...prev,
-        por_pagar: '',
-        total_abonado: Number(prev.subtotal) || 0
-      }));
-      return;
-    }
-    const numRestante = parseMoney(val);
-    setFormData(prev => {
-      const sub = Number(prev.subtotal) || 0;
-      const nuevoAbono = Math.max(0, sub - numRestante);
-      return {
-        ...prev,
-        por_pagar: numRestante,
-        total_abonado: nuevoAbono
-      };
-    });
+  const handleTotalAbonadoBlur = () => {
+    const numSub = parseMoneyStrict(inputSubtotal);
+    const numAbono = parseMoneyStrict(inputTotalAbonado);
+    const nuevoPorPagar = Math.max(0, numSub - numAbono);
+    setInputTotalAbonado(numAbono > 0 ? formatMoneyDisplay(numAbono) : '');
+    setInputPorPagar(nuevoPorPagar > 0 ? formatMoneyDisplay(nuevoPorPagar) : '');
+  };
+
+  const handlePorPagarBlur = () => {
+    const numSub = parseMoneyStrict(inputSubtotal);
+    const numRestante = parseMoneyStrict(inputPorPagar);
+    const nuevoAbono = Math.max(0, numSub - numRestante);
+    setInputPorPagar(numRestante > 0 ? formatMoneyDisplay(numRestante) : '');
+    setInputTotalAbonado(nuevoAbono > 0 ? formatMoneyDisplay(nuevoAbono) : '');
   };
 
   const toggleServicio = (servicioId) => {
@@ -356,6 +322,9 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
 
       const payload = {
         ...formData,
+        subtotal: parseMoneyStrict(inputSubtotal),
+        total_abonado: parseMoneyStrict(inputTotalAbonado),
+        por_pagar: parseMoneyStrict(inputPorPagar),
         servicios: serviciosSeleccionados.map(id => ({ servicio_id: id }))
       };
 
@@ -495,15 +464,33 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
         </FormGroup>
         <FormGroup>
           <label>Precio Total de la Reserva ($)</label>
-          <input required type="text" placeholder="Ej: 300.000 ó 300" value={formatInputMoney(formData.subtotal)} onChange={(e) => handleSubtotalChange(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder="Ej: 300.000 ó 300" 
+            value={inputSubtotal} 
+            onChange={(e) => setInputSubtotal(e.target.value)} 
+            onBlur={handleSubtotalBlur}
+          />
         </FormGroup>
         <FormGroup>
           <label>Total Abonado ($)</label>
-          <input required type="text" placeholder="Ej: 150.000 ó 150" value={formatInputMoney(formData.total_abonado)} onChange={(e) => handleTotalAbonadoChange(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder="Ej: 150.000 ó 150" 
+            value={inputTotalAbonado} 
+            onChange={(e) => setInputTotalAbonado(e.target.value)} 
+            onBlur={handleTotalAbonadoBlur}
+          />
         </FormGroup>
         <FormGroup>
           <label>Valor Restante por Pagar ($)</label>
-          <input required type="text" placeholder="Ej: 150.000 ó 150" value={formatInputMoney(formData.por_pagar)} onChange={(e) => handlePorPagarChange(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder="Ej: 150.000 ó 150" 
+            value={inputPorPagar} 
+            onChange={(e) => setInputPorPagar(e.target.value)} 
+            onBlur={handlePorPagarBlur}
+          />
         </FormGroup>
 
         <BotonGuardar type="submit" disabled={loading}>
