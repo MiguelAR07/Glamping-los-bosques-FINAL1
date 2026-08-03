@@ -172,9 +172,9 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     mascotas: reservaAEditar.mascotas !== undefined ? reservaAEditar.mascotas : 0,
     estado: reservaAEditar.estado || reservaAEditar.Estado || 'Confirmada',
 
-    por_pagar: reservaAEditar['Pago restante'] !== undefined ? reservaAEditar['Pago restante'] : (reservaAEditar.por_pagar || 0),
-    subtotal: reservaAEditar.subtotal || 0,
-    descuento: reservaAEditar.descuento || 0
+    por_pagar: Number(reservaAEditar['Pago restante'] !== undefined ? reservaAEditar['Pago restante'] : (reservaAEditar.por_pagar || 0)) || 0,
+    subtotal: Number(reservaAEditar.subtotal || 0) || 0,
+    descuento: Number(reservaAEditar.descuento || 0) || 0
   });
 
   // Cargar todos los servicios disponibles

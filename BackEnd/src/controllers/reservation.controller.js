@@ -9,13 +9,36 @@ import { transporter, sendReservationConfirmedEmail } from "../services/nodemail
 
 const parseMoney = (val) => {
     if (val === null || val === undefined || val === '') return 0;
-    if (typeof val === 'number') return val;
-    const str = String(val).trim();
-    const parts = str.split('.');
-    if (parts.length > 1 && parts.every((p, idx) => idx === 0 || p.length === 3)) {
-        return Number(str.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    let str = String(val).trim();
+    if (!str) return 0;
+
+    // Si viene como número formateado estándar ("115000.00" o "115000")
+    if (/^\d+(\.\d+)?$/.test(str)) {
+        return parseFloat(str) || 0;
     }
-    return Number(str.replace(/[^0-9]/g, '')) || 0;
+    // Si viene con coma decimal ("115000,00")
+    if (/^\d+(,\d+)?$/.test(str)) {
+        return parseFloat(str.replace(',', '.')) || 0;
+    }
+
+    str = str.replace(/[^0-9.,-]/g, '');
+    if (str.includes('.') && str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes('.')) {
+        const parts = str.split('.');
+        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+            str = str.replace(/\./g, '');
+        }
+    } else if (str.includes(',')) {
+        const parts = str.split(',');
+        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+            str = str.replace(/,/g, '');
+        } else {
+            str = str.replace(',', '.');
+        }
+    }
+    return parseFloat(str) || 0;
 };
 
 export const getreservations = async (req, res) => {
