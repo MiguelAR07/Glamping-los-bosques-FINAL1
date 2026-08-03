@@ -199,6 +199,36 @@ export const reservationStats = {
       AND pg.estado NOT IN ('Cancelado', 'Rechazado')
     GROUP BY c.cabana_id, c.nombre
     ORDER BY c.nombre ASC
+  `,
+  revenueByMonth: `
+    SELECT 
+      TO_CHAR(pg.fecha_pago, 'MM') AS mes_num,
+      TO_CHAR(pg.fecha_pago, 'YYYY-MM') AS mes,
+      COALESCE(SUM(pg.total_pagado), 0) AS total
+    FROM pagos pg
+    JOIN facturas f ON pg.factura_id = f.factura_id
+    JOIN reservas r ON f.reserva_id = r.reserva_id
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
+    GROUP BY TO_CHAR(pg.fecha_pago, 'MM'), TO_CHAR(pg.fecha_pago, 'YYYY-MM')
+    ORDER BY mes_num ASC
+  `,
+  revenueByMonthAndCabin: `
+    SELECT 
+      TO_CHAR(pg.fecha_pago, 'MM') AS mes_num,
+      TO_CHAR(pg.fecha_pago, 'YYYY-MM') AS mes,
+      c.cabana_id,
+      c.nombre AS cabana_nombre,
+      COALESCE(SUM(pg.total_pagado), 0) AS total
+    FROM pagos pg
+    JOIN facturas f ON pg.factura_id = f.factura_id
+    JOIN reservas r ON f.reserva_id = r.reserva_id
+    LEFT JOIN paquetes p ON r.paquete_id = p.paquete_id
+    LEFT JOIN cabanas c ON p.cabana_id = c.cabana_id
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
+    GROUP BY TO_CHAR(pg.fecha_pago, 'MM'), TO_CHAR(pg.fecha_pago, 'YYYY-MM'), c.cabana_id, c.nombre
+    ORDER BY mes_num ASC
   `
 }
 

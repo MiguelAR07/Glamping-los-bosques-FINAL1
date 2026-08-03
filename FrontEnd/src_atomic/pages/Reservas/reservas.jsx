@@ -487,6 +487,23 @@ function Reservas({ modulo }) {
   ];
 
   const [selectedIncomeCabin, setSelectedIncomeCabin] = useState('General');
+  const [selectedIncomeMonth, setSelectedIncomeMonth] = useState('Todos');
+
+  const MESES_ANO = [
+    { num: 'Todos', nombre: 'Todos los Meses' },
+    { num: '01', nombre: 'Enero' },
+    { num: '02', nombre: 'Febrero' },
+    { num: '03', nombre: 'Marzo' },
+    { num: '04', nombre: 'Abril' },
+    { num: '05', nombre: 'Mayo' },
+    { num: '06', nombre: 'Junio' },
+    { num: '07', nombre: 'Julio' },
+    { num: '08', nombre: 'Agosto' },
+    { num: '09', nombre: 'Septiembre' },
+    { num: '10', nombre: 'Octubre' },
+    { num: '11', nombre: 'Noviembre' },
+    { num: '12', nombre: 'Diciembre' }
+  ];
 
   const formatCurrencyLocal = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -494,15 +511,32 @@ function Reservas({ modulo }) {
       currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(value);
+    }).format(value || 0);
   };
 
   const getIncomeTitle = () => {
-    if (selectedIncomeCabin === 'General') {
+    if (selectedIncomeMonth === 'Todos' && selectedIncomeCabin === 'General') {
       return statsData?.revenue_month ? formatCurrencyLocal(statsData.revenue_month) : '$0';
     }
-    const cabinStats = statsData?.revenue_by_cabin?.find(c => c.cabana_id === parseInt(selectedIncomeCabin));
-    return cabinStats ? formatCurrencyLocal(cabinStats.total) : '$0';
+
+    if (selectedIncomeMonth === 'Todos' && selectedIncomeCabin !== 'General') {
+      const cabinStats = statsData?.revenue_by_cabin?.find(c => c.cabana_id === parseInt(selectedIncomeCabin));
+      return cabinStats ? formatCurrencyLocal(cabinStats.total) : '$0';
+    }
+
+    if (selectedIncomeMonth !== 'Todos' && selectedIncomeCabin === 'General') {
+      const monthData = statsData?.revenue_by_month?.find(m => m.mes_num === selectedIncomeMonth);
+      return monthData ? formatCurrencyLocal(monthData.total) : '$0';
+    }
+
+    if (selectedIncomeMonth !== 'Todos' && selectedIncomeCabin !== 'General') {
+      const item = statsData?.revenue_by_month_and_cabin?.find(
+        mc => mc.mes_num === selectedIncomeMonth && mc.cabana_id === parseInt(selectedIncomeCabin)
+      );
+      return item ? formatCurrencyLocal(item.total) : '$0';
+    }
+
+    return '$0';
   };
 
   const dynamicCardData = [
@@ -524,29 +558,53 @@ function Reservas({ modulo }) {
     {
       bgColor: 'verde',
       texto: (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Ingresos del Mes</span>
-          <select 
-            value={selectedIncomeCabin}
-            onChange={(e) => setSelectedIncomeCabin(e.target.value)}
-            style={{ 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px', 
-              padding: '2px 6px',
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              outline: 'none'
-            }}
-          >
-            <option value="General" style={{color: '#333'}}>General</option>
-            {statsData?.revenue_by_cabin?.map(c => (
-              <option key={c.cabana_id} value={c.cabana_id} style={{color: '#333'}}>
-                {c.cabana_nombre}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: '600' }}>Ingresos</span>
+            <select 
+              value={selectedIncomeMonth}
+              onChange={(e) => setSelectedIncomeMonth(e.target.value)}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.25)', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '6px', 
+                padding: '2px 6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              {MESES_ANO.map(m => (
+                <option key={m.num} value={m.num} style={{color: '#333'}}>
+                  {m.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <select 
+              value={selectedIncomeCabin}
+              onChange={(e) => setSelectedIncomeCabin(e.target.value)}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.25)', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '6px', 
+                padding: '2px 6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              <option value="General" style={{color: '#333'}}>Todas las Cabañas</option>
+              {statsData?.revenue_by_cabin?.map(c => (
+                <option key={c.cabana_id} value={c.cabana_id} style={{color: '#333'}}>
+                  {c.cabana_nombre}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       ),
       titulo: getIncomeTitle(),
