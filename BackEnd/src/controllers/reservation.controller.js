@@ -9,36 +9,43 @@ import { transporter, sendReservationConfirmedEmail } from "../services/nodemail
 
 const parseMoney = (val) => {
     if (val === null || val === undefined || val === '') return 0;
-    if (typeof val === 'number') return isNaN(val) ? 0 : val;
-    let str = String(val).trim();
-    if (!str) return 0;
+    let num = 0;
+    if (typeof val === 'number') {
+        num = isNaN(val) ? 0 : val;
+    } else {
+        let str = String(val).trim();
+        if (!str) return 0;
 
-    // Si viene como número formateado estándar ("115000.00" o "115000")
-    if (/^\d+(\.\d+)?$/.test(str)) {
-        return parseFloat(str) || 0;
-    }
-    // Si viene con coma decimal ("115000,00")
-    if (/^\d+(,\d+)?$/.test(str)) {
-        return parseFloat(str.replace(',', '.')) || 0;
-    }
-
-    str = str.replace(/[^0-9.,-]/g, '');
-    if (str.includes('.') && str.includes(',')) {
-        str = str.replace(/\./g, '').replace(',', '.');
-    } else if (str.includes('.')) {
-        const parts = str.split('.');
-        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
-            str = str.replace(/\./g, '');
-        }
-    } else if (str.includes(',')) {
-        const parts = str.split(',');
-        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
-            str = str.replace(/,/g, '');
+        // Si viene como número formateado estándar ("115000.00" o "115000")
+        if (/^\d+(\.\d+)?$/.test(str)) {
+            num = parseFloat(str) || 0;
+        } else if (/^\d+(,\d+)?$/.test(str)) {
+            num = parseFloat(str.replace(',', '.')) || 0;
         } else {
-            str = str.replace(',', '.');
+            str = str.replace(/[^0-9.,-]/g, '');
+            if (str.includes('.') && str.includes(',')) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else if (str.includes('.')) {
+                const parts = str.split('.');
+                if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                    str = str.replace(/\./g, '');
+                }
+            } else if (str.includes(',')) {
+                const parts = str.split(',');
+                if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                    str = str.replace(/,/g, '');
+                } else {
+                    str = str.replace(',', '.');
+                }
+            }
+            num = parseFloat(str) || 0;
         }
     }
-    return parseFloat(str) || 0;
+    // Si se ingresó en notación de miles (ej: 330 -> 330000)
+    if (num > 0 && num < 1000) {
+        num = num * 1000;
+    }
+    return num;
 };
 
 export const getreservations = async (req, res) => {

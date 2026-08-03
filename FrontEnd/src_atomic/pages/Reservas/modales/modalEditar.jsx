@@ -238,8 +238,39 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     }
   };
 
+  const formatInputMoney = (val) => {
+    if (val === null || val === undefined || val === '') return '';
+    const num = Number(val) || 0;
+    if (num === 0) return '0';
+    return new Intl.NumberFormat('es-CO').format(num);
+  };
+
+  const parseMoney = (val) => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') {
+      let n = isNaN(val) ? 0 : val;
+      if (n > 0 && n < 1000) n = n * 1000;
+      return n;
+    }
+    let str = String(val).trim().replace(/[^0-9.,]/g, '');
+    if (!str) return 0;
+
+    if (str.includes('.')) {
+      const parts = str.split('.');
+      if (parts.every((p, idx) => idx === 0 || p.length === 3)) {
+        str = str.replace(/\./g, '');
+      }
+    }
+    str = str.replace(/,/g, '');
+    let num = parseFloat(str) || 0;
+    if (num > 0 && num < 1000) {
+      num = num * 1000;
+    }
+    return num;
+  };
+
   const handleSubtotalChange = (val) => {
-    const numSub = Math.max(0, Number(val) || 0);
+    const numSub = parseMoney(val);
     setFormData(prev => {
       const nuevoPorPagar = Math.max(0, numSub - prev.total_abonado);
       return {
@@ -251,7 +282,7 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const handleTotalAbonadoChange = (val) => {
-    const numAbono = Math.max(0, Number(val) || 0);
+    const numAbono = parseMoney(val);
     setFormData(prev => {
       const nuevoPorPagar = Math.max(0, prev.subtotal - numAbono);
       return {
@@ -263,7 +294,7 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const handlePorPagarChange = (val) => {
-    const numRestante = Math.max(0, Number(val) || 0);
+    const numRestante = parseMoney(val);
     setFormData(prev => {
       const nuevoAbono = Math.max(0, prev.subtotal - numRestante);
       return {
@@ -437,15 +468,15 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
         </FormGroup>
         <FormGroup>
           <label>Precio Total de la Reserva ($)</label>
-          <input required type="number" min="0" value={formData.subtotal} onChange={(e) => handleSubtotalChange(e.target.value)} />
+          <input required type="text" placeholder="Ej: 300.000 ó 300" value={formatInputMoney(formData.subtotal)} onChange={(e) => handleSubtotalChange(e.target.value)} />
         </FormGroup>
         <FormGroup>
           <label>Total Abonado ($)</label>
-          <input required type="number" min="0" value={formData.total_abonado} onChange={(e) => handleTotalAbonadoChange(e.target.value)} />
+          <input required type="text" placeholder="Ej: 150.000 ó 150" value={formatInputMoney(formData.total_abonado)} onChange={(e) => handleTotalAbonadoChange(e.target.value)} />
         </FormGroup>
         <FormGroup>
           <label>Valor Restante por Pagar ($)</label>
-          <input required type="number" min="0" value={formData.por_pagar} onChange={(e) => handlePorPagarChange(e.target.value)} />
+          <input required type="text" placeholder="Ej: 150.000 ó 150" value={formatInputMoney(formData.por_pagar)} onChange={(e) => handlePorPagarChange(e.target.value)} />
         </FormGroup>
 
         <BotonGuardar type="submit" disabled={loading}>
