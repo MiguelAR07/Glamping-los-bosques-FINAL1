@@ -81,28 +81,24 @@ export const paymentStats = {
       COUNT(id) AS "Pagos exitosos"
     FROM vista_pagos
     WHERE estado IN ('Completado', 'Agregado Manual')
-      AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getRejectedPayments: `
     SELECT 
       COUNT(id) AS "Pagos rechazados"
     FROM vista_pagos
     WHERE estado = 'Rechazado'
-      AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getPendingRefunds: `
     SELECT 
       COUNT(id) AS "Reembolsos pendientes"
     FROM vista_reembolsos_factura
     WHERE estado = 'Pendiente'
-      AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getRevenue: `
     SELECT 
       COALESCE(SUM(total_pagado), 0)::FLOAT AS "Ingresos"
     FROM pagos
     WHERE estado NOT IN ('Cancelado', 'Rechazado')
-      AND fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   getRevenueGraph: `
     SELECT 
@@ -124,6 +120,7 @@ export const paymentStats = {
     LEFT JOIN paquetes p ON r.paquete_id = p.paquete_id
     LEFT JOIN cabanas cb ON p.cabana_id = cb.cabana_id
     WHERE pa.estado NOT IN ('Cancelado', 'Rechazado')
+      AND r.estado NOT IN ('Cancelado', 'Cancelada')
     GROUP BY cb.nombre
     ORDER BY total DESC;
   `,

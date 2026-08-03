@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { connectDB } from './src/config/db.js';
 import app from './src/app.js';
 import routes from './src/routes/index.js';

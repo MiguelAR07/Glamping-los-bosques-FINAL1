@@ -10,6 +10,7 @@ import Disponibilidad from "../pages/Disponibilidad/disponibilidad"
 import CuentasBancarias from "../pages/CuentasBancarias/cuentasBancarias"
 import Clientes from "../pages/Clientes/clientes"
 import SaldosRestantes from "../pages/SaldosRestantes/saldosRestantes"
+import TerminosCondiciones from "../pages/TerminosCondiciones/terminosCondiciones"
 
 export const userRole = localStorage.getItem('userRole') || "";
 
@@ -91,6 +92,13 @@ export const modulos = [
     nombre: 'Saldos Restantes',
     componente: <SaldosRestantes />,
     ruta: '/saldos',
+    roles: ["recepcionista", "administrador"]
+  },
+  {
+    icono: "bi bi-file-text-fill",
+    nombre: 'Términos y Condiciones',
+    componente: <TerminosCondiciones />,
+    ruta: '/terminos',
     roles: ["recepcionista", "administrador"]
   }
 ];

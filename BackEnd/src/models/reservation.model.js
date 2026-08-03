@@ -160,14 +160,13 @@ export const reservationStats = {
     JOIN reservas r ON f.reserva_id = r.reserva_id
     WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
       AND pg.estado NOT IN ('Cancelado', 'Rechazado')
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
     GROUP BY TO_CHAR(pg.fecha_pago, 'YYYY-MM')
     ORDER BY fecha ASC;
   `,
   totalConfirmed: `
     SELECT COUNT(*) AS total
     FROM reservas
-    WHERE estado IN ('Confirmado', 'Confirmada', 'Activo', 'Pagado')
+    WHERE estado NOT IN ('Cancelado', 'Cancelada', 'Por validar', 'Pendiente')
   `,
   totalPending: `
     SELECT COUNT(*) AS total
@@ -186,7 +185,6 @@ export const reservationStats = {
     JOIN reservas r ON f.reserva_id = r.reserva_id
     WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
       AND pg.estado NOT IN ('Cancelado', 'Rechazado')
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
   `,
   revenueByCabin: `
     SELECT 
@@ -198,8 +196,7 @@ export const reservationStats = {
     LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado NOT IN ('Cancelado', 'Cancelada')
     LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
     LEFT JOIN pagos pg ON f.factura_id = pg.factura_id 
-      AND pg.estado NOT IN ('Cancelado', 'Rechazado') 
-      AND pg.fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
+      AND pg.estado NOT IN ('Cancelado', 'Rechazado')
     GROUP BY c.cabana_id, c.nombre
     ORDER BY c.nombre ASC
   `
@@ -210,8 +207,7 @@ export const reservationDashboardStats = {
     SELECT 
       COUNT(*) AS total_reservations
     FROM reservas
-    WHERE estado IN ('Completado', 'Pagado')
-      AND fecha_registro >= DATE_TRUNC('month', CURRENT_DATE)
+    WHERE estado NOT IN ('Cancelado', 'Cancelada')
   `,
   mostPopularPackage: `
     SELECT 
@@ -220,7 +216,7 @@ export const reservationDashboardStats = {
     FROM reservas r
     JOIN paquetes p ON r.paquete_id = p.paquete_id
     JOIN tipo_paquete tp ON p.tipo_id = tp.tipo_id
-    WHERE r.fecha_registro >= DATE_TRUNC('month', CURRENT_DATE)
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
     GROUP BY tp.nombre
     ORDER BY total DESC
     LIMIT 1
@@ -230,8 +226,7 @@ export const reservationDashboardStats = {
       (ARRAY['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'])[EXTRACT(DOW FROM r.llegada) + 1] AS dia_semana,
       COUNT(*) AS total
     FROM reservas r
-    WHERE r.estado IN ('Completado', 'Pagado')
-      AND r.llegada >= DATE_TRUNC('month', CURRENT_DATE)
+    WHERE r.estado NOT IN ('Cancelado', 'Cancelada')
     GROUP BY 1
     ORDER BY total DESC
     LIMIT 1;

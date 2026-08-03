@@ -87,7 +87,7 @@ export const cabinStats = {
         COALESCE(SUM(pg.total_pagado), 0) AS "Ingresos generados"  
     FROM cabanas c  
     LEFT JOIN paquetes p ON c.cabana_id = p.cabana_id
-    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado <> 'Cancelada'
+    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado NOT IN ('Cancelado', 'Cancelada')
     LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
     LEFT JOIN pagos pg ON f.factura_id = pg.factura_id AND pg.estado IN ('Completado', 'Agregado Manual')
     WHERE c.estado <> 'inactivo'
@@ -107,7 +107,7 @@ export const cabinStats = {
       COALESCE(SUM(pg.total_pagado), 0) AS total
     FROM cabanas c
     LEFT JOIN paquetes p ON c.cabana_id = p.cabana_id
-    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado <> 'Cancelada'
+    LEFT JOIN reservas r ON p.paquete_id = r.paquete_id AND r.estado NOT IN ('Cancelado', 'Cancelada')
     LEFT JOIN facturas f ON r.reserva_id = f.reserva_id
     LEFT JOIN pagos pg ON f.factura_id = pg.factura_id AND pg.estado IN ('Completado', 'Agregado Manual')
     WHERE c.estado <> 'inactivo'
