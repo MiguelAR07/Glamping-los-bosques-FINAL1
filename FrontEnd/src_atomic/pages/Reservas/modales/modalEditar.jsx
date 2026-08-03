@@ -239,9 +239,9 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const formatInputMoney = (val) => {
-    if (val === null || val === undefined || val === '') return '';
-    const num = Number(val) || 0;
-    if (num === 0) return '0';
+    if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+    const num = Number(val);
+    if (isNaN(num) || num === 0) return '';
     return new Intl.NumberFormat('es-CO').format(num);
   };
 
@@ -270,9 +270,18 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const handleSubtotalChange = (val) => {
+    if (val === '' || val === null || val === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        subtotal: '',
+        por_pagar: ''
+      }));
+      return;
+    }
     const numSub = parseMoney(val);
     setFormData(prev => {
-      const nuevoPorPagar = Math.max(0, numSub - prev.total_abonado);
+      const abonado = Number(prev.total_abonado) || 0;
+      const nuevoPorPagar = Math.max(0, numSub - abonado);
       return {
         ...prev,
         subtotal: numSub,
@@ -282,9 +291,18 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const handleTotalAbonadoChange = (val) => {
+    if (val === '' || val === null || val === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        total_abonado: '',
+        por_pagar: Number(prev.subtotal) || 0
+      }));
+      return;
+    }
     const numAbono = parseMoney(val);
     setFormData(prev => {
-      const nuevoPorPagar = Math.max(0, prev.subtotal - numAbono);
+      const sub = Number(prev.subtotal) || 0;
+      const nuevoPorPagar = Math.max(0, sub - numAbono);
       return {
         ...prev,
         total_abonado: numAbono,
@@ -294,9 +312,18 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   };
 
   const handlePorPagarChange = (val) => {
+    if (val === '' || val === null || val === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        por_pagar: '',
+        total_abonado: Number(prev.subtotal) || 0
+      }));
+      return;
+    }
     const numRestante = parseMoney(val);
     setFormData(prev => {
-      const nuevoAbono = Math.max(0, prev.subtotal - numRestante);
+      const sub = Number(prev.subtotal) || 0;
+      const nuevoAbono = Math.max(0, sub - numRestante);
       return {
         ...prev,
         por_pagar: numRestante,
