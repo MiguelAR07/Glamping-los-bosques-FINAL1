@@ -1039,6 +1039,20 @@ export const updateReservation = async (req, res) => {
         }
         const { cliente_id } = resQuery.rows[0];
 
+        // Helper para fechas sin desfasamiento de zona horaria (UTC-5 Colombia)
+        const formatDbDate = (val, defaultTime = '15:00:00') => {
+          if (!val) return null;
+          const s = String(val).trim();
+          if (!s) return null;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            return `${s} ${defaultTime}`;
+          }
+          if (s.includes('T')) {
+            return `${s.split('T')[0]} ${defaultTime}`;
+          }
+          return s;
+        };
+
         // 2. Actualizar la tabla reservas
         await pool.query(`
             UPDATE reservas SET
@@ -1054,8 +1068,8 @@ export const updateReservation = async (req, res) => {
             adultos !== undefined && adultos !== null && adultos !== '' ? Number(adultos) : null,
             ninos !== undefined && ninos !== null && ninos !== '' ? Number(ninos) : null,
             mascotas !== undefined && mascotas !== null && mascotas !== '' ? Number(mascotas) : null,
-            llegada ? new Date(llegada).toISOString() : null,
-            salida ? new Date(salida).toISOString() : null,
+            formatDbDate(llegada, '15:00:00'),
+            formatDbDate(salida, '13:00:00'),
             estado || null,
             por_pagar !== undefined && por_pagar !== null && por_pagar !== '' ? parseMoney(por_pagar) : null,
             id
@@ -1098,7 +1112,7 @@ export const updateReservation = async (req, res) => {
                 const fId = invRes.rows[0].factura_id;
                 const sub = Number(invRes.rows[0].subtotal) || 0;
                 const desc = Number(invRes.rows[0].descuento) || 0;
-                const rem = Number(por_pagar) || 0;
+                const rem = parseMoney(por_pagar);
                 const calcPaid = Math.max(0, (sub * (1 - desc / 100.0)) - rem);
 
                 const checkPago = await pool.query("SELECT pago_id FROM pagos WHERE factura_id = $1", [fId]);
@@ -1139,9 +1153,17 @@ export const updateReservation = async (req, res) => {
             }
         }
 
+        // 6. Consultar los datos actualizados desde la vista
+        const updatedQuery = await pool.query("SELECT * FROM vista_reservas WHERE reserva_id = $1", [id]);
+        const updatedRow = updatedQuery.rows.length > 0 ? updatedQuery.rows[0] : null;
+
         await pool.query("COMMIT");
 
-        res.status(200).json({ success: true, message: "Reserva actualizada correctamente." });
+        res.status(200).json({ 
+            success: true, 
+            message: "Reserva actualizada correctamente.",
+            data: updatedRow
+        });
     } catch (error) {
         await pool.query("ROLLBACK");
         console.error("Error actualizando reserva:", error);

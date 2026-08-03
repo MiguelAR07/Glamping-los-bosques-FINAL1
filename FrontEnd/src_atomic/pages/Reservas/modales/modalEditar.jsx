@@ -245,9 +245,11 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
       const data = await response.json();
 
       if (response.ok) {
-        Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva actualizada correctamente con sus servicios.' });
-        fetchData();
         setModalAbierto(false);
+        if (typeof fetchData === 'function') {
+          fetchData();
+        }
+        Swal.fire({ icon: 'success', title: 'Éxito', text: 'Reserva actualizada correctamente.' });
       } else {
         Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Error al actualizar la reserva.' });
       }
