@@ -1027,7 +1027,8 @@ export const updateReservation = async (req, res) => {
             cliente_cedula,
             subtotal,
             descuento,
-            cabana_id
+            cabana_id,
+            total_abonado
         } = req.body;
 
         await pool.query("BEGIN");
@@ -1114,20 +1115,26 @@ export const updateReservation = async (req, res) => {
             `, [sub, desc, id]);
         }
 
-        // Sincronizar pago registrado si cambio por_pagar
-        if (por_pagar !== undefined && por_pagar !== null && por_pagar !== '') {
+        // Sincronizar pago registrado si cambió por_pagar o total_abonado
+        if (por_pagar !== undefined || total_abonado !== undefined) {
             const invRes = await pool.query("SELECT f.factura_id, f.subtotal, f.descuento FROM facturas f WHERE f.reserva_id = $1", [id]);
             if (invRes.rows.length > 0) {
                 const fId = invRes.rows[0].factura_id;
-                const sub = Number(invRes.rows[0].subtotal) || 0;
-                const desc = Number(invRes.rows[0].descuento) || 0;
-                const rem = parseMoney(por_pagar);
-                const calcPaid = Math.max(0, (sub * (1 - desc / 100.0)) - rem);
+                const sub = subtotal !== undefined && subtotal !== null && subtotal !== '' ? parseMoney(subtotal) : (Number(invRes.rows[0].subtotal) || 0);
+                const desc = descuento !== undefined && descuento !== null && descuento !== '' ? parseMoney(descuento) : (Number(invRes.rows[0].descuento) || 0);
+                
+                let calcPaid = 0;
+                if (total_abonado !== undefined && total_abonado !== null && total_abonado !== '') {
+                    calcPaid = parseMoney(total_abonado);
+                } else if (por_pagar !== undefined && por_pagar !== null && por_pagar !== '') {
+                    const rem = parseMoney(por_pagar);
+                    calcPaid = Math.max(0, (sub * (1 - desc / 100.0)) - rem);
+                }
 
                 const checkPago = await pool.query("SELECT pago_id FROM pagos WHERE factura_id = $1", [fId]);
                 if (checkPago.rows.length > 0) {
                     await pool.query("UPDATE pagos SET total_pagado = $1 WHERE factura_id = $2", [calcPaid, fId]);
-                } else if (calcPaid > 0) {
+                } else if (calcPaid >= 0) {
                     const methodRes = await pool.query("SELECT metodo_id FROM metodos_pago ORDER BY metodo_id ASC LIMIT 1");
                     const metodo_id = methodRes.rows.length > 0 ? methodRes.rows[0].metodo_id : 1;
                     await pool.query("INSERT INTO pagos (factura_id, fecha_pago, metodo_id, estado, total_pagado) VALUES ($1, CURRENT_DATE, $2, 'Agregado Manual', $3)", [fId, metodo_id, calcPaid]);
