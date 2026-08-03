@@ -143,6 +143,7 @@ const BotonGuardar = styled.button`
 
 export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fetchData }) {
   const [loading, setLoading] = useState(false);
+  const [cabanas, setCabanas] = useState([]);
   const [todosLosServicios, setTodosLosServicios] = useState([]);
   const [serviciosPaqueteIds, setServiciosPaqueteIds] = useState(new Set());
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
@@ -165,6 +166,7 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     cliente_cedula: reservaAEditar.Cédula || reservaAEditar.numero_identificacion || '',
     cliente_email: reservaAEditar.email || reservaAEditar.Email || '',
 
+    cabana_id: reservaAEditar.cabana_id || reservaAEditar.id_cabana || '',
     llegada: formatDateForInput(reservaAEditar.llegada),
     salida: formatDateForInput(reservaAEditar.salida),
     adultos: reservaAEditar.adultos !== undefined ? reservaAEditar.adultos : 2,
@@ -177,8 +179,17 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
     descuento: Number(reservaAEditar.descuento || 0) || 0
   });
 
-  // Cargar todos los servicios disponibles
+  // Cargar lista de cabañas y servicios disponibles
   useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cabins`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCabanas(data.filter(c => c.estado?.toLowerCase() === 'activo' || !c.estado));
+        }
+      })
+      .catch(err => console.error("Error cargando lista de cabañas", err));
+
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/services`)
       .then(res => res.json())
       .then(data => {
@@ -205,6 +216,26 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
         .finally(() => setLoadingServicios(false));
     }
   }, [reservaAEditar]);
+
+  const handleCabinChange = (newCabinId) => {
+    const idNum = Number(newCabinId);
+    const selectedCabin = cabanas.find(c => Number(c.cabana_id || c.id) === idNum);
+
+    if (selectedCabin) {
+      const newCabinPrice = Number(selectedCabin.precio_noche || selectedCabin.precio || 0);
+      const abonadoActual = Math.max(0, Number(formData.subtotal || 0) - Number(formData.por_pagar || 0));
+      const nuevoPorPagar = Math.max(0, newCabinPrice - abonadoActual);
+
+      setFormData(prev => ({
+        ...prev,
+        cabana_id: idNum,
+        subtotal: newCabinPrice,
+        por_pagar: nuevoPorPagar
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, cabana_id: idNum }));
+    }
+  };
 
   const toggleServicio = (servicioId) => {
     setServiciosSeleccionados(prev => {
@@ -283,6 +314,20 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
         </FormGroup>
 
         <h3>Datos de la Estadía</h3>
+        <FormGroup>
+          <label>Cabaña Asignada</label>
+          <select 
+            value={formData.cabana_id} 
+            onChange={(e) => handleCabinChange(e.target.value)}
+          >
+            <option value="">Seleccionar Cabaña</option>
+            {cabanas.map(c => (
+              <option key={c.cabana_id || c.id} value={c.cabana_id || c.id}>
+                {c.nombre} (${Number(c.precio_noche || c.precio || 0).toLocaleString('es-CO')})
+              </option>
+            ))}
+          </select>
+        </FormGroup>
         <FormGroup>
           <label>Fecha de Llegada</label>
           <input required type="date" value={formData.llegada} onChange={(e) => handleChange('llegada', e.target.value)} />

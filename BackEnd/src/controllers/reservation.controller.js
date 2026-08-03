@@ -1026,18 +1026,27 @@ export const updateReservation = async (req, res) => {
             cliente_email,
             cliente_cedula,
             subtotal,
-            descuento
+            descuento,
+            cabana_id
         } = req.body;
 
         await pool.query("BEGIN");
 
         // 1. Obtener la reserva actual
-        const resQuery = await pool.query("SELECT cliente_id FROM reservas WHERE reserva_id = $1", [id]);
+        const resQuery = await pool.query("SELECT cliente_id, paquete_id FROM reservas WHERE reserva_id = $1", [id]);
         if (resQuery.rows.length === 0) {
             await pool.query("ROLLBACK");
             return res.status(404).json({ message: "Reserva no encontrada." });
         }
-        const { cliente_id } = resQuery.rows[0];
+        const { cliente_id, paquete_id } = resQuery.rows[0];
+
+        // 1.1 Actualizar cabaña si fue modificada
+        if (cabana_id && paquete_id) {
+            const cabId = Number(cabana_id);
+            if (!isNaN(cabId) && cabId > 0) {
+                await pool.query("UPDATE paquetes SET cabana_id = $1 WHERE paquete_id = $2", [cabId, paquete_id]);
+            }
+        }
 
         // Helper para fechas sin desfasamiento de zona horaria (UTC-5 Colombia)
         const formatDbDate = (val, defaultTime = '15:00:00') => {
