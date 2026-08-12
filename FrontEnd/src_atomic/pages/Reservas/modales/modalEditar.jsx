@@ -40,6 +40,10 @@ const FormGroup = styled.div`
   }
 `;
 
+const FullWidthGroup = styled(FormGroup)`
+  grid-column: 1 / -1;
+`;
+
 const ServiciosGrid = styled.div`
   grid-column: 1 / -1;
   display: grid;
@@ -148,6 +152,19 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
   const [serviciosPaqueteIds, setServiciosPaqueteIds] = useState(new Set());
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
   const [loadingServicios, setLoadingServicios] = useState(false);
+  const [comprobanteFile, setComprobanteFile] = useState(null);
+
+  const currentComprobanteUrl = reservaAEditar.comprobante_url || reservaAEditar.factura_url || '';
+
+  const verComprobanteActual = () => {
+    if (currentComprobanteUrl) {
+      let finalUrl = currentComprobanteUrl;
+      if (finalUrl.toLowerCase().endsWith('.pdf')) {
+        finalUrl = finalUrl.slice(0, -4) + '.jpg';
+      }
+      window.open(finalUrl, "_blank");
+    }
+  };
 
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return '';
@@ -201,14 +218,24 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
       .catch(err => console.error("Error cargando lista de servicios", err));
 
     // Cargar servicios actuales de la reserva
-    const paqueteId = reservaAEditar.paquete_id;
-    if (paqueteId) {
+    const idReserva = reservaAEditar.reserva_id || reservaAEditar.id;
+    const paqueteId = reservaAEditar.paquete_id || reservaAEditar.id_paquete;
+    if (idReserva || paqueteId) {
       setLoadingServicios(true);
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/packages/${paqueteId}/services`)
+      const url = idReserva 
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/reservations/services/${idReserva}`
+        : `${import.meta.env.VITE_API_BASE_URL}/api/packages/${paqueteId}/services`;
+
+      const token = localStorage.getItem("token");
+      fetch(url, {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {}
+      })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            const pkgServiceIds = new Set(data.map(s => Number(s.servicio_id || s.id)));
+            const pkgServiceIds = new Set(
+              data.map(s => Number(s.servicio_id || s.id)).filter(n => n && !isNaN(n))
+            );
             setServiciosPaqueteIds(pkgServiceIds);
             setServiciosSeleccionados(Array.from(pkgServiceIds));
           }
@@ -320,21 +347,35 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
       const token = localStorage.getItem("token");
       const idReserva = reservaAEditar.reserva_id || reservaAEditar.id;
 
-      const payload = {
-        ...formData,
-        subtotal: parseMoneyStrict(inputSubtotal),
-        total_abonado: parseMoneyStrict(inputTotalAbonado),
-        por_pagar: parseMoneyStrict(inputPorPagar),
-        servicios: serviciosSeleccionados.map(id => ({ servicio_id: id }))
-      };
+      const submitData = new FormData();
+      submitData.append("cliente_nombre", formData.cliente_nombre || '');
+      submitData.append("cliente_contacto", formData.cliente_contacto || '');
+      submitData.append("cliente_cedula", formData.cliente_cedula || '');
+      submitData.append("cliente_email", formData.cliente_email || '');
+
+      submitData.append("cabana_id", formData.cabana_id || '');
+      submitData.append("llegada", formData.llegada || '');
+      submitData.append("salida", formData.salida || '');
+      submitData.append("adultos", formData.adultos);
+      submitData.append("ninos", formData.ninos);
+      submitData.append("mascotas", formData.mascotas);
+      submitData.append("estado", formData.estado);
+
+      submitData.append("subtotal", parseMoneyStrict(inputSubtotal));
+      submitData.append("total_abonado", parseMoneyStrict(inputTotalAbonado));
+      submitData.append("por_pagar", parseMoneyStrict(inputPorPagar));
+      
+      const serviciosPayload = serviciosSeleccionados.map(id => ({ servicio_id: id }));
+      submitData.append("servicios", JSON.stringify(serviciosPayload));
+
+      if (comprobanteFile) {
+        submitData.append("comprobante", comprobanteFile);
+      }
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/update/${idReserva}`, {
         method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+        body: submitData
       });
 
       const data = await response.json();
@@ -432,7 +473,11 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => {}}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleServicio(servicioId);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div className="info-servicio">
                     <span className="nombre">{s.servicio || s.nombre || 'Servicio'}</span>
@@ -492,6 +537,88 @@ export default function ModalEditarReserva({ reservaAEditar, setModalAbierto, fe
             onBlur={handlePorPagarBlur}
           />
         </FormGroup>
+
+        <h3>Comprobante de Pago</h3>
+        <FullWidthGroup>
+          {currentComprobanteUrl ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc', padding: '14px 18px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <span style={{ fontWeight: '600', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="bi bi-file-earmark-check-fill" style={{ color: '#16a34a', fontSize: '1.3rem' }}></i>
+                  Comprobante cargado actualmente
+                </span>
+                <button
+                  type="button"
+                  onClick={verComprobanteActual}
+                  style={{
+                    background: '#e2e8f0',
+                    color: '#0f172a',
+                    border: '1px solid #cbd5e1',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="bi bi-eye-fill"></i> Ver Comprobante Actual
+                </button>
+              </div>
+              <div style={{ marginTop: '5px' }}>
+                <label style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                  ¿Deseas cambiar o reemplazar este comprobante?
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*,.pdf" 
+                  onChange={(e) => setComprobanteFile(e.target.files[0] || null)} 
+                />
+                {comprobanteFile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 'bold' }}>
+                      Nuevo comprobante seleccionado: {comprobanteFile.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setComprobanteFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    >
+                      Cancelar cambio
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label style={{ fontWeight: 'bold', fontSize: '0.9em', color: '#555', display: 'block', marginBottom: '5px' }}>
+                Adjuntar Comprobante de Pago (Opcional)
+              </label>
+              <input 
+                type="file" 
+                accept="image/*,.pdf" 
+                onChange={(e) => setComprobanteFile(e.target.files[0] || null)} 
+              />
+              {comprobanteFile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 'bold' }}>
+                    Comprobante seleccionado: {comprobanteFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setComprobanteFile(null)}
+                    style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                  >
+                    Quitar archivo
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </FullWidthGroup>
 
         <BotonGuardar type="submit" disabled={loading}>
           {loading ? 'Guardando Cambios...' : 'Guardar Cambios de Reserva'}

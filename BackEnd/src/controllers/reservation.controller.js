@@ -949,7 +949,13 @@ export const getReservationServices = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query(`
-            SELECT s.servicio AS nombre, sp.cantidad_personas, s.precio
+            SELECT 
+                sp.servicio_id,
+                sp.servicio_id AS id,
+                s.servicio AS nombre, 
+                s.nombre AS servicio_nombre,
+                sp.cantidad_personas, 
+                s.precio
             FROM servicios_por_paquete sp
             JOIN vista_servicios s ON sp.servicio_id = s.id
             JOIN paquetes p ON p.paquete_id = sp.paquete_id
@@ -1056,6 +1062,14 @@ export const updateReservation = async (req, res) => {
             }
         }
 
+        // 1.2 Actualizar comprobante de pago si se subió un nuevo archivo
+        if (req.file) {
+            const comprobanteUrl = req.file.path || req.file.secure_url || req.file.url;
+            if (comprobanteUrl) {
+                await pool.query("UPDATE reservas SET factura_url = $1 WHERE reserva_id = $2", [comprobanteUrl, id]);
+            }
+        }
+
         // Helper para fechas sin desfasamiento de zona horaria (UTC-5 Colombia)
         const formatDbDate = (val, defaultTime = '15:00:00') => {
           if (!val) return null;
@@ -1150,26 +1164,47 @@ export const updateReservation = async (req, res) => {
         }
 
         // 5. Guardar/actualizar servicios otorgados
-        const { servicios } = req.body;
-        if (servicios && Array.isArray(servicios)) {
+        let { servicios } = req.body;
+        if (typeof servicios === "string") {
+            try {
+                servicios = JSON.parse(servicios);
+            } catch (e) {
+                console.error("Error parseando servicios JSON:", e);
+            }
+        }
+
+        if (servicios !== undefined && Array.isArray(servicios)) {
             const pkgQuery = await pool.query("SELECT paquete_id FROM reservas WHERE reserva_id = $1", [id]);
             if (pkgQuery.rows.length > 0 && pkgQuery.rows[0].paquete_id) {
-                const paqueteId = pkgQuery.rows[0].paquete_id;
+                let paqueteId = pkgQuery.rows[0].paquete_id;
+
+                // Si el paquete es compartido por más de 1 reserva, clonarlo para que la modificación sea independiente
+                const countRes = await pool.query("SELECT COUNT(*) FROM reservas WHERE paquete_id = $1", [paqueteId]);
+                if (parseInt(countRes.rows[0].count) > 1) {
+                    const oldPkg = await pool.query("SELECT cabana_id, dias_estadia, tipo_id, nombre, descripcion FROM paquetes WHERE paquete_id = $1", [paqueteId]);
+                    if (oldPkg.rows.length > 0) {
+                        const pRow = oldPkg.rows[0];
+                        const newPkg = await pool.query(
+                            "INSERT INTO paquetes (cabana_id, dias_estadia, tipo_id, nombre, descripcion, estado) VALUES ($1, $2, $3, $4, $5, 'Activo') RETURNING paquete_id",
+                            [pRow.cabana_id, pRow.dias_estadia || 1, pRow.tipo_id || 1, `${pRow.nombre || 'Paquete'} (Reserva ${id})`, pRow.descripcion || '']
+                        );
+                        paqueteId = newPkg.rows[0].paquete_id;
+                        await pool.query("UPDATE reservas SET paquete_id = $1 WHERE reserva_id = $2", [paqueteId, id]);
+                    }
+                }
+
+                // Limpiar servicios anteriores para esta reserva
+                await pool.query("DELETE FROM servicios_por_paquete WHERE paquete_id = $1", [paqueteId]);
+
                 for (let s of servicios) {
                     const servicioId = typeof s === 'object' ? Number(s.servicio_id || s.id) : Number(s);
                     if (servicioId && !isNaN(servicioId)) {
                         const checkServicio = await pool.query("SELECT 1 FROM servicios WHERE servicio_id = $1", [servicioId]);
                         if (checkServicio.rows.length > 0) {
-                            const checkExist = await pool.query(
-                                "SELECT 1 FROM servicios_por_paquete WHERE paquete_id = $1 AND servicio_id = $2",
-                                [paqueteId, servicioId]
+                            await pool.query(
+                                "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
+                                [paqueteId, servicioId, s.cantidad_personas || s.personas || 1]
                             );
-                            if (checkExist.rows.length === 0) {
-                                await pool.query(
-                                    "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) VALUES ($1, $2, $3)",
-                                    [paqueteId, servicioId, s.cantidad_personas || s.personas || 1]
-                                );
-                            }
                         }
                     }
                 }

@@ -30,8 +30,8 @@ import upload from "../services/multer.service.js";
 const router = Router();
 
 router.post('/', upload.single('comprobante'), createReservation);
-router.put('/update/:id', updateReservation);
-router.put('/:id', updateReservation);
+router.put('/update/:id', upload.single('comprobante'), updateReservation);
+router.put('/:id', upload.single('comprobante'), updateReservation);
 router.put('/:id/payment', upload.single('comprobante'), uploadPaymentReceipt);
 router.put('/confirm/:id', confirmReservationPayment);
 router.put('/reject/:id', rejectReservationPayment);
