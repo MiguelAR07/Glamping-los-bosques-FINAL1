@@ -8,20 +8,25 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10000;
+  padding: 20px;
 `;
 
 const ModalContent = styled.div`
   background: white;
-  padding: 30px;
-  border-radius: 8px;
+  padding: 25px 30px;
+  border-radius: 12px;
   width: 500px;
-  max-width: 90%;
-  
+  max-width: 95%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+
   h2 {
     margin-top: 0;
     color: #43523A;
