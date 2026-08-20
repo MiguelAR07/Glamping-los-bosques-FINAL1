@@ -17,7 +17,8 @@ import {
     cancelReservationForceMajeure,
     hardDeleteAllCanceledReservations,
     hardDeleteMultipleCanceledReservations,
-    updateReservation
+    updateReservation,
+    sendBalanceReminder
 } from '../controllers/reservation.controller.js';
 
 import { validateRules } from "../middleware/validate.middleware.js";
@@ -36,6 +37,7 @@ router.put('/:id/payment', upload.single('comprobante'), uploadPaymentReceipt);
 router.put('/confirm/:id', confirmReservationPayment);
 router.put('/reject/:id', rejectReservationPayment);
 router.post('/force-cancel/:id', cancelReservationForceMajeure);
+router.post('/send-balance-reminder/:id', sendBalanceReminder);
 
 import { transporter } from "../services/nodemailer.service.js";
 router.get('/test-email', async (req, res) => {

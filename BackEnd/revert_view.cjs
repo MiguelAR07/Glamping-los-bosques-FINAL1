@@ -28,23 +28,13 @@ CREATE OR REPLACE VIEW vista_reservas AS
     r.reserva_id,
     f.factura_id,
     (
-        SELECT COALESCE(
-            NULLIF(
-                concat_ws(', ',
-                    (
-                        SELECT string_agg(
-                            s.nombre || CASE WHEN sp.cantidad_personas > 1 THEN ' (x' || sp.cantidad_personas || ')' ELSE '' END,
-                            ', '
-                        )
-                        FROM servicios_por_paquete sp
-                        JOIN servicios s ON s.servicio_id = sp.servicio_id
-                        WHERE sp.paquete_id = r.paquete_id
-                    ),
-                    CASE WHEN r.adultos > 2 THEN 'Persona Adicional (x' || (r.adultos - 2) || ')' ELSE NULL END
-                ),
-            ''),
-            NULL
+        SELECT string_agg(
+            s.nombre || CASE WHEN sp.cantidad_personas > 1 THEN ' (x' || sp.cantidad_personas || ')' ELSE '' END,
+            ', '
         )
+        FROM servicios_por_paquete sp
+        JOIN servicios s ON s.servicio_id = sp.servicio_id
+        WHERE sp.paquete_id = r.paquete_id
     ) AS "Servicios adicionales"
    FROM (((((reservas r
      JOIN clientes c ON ((c.cliente_id = r.cliente_id)))
@@ -56,7 +46,7 @@ CREATE OR REPLACE VIEW vista_reservas AS
 
 pool.query(sql)
   .then(res => {
-    console.log("View updated");
+    console.log("View updated (Reverted Persona Adicional insertion)");
     process.exit(0);
   })
   .catch(err => {

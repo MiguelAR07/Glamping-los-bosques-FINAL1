@@ -125,8 +125,15 @@ export const packageProducts = {
 export const packageServices = {
   getServices: `
     SELECT
-      * 
-    FROM vista_servicios_por_paquete
-    WHERE paquete_id = $1
+      sp.servicio_paquete_id AS id,
+      sp.servicio_id,
+      sp.paquete_id,
+      s.nombre AS servicio,
+      s.precio,
+      s.img_url,
+      sp.cantidad_personas AS personas
+    FROM servicios_por_paquete sp
+    JOIN vista_servicios s ON sp.servicio_id = s.id
+    WHERE sp.paquete_id = $1
   `,
 };

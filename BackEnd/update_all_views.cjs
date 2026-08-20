@@ -21,12 +21,14 @@ const queries = [
      r.mascotas,
      r.comprobante_saldo_url,
      r.estado_saldo,
-     r.reserva_id
+     r.reserva_id,
+     f.factura_id
    FROM reservas r
      JOIN clientes c ON c.cliente_id = r.cliente_id
      JOIN paquetes p ON p.paquete_id = r.paquete_id
      JOIN tipo_paquete tp ON tp.tipo_id = p.tipo_id
-     JOIN cabanas cb ON cb.cabana_id = p.cabana_id;`
+     JOIN cabanas cb ON cb.cabana_id = p.cabana_id
+     LEFT JOIN facturas f ON f.reserva_id = r.reserva_id;`
 ];
 
 async function updateDb(connectionString, name) {

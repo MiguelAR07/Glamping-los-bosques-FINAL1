@@ -396,6 +396,60 @@ function Reservas({ modulo }) {
     }
   };
 
+  const procesarRecordatorio50 = async (fila) => {
+    const reservaId = fila.reserva_id || fila.id;
+    const saldo = fila['Total Restante'] || 0;
+    const clienteNombre = fila['Cliente'] || fila.cliente || 'Cliente';
+    const enlacePago = `https://glampinglosbosques.com/pagar-saldo/${reservaId}`;
+
+    const result = await Swal.fire({
+      title: '¿Confirmar reserva y enviar enlace de pago (50%)?',
+      html: `
+        <div style="text-align: left; font-size: 0.95rem;">
+          <p>Se enviará al cliente <strong>${clienteNombre}</strong> el correo de confirmación con el enlace directo en el dominio para realizar el pago del saldo restante:</p>
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin: 12px 0;">
+            <p style="margin: 0; color: #166534; font-weight: bold;">📋 Reserva #${reservaId}</p>
+            <p style="margin: 4px 0 0 0; color: #15803d;">💰 Saldo pendiente: $${Number(saldo).toLocaleString('es-CO')}</p>
+          </div>
+          <p style="font-size: 12px; color: #666; word-break: break-all;">🔗 <strong>Enlace en el dominio:</strong><br/>${enlacePago}</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#059669',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: '✅ Enviar correo con enlace',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/send-balance-reminder/${reservaId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        Swal.fire({ 
+          icon: 'success', 
+          title: '¡Correo enviado con éxito!', 
+          text: `Se notificó a ${clienteNombre} con el enlace para el pago del 50% restante.` 
+        });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        Swal.fire({ icon: 'error', title: 'Error', text: errData.message || 'No se pudo enviar el correo.' });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo conectar con el servidor.' });
+    }
+  };
+
   const procesarRechazo = async (reserva, motivo) => {
     try {
       const token = localStorage.getItem("token");
@@ -456,6 +510,7 @@ function Reservas({ modulo }) {
         comprobante_url: r.comprobante_url,
         comprobante_saldo_url: r.comprobante_saldo_url,
         estado_saldo: r.estado_saldo,
+        estado: r.estado,
         'Cliente': r.cliente,
         cliente: r.cliente,
         'Cabaña': r.cabana || r.Cabaña || 'N/A',
@@ -668,27 +723,38 @@ function Reservas({ modulo }) {
                 icono: <i className="bi bi-shield-check" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#0dcaf0",
                 onClick: (fila) => {
-                  // Buscar la reserva original en los datos crudos de la API para tener todos los campos
                   const reservaOriginal = (displayData || []).find(r => 
                     (r.id || r.reserva_id) === (fila.id || fila.reserva_id)
                   );
                   setReservaAValidar(reservaOriginal || fila);
                 },
-                condition: (fila) => fila.estado === 'Por validar'
+                condition: (fila) => {
+                  const est = (fila.estado || '').toLowerCase();
+                  return est === 'por validar';
+                }
               },
               {
-                title: "Ver Comprobante",
+                title: "Confirmar y enviar enlace de pago del 50% restante al cliente",
+                icono: <i className="bi bi-cash-coin" style={{ fontSize: '1.2rem' }}></i>,
+                color: "#059669",
+                onClick: procesarRecordatorio50
+              },
+              {
+                title: "Ver Comprobante de Pago",
                 icono: <i className="bi bi-file-earmark-image" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#ffc107",
                 onClick: verComprobante,
-                condition: (fila) => fila.comprobante_url && fila.comprobante_url.trim() !== ""
+                condition: (fila) => !!(fila.comprobante_url && fila.comprobante_url.trim() !== "")
               },
               {
                 title: "Reprogramar Reserva",
                 icono: <i className="bi bi-calendar2-event" style={{ fontSize: '1.2rem' }}></i>,
                 color: "#6c757d",
                 onClick: (fila) => setReservaAReprogramar(fila),
-                condition: (fila) => fila.estado === 'Confirmado' || fila.estado === 'Por validar' || fila.estado === 'Confirmada'
+                condition: (fila) => {
+                  const est = (fila.estado || '').toLowerCase();
+                  return est === 'confirmado' || est === 'confirmada' || est === 'por validar';
+                }
               }
             ]}
           />

@@ -475,3 +475,71 @@ export const sendPromotionEmailToClients = async (emails, promoDetails) => {
     throw error;
   }
 };
+
+export const sendBalanceReminderEmail = async (email, clienteNombre, reservaId, pagoRestante) => {
+  try {
+    const formatCOP = (val) => Math.round(Number(val) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const enlacePago = `https://glampinglosbosques.com/pagar-saldo/${reservaId}`;
+
+    const response = await transporter.sendMail({
+      from: `"Glamping Los Bosques" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `💰 Recordatorio: Saldo pendiente Reserva #${reservaId} — Glamping Los Bosques`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+          <div style="background-color: #059669; padding: 28px 32px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: 800;">🏕️ Glamping Los Bosques</h1>
+            <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 15px;">Recordatorio de saldo pendiente — Reserva #${reservaId}</p>
+          </div>
+
+          <div style="padding: 32px; background-color: #fafaf9;">
+            <p style="font-size: 16px; color: #374151;">Hola <strong>${clienteNombre}</strong>,</p>
+            <p style="font-size: 15px; color: #6b7280; line-height: 1.6;">
+              Te recordamos que tienes un <strong>saldo pendiente de pago</strong> para completar tu reserva.
+              Por favor, realiza el pago antes de tu llegada para garantizar tu estadía sin contratiempos.
+            </p>
+
+            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin: 24px 0; text-align: center;">
+              <p style="margin: 0; font-size: 14px; color: #856404; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Saldo Restante a Pagar</p>
+              <p style="margin: 8px 0 0 0; font-size: 32px; font-weight: 800; color: #dc2626;">$${formatCOP(pagoRestante)}</p>
+            </div>
+
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${enlacePago}"
+                 style="background-color: #059669; color: white; padding: 16px 36px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block; letter-spacing: 0.3px;">
+                💳 Pagar Saldo Ahora
+              </a>
+            </div>
+
+            <p style="font-size: 13px; color: #9ca3af; text-align: center; margin-top: 16px;">
+              O copia este enlace en tu navegador:<br/>
+              <a href="${enlacePago}" style="color: #059669; word-break: break-all;">${enlacePago}</a>
+            </p>
+
+            <div style="border-top: 1px solid #e5e7eb; margin-top: 28px; padding-top: 20px; text-align: center;">
+              <p style="color: #6b7280; font-size: 13px; margin: 0;">¿Necesitas ayuda? Contáctanos por WhatsApp</p>
+              <a href="https://wa.me/573103599065"
+                 style="display: inline-block; margin-top: 10px; background-color: #25D366; color: white; padding: 10px 22px; border-radius: 6px; font-weight: bold; font-size: 14px; text-decoration: none;">
+                💬 WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; font-size: 11px; color: #9ca3af;">
+              Glamping Los Bosques — Este es un correo automático, por favor no respondas a esta dirección.
+            </p>
+          </div>
+        </div>
+      `
+    });
+
+    console.log(`✅ Email de recordatorio de saldo enviado a ${email}`);
+    return response;
+  } catch (error) {
+    console.error('❌ Error enviando email de recordatorio de saldo:', error);
+    return null;
+  }
+};
+
+

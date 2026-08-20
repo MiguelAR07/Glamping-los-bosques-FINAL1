@@ -275,11 +275,9 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         if (Array.isArray(data)) {
           const pkgServiceIds = new Set(data.map(s => Number(s.servicio_id || s.id)));
           setServiciosPaqueteIds(pkgServiceIds);
-          // Pre-seleccionar los servicios del paquete que aún no estén seleccionados
-          setServiciosSeleccionados(prev => {
-            const combined = new Set([...prev, ...pkgServiceIds]);
-            return Array.from(combined);
-          });
+          // Los servicios adicionales (decoraciones, etc.) inician desmarcados por defecto
+          // para que el usuario o cliente elija solo los que realmente solicite.
+          setServiciosSeleccionados([]);
         }
       })
       .catch(err => console.error("Error cargando servicios del paquete", err))
@@ -297,6 +295,7 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   };
 
   const paquetesFiltrados = paquetes
+    .filter(p => !((p.nombre || p.paquete || '').toLowerCase().startsWith('reserva')))
     .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
     .filter((p, index, self) => index === self.findIndex((t) => t.tipo === p.tipo && (t.cabana_id === p.cabana_id)));
 
@@ -306,7 +305,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
       setSelectedPaquete(selectedPkg || null);
       if (selectedPkg && selectedPkg.tipo) {
         const tipoLower = selectedPkg.tipo.toLowerCase();
-        setIsFinSemana(tipoLower.includes('fin de semana') || tipoLower.includes('fin semana'));
+        const esFinSemana = tipoLower.includes('fin de semana') || tipoLower.includes('fin semana');
+        setIsFinSemana(esFinSemana);
         
         if (tipoLower.includes('ocasional')) {
           setIsOcasional(true);
@@ -335,15 +335,40 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
         }
       };
 
-      if (section === 'reserva' && field === 'llegada') {
-        if (isFinSemana) {
-          // JS getUTCDay() => 0: Domingo, 1: Lunes, 2: Martes, 3: Miércoles, 4: Jueves, 5: Viernes, 6: Sábado
-          const dateSelected = new Date(value);
-          const dayOfWeek = dateSelected.getUTCDay();
-          if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Lunes a Jueves
-            Swal.fire({ icon: 'warning', title: 'Atención', text: 'El plan de fin de semana solo aplica para viernes, sábado y domingo.' });
-            newForm.reserva.llegada = '';
-            return newForm;
+      // Si se cambia el paquete y la fecha que estaba prellenada no corresponde a fin de semana,
+      // se limpia silenciosamente la fecha para evitar alertas prematuras al elegir el plan.
+      if (section === 'reserva' && field === 'paquete_id') {
+        const selectedPkg = paquetes.find(p => p.id === parseInt(value) || p.paquete_id === parseInt(value));
+        if (selectedPkg && selectedPkg.tipo) {
+          const tipoLower = selectedPkg.tipo.toLowerCase();
+          const esFinSemana = tipoLower.includes('fin de semana') || tipoLower.includes('fin semana');
+          if (esFinSemana && newForm.reserva.llegada) {
+            const parts = newForm.reserva.llegada.split('-').map(Number);
+            if (parts.length === 3) {
+              const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+              const dw = dt.getDay();
+              if (dw >= 1 && dw <= 4) {
+                newForm.reserva.llegada = '';
+                newForm.reserva.salida = '';
+              }
+            }
+          }
+        }
+      }
+
+      // La alerta emergente Swal ÚNICAMENTE se dispara cuando el usuario modifica la fecha de llegada
+      if (section === 'reserva' && field === 'llegada' && value) {
+        const esFinSemanaCheck = isFinSemana || (selectedPaquete?.tipo && (selectedPaquete.tipo.toLowerCase().includes('fin de semana') || selectedPaquete.tipo.toLowerCase().includes('fin semana')));
+        if (esFinSemanaCheck) {
+          const parts = value.split('-').map(Number);
+          if (parts.length === 3) {
+            const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayOfWeek = dt.getDay(); // 0: Dom, 1: Lun, 2: Mar, 3: Mié, 4: Jue, 5: Vie, 6: Sáb
+            if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Lunes a Jueves
+              Swal.fire({ icon: 'warning', title: 'Atención', text: 'El plan de fin de semana solo aplica para viernes, sábado y domingo.' });
+              newForm.reserva.llegada = '';
+              return newForm;
+            }
           }
         }
       }
@@ -556,7 +581,11 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => {}} 
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleServicio(servicioId);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div className="info-servicio">
                     <span className="nombre">{s.servicio || s.nombre || 'Servicio'}</span>

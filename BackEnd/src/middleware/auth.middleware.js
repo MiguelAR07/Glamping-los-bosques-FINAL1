@@ -7,7 +7,7 @@ export function verificarToken(req, res, next) {
     
     const baseRoute = req.baseUrl ? req.baseUrl.replace('/api', '') : req.path;
     
-    if (publicPaths.some(publicPath => req.path.startsWith(publicPath) || req.baseUrl.includes(publicPath))) {
+    if (publicPaths.some(publicPath => req.path.startsWith(publicPath) || req.baseUrl.includes(publicPath)) || req.path.includes('/services/')) {
       return next();
     }
   }

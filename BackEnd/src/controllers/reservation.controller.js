@@ -1228,3 +1228,56 @@ export const updateReservation = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+import { sendBalanceReminderEmail } from "../services/nodemailer.service.js";
+
+export const sendBalanceReminder = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Obtener datos del cliente y saldo de la reserva
+        const dataRes = await pool.query(`
+            SELECT 
+                c.email, 
+                c.nombre,
+                r.reserva_id,
+                COALESCE(f.subtotal, 0) as subtotal,
+                COALESCE(f.descuento, 0) as descuento,
+                COALESCE(r.por_pagar, 0) as por_pagar
+            FROM reservas r
+            JOIN clientes c ON r.cliente_id = c.cliente_id
+            LEFT JOIN facturas f ON f.reserva_id = r.reserva_id
+            WHERE r.reserva_id = $1
+            LIMIT 1
+        `, [id]);
+
+        if (dataRes.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Reserva no encontrada." 
+            });
+        }
+
+        const row = dataRes.rows[0];
+        if (!row.email) {
+            return res.status(400).json({
+                success: false,
+                message: "El cliente de esta reserva no tiene correo registrado."
+            });
+        }
+
+        const pagoRestante = Number(row.por_pagar) || 0;
+
+        await sendBalanceReminderEmail(row.email, row.nombre, row.reserva_id, pagoRestante);
+
+        console.log(`✅ Correo de confirmación/saldo enviado a ${row.email} para reserva #${id}`);
+        res.status(200).json({ 
+            success: true, 
+            message: `Correo enviado a ${row.email}` 
+        });
+
+    } catch (error) {
+        console.error("Error en sendBalanceReminder:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
