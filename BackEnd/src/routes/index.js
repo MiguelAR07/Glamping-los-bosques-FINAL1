@@ -40,6 +40,26 @@ router.get('/test-email-public', async (req, res) => {
     }
 });
 
+router.get('/health-db', async (req, res) => {
+    try {
+        const pool = (await import('../config/db.js')).default;
+        const result = await pool.query('SELECT 1 as connected');
+        res.json({
+            status: 'ok',
+            connected: true,
+            hasDatabaseUrl: !!process.env.DATABASE_URL,
+            dbUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) : null
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: error.message,
+            hasDatabaseUrl: !!process.env.DATABASE_URL,
+            dbUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) : null
+        });
+    }
+});
+
 router.use('/login', loginRouter);
 router.use('/balance', balanceRouter);
 router.use('/terms', termsRouter);
