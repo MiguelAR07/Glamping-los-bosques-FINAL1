@@ -46,7 +46,8 @@ export const login = async (req, res) => {
       }
     })
   } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor' });
+    console.error("Error en login controller:", error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 }
 
