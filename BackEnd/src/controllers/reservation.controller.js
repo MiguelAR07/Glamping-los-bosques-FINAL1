@@ -449,7 +449,8 @@ export const createReservation = async (req, res) => {
                 paquete.cabana_id,
                 paquete.dias_estadia,
                 paquete.descripcion,
-                paquete.tipo_id
+                paquete.tipo_id,
+                paquete.nombre || `Reserva - Cabaña ${paquete.cabana_id}`
             ]);
 
             if (packageResult.rowCount === 0) throw new Error("No se pudo crear el paquete.");

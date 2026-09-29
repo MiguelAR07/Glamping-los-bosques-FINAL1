@@ -19,8 +19,8 @@ export const packages = {
     WHERE tipo ILIKE '%' || $1 || '%'
   `,
   createPackage: `
-    INSERT INTO paquetes (cabana_id, dias_estadia, fecha_registro, descripcion, estado, tipo_id)
-    VALUES ($1, $2, CURRENT_DATE, $3, 'Activo', $4)
+    INSERT INTO paquetes (cabana_id, dias_estadia, fecha_registro, descripcion, estado, tipo_id, nombre)
+    VALUES ($1, $2, CURRENT_DATE, $3, 'Activo', $4, $5)
     RETURNING paquete_id
   `,
   // Un paquete debe incluir (servicios, productos, cabañas)
