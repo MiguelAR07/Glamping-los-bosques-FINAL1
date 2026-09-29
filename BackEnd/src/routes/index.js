@@ -20,6 +20,7 @@ import promocionRouter from './promocion.routes.js';
 import availabilityRouter from './availability.routes.js';
 import comprobanteRouter from './comprobante.routes.js';
 import cuentasBancariasRouter from './cuentas_bancarias.routes.js';
+import { getCuentasBancariasActivas } from '../controllers/cuentas_bancarias.controller.js';
 import balanceRouter from './balance.routes.js';
 import termsRouter from './terms.routes.js';
 
@@ -63,6 +64,7 @@ router.get('/health-db', async (req, res) => {
 router.use('/login', loginRouter);
 router.use('/balance', balanceRouter);
 router.use('/terms', termsRouter);
+router.get('/cuentas-bancarias/activas', getCuentasBancariasActivas);
 
 router.use(verificarToken);
 router.use('/cabins', cabinRouter);

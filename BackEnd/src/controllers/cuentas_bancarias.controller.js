@@ -16,6 +16,23 @@ export const getCuentasBancarias = async (req, res) => {
   }
 };
 
+// Obtener solo las cuentas activas (pública, para la página de pago de la Landing)
+export const getCuentasBancariasActivas = async (req, res) => {
+  try {
+    const query = `
+      SELECT banco, tipo_cuenta, numero_cuenta, titular
+      FROM cuentas_bancarias
+      WHERE estado = true
+      ORDER BY id ASC
+    `;
+    const { rows } = await pool.query(query);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener cuentas bancarias activas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
 // Crear una nueva cuenta bancaria
 export const createCuentaBancaria = async (req, res) => {
   const { banco, tipo_cuenta, numero_cuenta, titular, estado } = req.body;
