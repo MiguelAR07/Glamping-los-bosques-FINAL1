@@ -38,7 +38,10 @@ export const useFetch = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error: ${response.status}`);
+        const validationMessages = Array.isArray(errorData.errors)
+          ? errorData.errors.map((e) => e.message).join('\n')
+          : '';
+        throw new Error(errorData.message || validationMessages || `Error: ${response.status}`);
       }
 
       const result = await response.json();
