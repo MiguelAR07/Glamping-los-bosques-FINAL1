@@ -128,12 +128,12 @@ export const packageServices = {
       sp.servicio_paquete_id AS id,
       sp.servicio_id,
       sp.paquete_id,
-      s.servicio,
+      s.nombre AS servicio,
       s.precio,
       s.img_url,
       sp.cantidad_personas AS personas
     FROM servicios_por_paquete sp
-    JOIN vista_servicios s ON sp.servicio_id = s.id
+    JOIN servicios s ON sp.servicio_id = s.servicio_id
     WHERE sp.paquete_id = $1
   `,
 };
