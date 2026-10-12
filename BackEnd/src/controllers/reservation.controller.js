@@ -954,7 +954,7 @@ export const getReservationServices = async (req, res) => {
                 sp.servicio_id,
                 sp.servicio_id AS id,
                 s.servicio AS nombre, 
-                s.nombre AS servicio_nombre,
+                s.servicio AS servicio_nombre,
                 sp.cantidad_personas, 
                 s.precio
             FROM servicios_por_paquete sp

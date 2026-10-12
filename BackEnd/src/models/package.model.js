@@ -128,7 +128,7 @@ export const packageServices = {
       sp.servicio_paquete_id AS id,
       sp.servicio_id,
       sp.paquete_id,
-      s.nombre AS servicio,
+      s.servicio,
       s.precio,
       s.img_url,
       sp.cantidad_personas AS personas
