@@ -1,5 +1,6 @@
 import { Router } from "express";
 import crypto from "crypto";
+import { handleIncomingMessage } from "../services/whatsappBot.service.js";
 
 // Webhook de Meta WhatsApp Cloud API
 // Variables de entorno:
@@ -38,7 +39,8 @@ router.post('/webhook', (req, res) => {
   try {
     const value = req.body?.entry?.[0]?.changes?.[0]?.value;
     for (const msg of value?.messages || []) {
-      console.log(`📩 WhatsApp entrante de ${msg.from} (${msg.type}):`, msg.text?.body || '');
+      console.log(`📩 WhatsApp entrante de ${msg.from} (${msg.type})`);
+      handleIncomingMessage(msg).catch(err => console.error('❌ Error en el bot de WhatsApp:', err));
     }
     for (const st of value?.statuses || []) {
       console.log(`📬 Estado WhatsApp ${st.status} para ${st.recipient_id}`, st.errors ? JSON.stringify(st.errors) : '');

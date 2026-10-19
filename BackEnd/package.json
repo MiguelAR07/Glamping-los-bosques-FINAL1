@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/ElIsaacM/Proyecto-glamping#readme",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.6",

@@ -258,18 +258,19 @@ export const notifyBalanceApproved = (reservaId) => enSegundoPlano('saldo_aproba
 // ---------- resumen diario para la administradora ----------
 
 export const sendDailySummary = async () => {
+  // llegada/salida se guardan como hora UTC sin zona horaria
   const hoy = `(NOW() AT TIME ZONE 'America/Bogota')::date`;
   const llegadas = await pool.query(`
     SELECT id, cliente, cabana, llegada FROM vista_reservas
-    WHERE (llegada AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
+    WHERE (llegada AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
     ORDER BY llegada`);
   const salidas = await pool.query(`
     SELECT id, cliente, cabana FROM vista_reservas
-    WHERE (salida AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
+    WHERE (salida AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
     ORDER BY salida`);
   const saldos = await pool.query(`
     SELECT id, cliente, "Pago restante" AS saldo FROM vista_reservas
-    WHERE (llegada AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
+    WHERE (llegada AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date = ${hoy} AND estado NOT IN ('Cancelada', 'Cancelado')
       AND "Pago restante" > 0`);
 
   const hora = (d) => new Date(d).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: 'numeric', minute: '2-digit', hour12: true });
