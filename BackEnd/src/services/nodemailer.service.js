@@ -17,6 +17,7 @@ const gmailTransporter = nodemailer.createTransport({
 
 export const transporter = {
   sendMail: async (options) => {
+    let brevoError = BREVO_API_KEY ? null : 'BREVO_API_KEY no configurada';
     if (BREVO_API_KEY && BREVO_API_KEY !== 'tu_brevo_api_key_aqui') {
       try {
         let toEmail = options.to;
@@ -49,18 +50,25 @@ export const transporter = {
         if (res.ok) {
           return await res.json();
         }
+        brevoError = `HTTP ${res.status} ${await res.text()}`;
+        console.error("Brevo rechazo el correo:", brevoError);
       } catch (err) {
+        brevoError = err.message;
         console.error("Fallo Brevo, cambiando a Gmail SMTP:", err.message);
       }
     }
 
-    return await gmailTransporter.sendMail({
+    try {
+      return await gmailTransporter.sendMail({
       from: options.from || `"Glamping Los Bosques" <${process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com'}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text
-    });
+      });
+    } catch (gmailErr) {
+      throw new Error(`Brevo: ${brevoError} | Gmail: ${gmailErr.message}`);
+    }
   }
 };
 
@@ -211,7 +219,7 @@ export const sendAdminNotificationEmail = async (clienteNombre, llegada, salida,
   try {
     await transporter.sendMail({
       from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
+      to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com', // Se envía al propio correo del administrador
       subject: '🔔 Nueva Reserva Confirmada',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
@@ -248,7 +256,7 @@ export const sendBalanceAdminNotificationEmail = async (invoiceData) => {
     
     await transporter.sendMail({
       from: `"Sistema Glamping" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Se envía al propio correo del administrador
+      to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com', // Se envía al propio correo del administrador
       subject: `🔔 Comprobante de Saldo Subido (Reserva #${reservaId})`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">

@@ -596,7 +596,7 @@ export const createReservation = async (req, res) => {
                 // Correo al administrador
                 await transporter.sendMail({
                     from: '"Sistema Glamping" <glampinglosbosques9@gmail.com>',
-                    to: process.env.EMAIL_USER,
+                    to: process.env.EMAIL_USER || 'panelglampinglosbosques@gmail.com',
                     subject: '🔔 Nueva Reserva Manual Creada',
                     html: `<h1>Nueva Reserva Manual</h1>
                            <p>Se ha creado manualmente una reserva en el sistema.</p>
