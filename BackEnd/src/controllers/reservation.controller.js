@@ -235,6 +235,7 @@ export const cancelReservation = async (req, res) => {
     if (clientData.rows.length > 0 && clientData.rows[0].email) {
       sendCancelEmail(clientData.rows[0].email, clientData.rows[0].nombre).catch(err => console.error("Error al enviar email de cancelación:", err));
     }
+    notifyReservationCancelled(id);
 
     await pool.query("COMMIT");
     res.json({ message: "Cancelada con éxito", reembolso: montoAPagar });
@@ -583,6 +584,9 @@ export const createReservation = async (req, res) => {
 
         await pool.query("COMMIT");
 
+        // WhatsApp al cliente y a la administradora (en segundo plano)
+        notifyReservationReceived(nueva_reserva_id, { manual: Boolean(req.headers.authorization) });
+
         // Enviar correos de reserva manual en segundo plano
         (async () => {
             try {
@@ -694,6 +698,8 @@ export const uploadPaymentReceipt = async (req, res) => {
         if (result.rowCount === 0) throw new Error("La reserva especificada no existe.");
         await pool.query("COMMIT");
 
+        notifyReceiptUploaded(id, 'anticipo');
+
         res.status(200).json({ success: true, reserva: result.rows[0], mensaje: "Comprobante cargado con éxito" });
     } catch (error) {
         await pool.query("ROLLBACK");
@@ -703,7 +709,7 @@ export const uploadPaymentReceipt = async (req, res) => {
 
 import { sendReservationRejectedEmail, sendAdminNotificationEmail } from "../services/nodemailer.service.js";
 import { sendReservationConfirmedSMS, sendReservationRejectedSMS } from "../services/sms.service.js";
-import { sendReservationConfirmedWhatsApp, sendReservationRejectedWhatsApp, sendRescheduleWhatsApp, sendAdminNotificationWhatsApp } from "../services/whatsapp.service.js";
+import { notifyReservationReceived, notifyReceiptUploaded, notifyReservationConfirmed, notifyReservationRejected, notifyReservationCancelled, notifyReservationRescheduled, notifyBalanceReminder } from "../services/whatsapp.service.js";
 
 export const confirmReservationPayment = async (req, res) => {
     try {
@@ -807,15 +813,10 @@ export const confirmReservationPayment = async (req, res) => {
             sendReservationConfirmedSMS(data.cliente_contacto, data.cliente_nombre).catch(err => console.error(err));
         }
 
-        // 4. Enviar WhatsApp de confirmación (En segundo plano)
-        if (data.cliente_contacto) {
-            sendReservationConfirmedWhatsApp(data.cliente_contacto, data.cliente_nombre).catch(err => console.error(err));
-        }
-
-        // 4.1 Enviar WhatsApp al Admin (En segundo plano)
-        sendAdminNotificationWhatsApp(data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
-
         await pool.query("COMMIT");
+
+        // 4. Enviar WhatsApp de confirmación al cliente (En segundo plano)
+        notifyReservationConfirmed(id);
 
         res.status(200).json({ 
             success: true, 
@@ -863,9 +864,7 @@ export const rejectReservationPayment = async (req, res) => {
         }
 
         // Enviar WhatsApp de rechazo (En segundo plano)
-        if (data.cliente_contacto) {
-            sendReservationRejectedWhatsApp(data.cliente_contacto, data.cliente_nombre, motivo).catch(err => console.error(err));
-        }
+        notifyReservationRejected(id, motivo);
 
         await pool.query("COMMIT");
 
@@ -927,12 +926,10 @@ export const rescheduleReservation = async (req, res) => {
             sendRescheduleEmail(data.cliente_email, data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
         }
 
-        // Enviar WhatsApp de reprogramación (En segundo plano)
-        if (data.cliente_contacto) {
-            sendRescheduleWhatsApp(data.cliente_contacto, data.cliente_nombre, llegadaFormateada, salidaFormateada).catch(err => console.error(err));
-        }
-
         await pool.query("COMMIT");
+
+        // Enviar WhatsApp de reprogramación con las fechas nuevas (En segundo plano)
+        notifyReservationRescheduled(id);
 
         res.status(200).json({ 
             success: true, 
@@ -1002,12 +999,7 @@ export const cancelReservationForceMajeure = async (req, res) => {
 
         // Enviar WhatsApp de cancelación por fuerza mayor (En segundo plano)
         if (data.cliente_contacto) {
-            // Usamos la misma función de rechazo con un motivo fijo
-            sendReservationRejectedWhatsApp(
-                data.cliente_contacto, 
-                data.cliente_nombre, 
-                "Motivos de fuerza mayor. Nuestro equipo de soporte se contactará contigo."
-            ).catch(err => console.error(err));
+            notifyReservationCancelled(id, "Motivos de fuerza mayor. Nuestro equipo de soporte se contactará contigo.");
         }
 
         await pool.query("COMMIT");
@@ -1260,21 +1252,25 @@ export const sendBalanceReminder = async (req, res) => {
         }
 
         const row = dataRes.rows[0];
-        if (!row.email) {
+        const pagoRestante = Number(row.por_pagar) || 0;
+
+        const enviadoWhatsApp = await notifyBalanceReminder(row.reserva_id);
+
+        if (!row.email && !enviadoWhatsApp) {
             return res.status(400).json({
                 success: false,
-                message: "El cliente de esta reserva no tiene correo registrado."
+                message: "El cliente de esta reserva no tiene correo ni WhatsApp válido registrado."
             });
         }
 
-        const pagoRestante = Number(row.por_pagar) || 0;
+        if (row.email) {
+            await sendBalanceReminderEmail(row.email, row.nombre, row.reserva_id, pagoRestante);
+            console.log(`✅ Correo de confirmación/saldo enviado a ${row.email} para reserva #${id}`);
+        }
 
-        await sendBalanceReminderEmail(row.email, row.nombre, row.reserva_id, pagoRestante);
-
-        console.log(`✅ Correo de confirmación/saldo enviado a ${row.email} para reserva #${id}`);
         res.status(200).json({ 
             success: true, 
-            message: `Correo enviado a ${row.email}` 
+            message: [row.email && `Correo enviado a ${row.email}`, enviadoWhatsApp && 'WhatsApp enviado'].filter(Boolean).join(' · ')
         });
 
     } catch (error) {

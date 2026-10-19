@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import pool from '../config/db.js';
 import { transporter } from './nodemailer.service.js';
+import { notifyBalanceReminder, sendDailySummary } from './whatsapp.service.js';
 
 export const startCronJobs = () => {
     // Se ejecuta cada hora en el minuto 0
@@ -10,12 +11,12 @@ export const startCronJobs = () => {
             // Buscar reservas que tengan saldo pendiente, no canceladas, y sin recordatorio enviado
             const result = await pool.query(`
                 SELECT 
-                    r.id, r.llegada, c.nombre as cliente_nombre, c.email as cliente_email,
+                    r.reserva_id AS id, r.llegada, c.nombre as cliente_nombre, c.email as cliente_email,
                     r.por_pagar, r.recordatorio_24h_enviado
                 FROM reservas r
-                JOIN clientes c ON r.cliente_id = c.id
+                JOIN clientes c ON r.cliente_id = c.cliente_id
                 WHERE r.estado_saldo = 'Pendiente' 
-                  AND r.recordatorio_24h_enviado = FALSE
+                  AND COALESCE(r.recordatorio_24h_enviado, FALSE) = FALSE
                   AND r.estado != 'Cancelada'
                   AND r.estado != 'Rechazada'
                   AND r.por_pagar > 0
@@ -38,9 +39,12 @@ export const startCronJobs = () => {
                 // y el evento aún no ha pasado (diffHours > 0)
                 if (diffHours <= 24 && diffHours > 0) {
                     
+                    // Enviar WhatsApp de recordatorio
+                    await notifyBalanceReminder(reserva.id).catch(err => console.error(err));
+
                     // Enviar correo de recordatorio
                     try {
-                        await transporter.sendMail({
+                        if (reserva.cliente_email) await transporter.sendMail({
                             from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
                             to: reserva.cliente_email,
                             subject: '⚠️ Recordatorio: Pago de Saldo Restante - Glamping Los Bosques',
@@ -63,7 +67,7 @@ export const startCronJobs = () => {
 
                         // Marcar recordatorio como enviado
                         await pool.query(
-                            'UPDATE reservas SET recordatorio_24h_enviado = TRUE WHERE id = $1',
+                            'UPDATE reservas SET recordatorio_24h_enviado = TRUE WHERE reserva_id = $1',
                             [reserva.id]
                         );
                         console.log(`✅ Recordatorio enviado a ${reserva.cliente_email} para la reserva ${reserva.id}`);
@@ -77,4 +81,15 @@ export const startCronJobs = () => {
             console.error('❌ Error en el Cron Job de saldos:', error);
         }
     });
+
+    // Resumen diario de reservas por WhatsApp a la administradora (hora de Colombia)
+    const horaResumen = Number(process.env.WHATSAPP_RESUMEN_HORA ?? 7);
+    cron.schedule(`0 ${horaResumen} * * *`, async () => {
+        console.log('⏳ Ejecutando Cron Job: Resumen diario de reservas por WhatsApp...');
+        try {
+            await sendDailySummary();
+        } catch (error) {
+            console.error('❌ Error en el resumen diario de WhatsApp:', error);
+        }
+    }, { timezone: 'America/Bogota' });
 };

@@ -1,6 +1,6 @@
 import pool from '../config/db.js';
 import { sendAdminNotificationEmail, sendBalanceAdminNotificationEmail, sendReservationConfirmedEmail } from '../services/nodemailer.service.js';
-import { sendBalanceApprovedWhatsApp } from '../services/whatsapp.service.js';
+import { notifyBalanceApproved, notifyReceiptUploaded } from '../services/whatsapp.service.js';
 
 export const getBalanceDetails = async (req, res) => {
     try {
@@ -56,6 +56,7 @@ export const uploadBalanceReceipt = async (req, res) => {
             "UPDATE reservas SET comprobante_saldo_url = $1, estado_saldo = 'En revisión' WHERE reserva_id = $2",
             [fileUrl, id]
         );
+        notifyReceiptUploaded(id, 'saldo');
         const vistaRes = await pool.query("SELECT * FROM vista_reservas WHERE id = $1", [id]);
         const extraRes = await pool.query(`
             SELECT f.subtotal, f.descuento, (SELECT total_pagado FROM pagos WHERE factura_id = f.factura_id LIMIT 1) as amountPaid
@@ -154,7 +155,7 @@ export const approveBalance = async (req, res) => {
         await pool.query("COMMIT");
         
         // Enviar WhatsApp en segundo plano
-        sendBalanceApprovedWhatsApp(clienteContacto, clienteNombre).catch(console.error);
+        notifyBalanceApproved(id);
 
         // Enviar Email de factura final al cliente con saldo en 0
         if (clienteEmail) {
