@@ -4,7 +4,11 @@ import cors from "cors";
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({
+  limit: '50mb',
+  // Guarda el cuerpo original para validar la firma del webhook de WhatsApp
+  verify: (req, res, buf) => { req.rawBody = buf; }
+}));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 import path from 'path';
 import { fileURLToPath } from 'url';

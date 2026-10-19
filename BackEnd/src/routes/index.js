@@ -23,6 +23,7 @@ import cuentasBancariasRouter from './cuentas_bancarias.routes.js';
 import { getCuentasBancariasActivas } from '../controllers/cuentas_bancarias.controller.js';
 import balanceRouter from './balance.routes.js';
 import termsRouter from './terms.routes.js';
+import whatsappRouter from './whatsapp.routes.js';
 
 const router = Router();
 
@@ -64,6 +65,7 @@ router.get('/health-db', async (req, res) => {
 router.use('/login', loginRouter);
 router.use('/balance', balanceRouter);
 router.use('/terms', termsRouter);
+router.use('/whatsapp', whatsappRouter);
 router.get('/cuentas-bancarias/activas', getCuentasBancariasActivas);
 
 router.use(verificarToken);
