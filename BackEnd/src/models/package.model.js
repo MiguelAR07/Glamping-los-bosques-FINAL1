@@ -2,9 +2,10 @@
 export const packages = {
   getPackages: `
     SELECT
-      * 
-    FROM vista_paquetes
-    ORDER BY fecha DESC
+      v.*, p.nombre
+    FROM vista_paquetes v
+    JOIN paquetes p ON p.paquete_id = v.id
+    ORDER BY v.fecha DESC
   `,
   getPackageById: `
     SELECT

@@ -295,7 +295,8 @@ export default function ModalAgregar({ setModalAbierto, fetchData, initialDates 
   };
 
   const paquetesFiltrados = paquetes
-    .filter(p => !((p.nombre || p.paquete || '').toLowerCase().startsWith('reserva')))
+    // Ocultar copias creadas para una reserva puntual, ej. "Reserva - Cabaña Bambú (Reserva 51)": traen servicios de esa reserva
+    .filter(p => !(p.nombre || '').includes('('))
     .filter(p => !selectedCabana || p.cabana_id === parseInt(selectedCabana) || p.cabana_id == selectedCabana)
     .filter((p, index, self) => index === self.findIndex((t) => t.tipo === p.tipo && (t.cabana_id === p.cabana_id)));
 
