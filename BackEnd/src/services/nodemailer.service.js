@@ -374,6 +374,54 @@ export const sendRescheduleEmail = async (clienteEmail, clienteNombre, llegada, 
   }
 };
 
+// r = resumen de getReservaResumen (whatsapp.service.js)
+export const sendReservationUpdatedEmail = async (clienteEmail, r) => {
+  const cop = (val) => '$' + Math.round(Number(val) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  try {
+    await transporter.sendMail({
+      from: '"Glamping Los Bosques" <glampinglosbosques9@gmail.com>',
+      to: clienteEmail,
+      subject: '✏️ Reserva actualizada - Glamping Los Bosques',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h1 style="color: #059669; text-align: center;">Tu reserva fue actualizada</h1>
+          <p>Hola <strong>${r.cliente}</strong>,</p>
+          <p>Hicimos cambios en tu reserva <strong>#${r.id}</strong>. <strong>Este correo reemplaza al anterior</strong>: los datos válidos son los siguientes.</p>
+
+          <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #166534;">Detalles actualizados:</h3>
+            <ul style="list-style: none; padding-left: 0;">
+              <li>🏕️ <strong>Plan:</strong> ${r.plan}</li>
+              <li>📅 <strong>Llegada:</strong> ${r.llegadaTxt}</li>
+              <li>📅 <strong>Salida:</strong> ${r.salidaTxt}</li>
+              <li>👥 <strong>Huéspedes:</strong> ${r.huespedes}</li>
+              <li>✨ <strong>Servicios adicionales:</strong> ${r.serviciosTxt}</li>
+              <li>💰 <strong>Total de estadía:</strong> ${cop(r.total)}</li>
+              <li>💰 <strong>Pagado:</strong> ${cop(r.pagado)}</li>
+              <li>💰 <strong>Saldo por pagar:</strong> ${cop(r.saldo)}</li>
+            </ul>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="margin-bottom: 10px; color: #166534; font-weight: bold;">¿Algo no está bien o tienes preguntas?</p>
+            <a href="https://wa.me/573103599065" style="background-color: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              💬 Contáctanos por WhatsApp
+            </a>
+          </div>
+
+          <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
+            Glamping Los Bosques<br>
+            Este es un correo automático, por favor no respondas a esta dirección.
+          </p>
+        </div>
+      `
+    });
+    console.log('✅ Email de reserva actualizada enviado.');
+  } catch (error) {
+    console.error('❌ Error enviando email de reserva actualizada:', error);
+  }
+};
+
 export const sendCancelEmail = async (clienteEmail, clienteNombre) => {
   try {
     await transporter.sendMail({

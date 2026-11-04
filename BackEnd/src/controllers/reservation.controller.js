@@ -905,7 +905,8 @@ export const getLatestReservationId = async (req, res) => {
   }
 };
 
-import { sendRescheduleEmail, sendCancelEmail } from "../services/nodemailer.service.js";
+import { sendRescheduleEmail, sendCancelEmail, sendReservationUpdatedEmail } from "../services/nodemailer.service.js";
+import { getReservaResumen } from "../services/whatsapp.service.js";
 
 export const rescheduleReservation = async (req, res) => {
     try {
@@ -1225,8 +1226,22 @@ export const updateReservation = async (req, res) => {
 
         await pool.query("COMMIT");
 
-        res.status(200).json({ 
-            success: true, 
+        // Reenviar al cliente los datos actualizados (en segundo plano)
+        (async () => {
+            try {
+                const emailRes = await pool.query("SELECT c.email FROM clientes c JOIN reservas r ON c.cliente_id = r.cliente_id WHERE r.reserva_id = $1", [id]);
+                const email = emailRes.rows[0]?.email;
+                const resumen = await getReservaResumen(id);
+                if (email && email.trim() !== '' && resumen) {
+                    await sendReservationUpdatedEmail(email, resumen);
+                }
+            } catch (emailError) {
+                console.error("Error enviando correo de reserva actualizada:", emailError);
+            }
+        })();
+
+        res.status(200).json({
+            success: true,
             message: "Reserva actualizada correctamente.",
             data: updatedRow
         });
