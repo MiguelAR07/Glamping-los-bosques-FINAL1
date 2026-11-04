@@ -489,6 +489,21 @@ export const createReservation = async (req, res) => {
 
             // Guardar Servicios Adicionales otorgados por el admin
             if (servicios && Array.isArray(servicios) && servicios.length > 0) {
+                // El paquete es compartido por otras reservas: clonarlo para no heredarles estos servicios
+                const oldPkg = await pool.query("SELECT cabana_id, dias_estadia, tipo_id, nombre, descripcion FROM paquetes WHERE paquete_id = $1", [nuevo_paquete_id]);
+                if (oldPkg.rows.length > 0) {
+                    const pRow = oldPkg.rows[0];
+                    const newPkg = await pool.query(
+                        "INSERT INTO paquetes (cabana_id, dias_estadia, tipo_id, nombre, descripcion, estado) VALUES ($1, $2, $3, $4, $5, 'Activo') RETURNING paquete_id",
+                        [pRow.cabana_id, pRow.dias_estadia || 1, pRow.tipo_id || 1, `${pRow.nombre || 'Paquete'} (Reserva manual)`, pRow.descripcion || '']
+                    );
+                    await pool.query(
+                        "INSERT INTO servicios_por_paquete (paquete_id, servicio_id, cantidad_personas) SELECT $1, servicio_id, cantidad_personas FROM servicios_por_paquete WHERE paquete_id = $2",
+                        [newPkg.rows[0].paquete_id, nuevo_paquete_id]
+                    );
+                    nuevo_paquete_id = newPkg.rows[0].paquete_id;
+                }
+
                 for (let s of servicios) {
                     const servicioId = typeof s === 'object' ? Number(s.servicio_id || s.id) : Number(s);
                     if (servicioId && !isNaN(servicioId)) {
